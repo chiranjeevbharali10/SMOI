@@ -50,10 +50,15 @@ final class Citations {
         return new Check(new ArrayList<>(cited), new ArrayList<>(invalid));
     }
 
-    /** True if the reply is the fixed "don't know" sentence (allowing for quote style and trailing text). */
+    /**
+     * True if the reply contains the fixed "don't know" sentence anywhere. Small models often add a
+     * preamble ("There is no information about X [S1][S2]. I don't know based on your documents.")
+     * instead of replying with the sentence alone. Such a reply must not count as an answer, and
+     * the citations in its preamble don't support anything.
+     */
     static boolean isDontKnow(String answer) {
-        String normalized = answer.strip().replace('’', '\'').toLowerCase(Locale.ROOT);
-        return normalized.startsWith(Prompts.DONT_KNOW.toLowerCase(Locale.ROOT).replace(".", ""));
+        String normalized = answer.replace('’', '\'').toLowerCase(Locale.ROOT);
+        return normalized.contains(Prompts.DONT_KNOW.toLowerCase(Locale.ROOT).replace(".", ""));
     }
 
     private Citations() {

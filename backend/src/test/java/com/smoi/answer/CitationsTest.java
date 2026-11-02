@@ -46,5 +46,8 @@ class CitationsTest {
         assertThat(Citations.isDontKnow("I don't know based on your documents.")).isTrue();
         assertThat(Citations.isDontKnow("  I don’t know based on your documents")).isTrue();
         assertThat(Citations.isDontKnow("The garden opens at nine [S1].")).isFalse();
+        // A real qwen3.5:2b reply from the end-to-end check: a cited preamble, then the sentence.
+        assertThat(Citations.isDontKnow("Based on your documents, there is no information about who invented "
+                + "the bicycle [S1][S2][S3]. I don't know based on your documents.")).isTrue();
     }
 }

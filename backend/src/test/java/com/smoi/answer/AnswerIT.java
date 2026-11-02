@@ -112,6 +112,16 @@ class AnswerIT extends DocumentApiTest {
     }
 
     @Test
+    void aDontKnowAfterACitedPreambleIsStillADontKnow() {
+        llm.replyWith("There is no information about the founder [S1]. " + Prompts.DONT_KNOW);
+
+        Map<String, Object> body = ask(user, "Who founded the garden?").getBody();
+
+        assertThat(body).containsEntry("outcome", "dont_know");
+        assertThat(citations(body)).isEmpty();
+    }
+
+    @Test
     void withNothingRetrievedTheModelIsNotAskedAtAll() {
         TestUser empty = newUser();
 
