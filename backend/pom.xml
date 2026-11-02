@@ -88,12 +88,20 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
+                <configuration>
+                    <!-- Same timezone fix as the failsafe plugin below, for `./mvnw spring-boot:run`. -->
+                    <jvmArguments>-Duser.timezone=UTC</jvmArguments>
+                </configuration>
             </plugin>
             <plugin>
                 <!-- Integration tests (*IT.java) run in the verify phase, so `./mvnw verify` runs everything. -->
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-failsafe-plugin</artifactId>
                 <configuration>
+                    <!-- The Postgres JDBC driver sends the JVM's default timezone when it connects. Some
+                         machines report legacy aliases such as "Asia/Calcutta", which Postgres 18 rejects.
+                         Tests run in UTC, the same as CI and the Docker image. -->
+                    <argLine>-Duser.timezone=UTC</argLine>
                     <systemPropertyVariables>
                         <smoi.test.pgvector-image>${pgvector.image}</smoi.test.pgvector-image>
                     </systemPropertyVariables>
