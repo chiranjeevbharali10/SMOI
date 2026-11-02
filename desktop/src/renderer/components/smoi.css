@@ -1,0 +1,140 @@
+/*
+ * The speech bubble and the menu panel, as drawn on the design's "speech bubble and panel" board.
+ * All values come from that board; colours, fonts and shapes come from ../theme/tokens.css.
+ */
+
+/* ---------- speech bubble ---------- */
+
+.smoi-bubble {
+  position: relative;
+  box-sizing: border-box;
+  width: max-content;
+  max-width: 300px;
+  background: var(--bubble-bg);
+  border: var(--smoi-border);
+  border-radius: var(--smoi-bubble-radius);
+  padding: 10px 16px;
+  color: var(--smoi-charcoal);
+  font-family: var(--smoi-font-pixel);
+  font-size: 20px;
+  line-height: 1.25;
+  overflow-wrap: break-word;
+}
+.smoi-bubble.tone-nudge { --bubble-bg: var(--smoi-blue); }
+.smoi-bubble.tone-finding { --bubble-bg: var(--smoi-lavender); }
+.smoi-bubble.tone-urgent {
+  --bubble-bg: var(--smoi-pink);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 6px 6px 16px;
+}
+.smoi-bubble.pop { animation: smoi-pop var(--smoi-pop-ms) ease-out both; }
+.smoi-bubble.leaving { opacity: 0; transition: opacity 200ms ease-in; }
+:root.reduced-motion .smoi-bubble.leaving { transition: none; }
+
+/* The tail: a 12px square turned 45 degrees, showing two bordered sides. */
+.smoi-bubble-tail {
+  position: absolute;
+  left: calc(var(--tail-x, 50%) - 6px);
+  width: 12px;
+  height: 12px;
+  background: var(--bubble-bg);
+  transform: rotate(45deg);
+}
+.smoi-bubble.tail-down .smoi-bubble-tail {
+  bottom: -8px;
+  border-right: var(--smoi-border);
+  border-bottom: var(--smoi-border);
+}
+.smoi-bubble.tail-up .smoi-bubble-tail {
+  top: -8px;
+  border-left: var(--smoi-border);
+  border-top: var(--smoi-border);
+}
+
+.smoi-bubble-dismiss {
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  border: 0;
+  border-radius: 50%;
+  background: var(--smoi-panel);
+  color: var(--smoi-charcoal);
+  font-family: var(--smoi-font-body);
+  font-size: 18px;
+  font-weight: 800;
+  line-height: 1;
+  cursor: pointer;
+}
+
+/* ---------- menu panel ---------- */
+
+.smoi-panel {
+  box-sizing: border-box;
+  width: 300px;
+  background: var(--smoi-panel);
+  border: var(--smoi-border);
+  border-radius: var(--smoi-panel-radius);
+  overflow: hidden;
+  box-shadow: var(--smoi-panel-shadow);
+  color: var(--smoi-charcoal);
+  font-family: var(--smoi-font-body);
+}
+.smoi-panel.rise { animation: smoi-rise var(--smoi-rise-ms) ease-out both; }
+
+.smoi-panel-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  background: var(--smoi-green);
+  border-bottom: var(--smoi-border);
+}
+.smoi-panel-title {
+  margin: 0;
+  font-family: var(--smoi-font-pixel);
+  font-weight: 700;
+  font-size: 26px;
+  line-height: 1.2;
+}
+.smoi-panel-mood { font-size: 14px; font-weight: 800; }
+
+.smoi-panel-rows { display: flex; flex-direction: column; padding: 8px; }
+
+.smoi-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 46px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: var(--smoi-row-radius);
+  background: none;
+  color: var(--smoi-charcoal);
+  font-family: inherit;
+  font-size: 16px;
+  font-weight: 700;
+  text-align: left;
+  cursor: pointer;
+}
+.smoi-row:hover { background: var(--smoi-lavender); }
+.smoi-row svg { flex-shrink: 0; }
+/* Unavailable rows keep full-contrast text and stay focusable; they just say so. */
+.smoi-row[aria-disabled='true'] { cursor: default; }
+.smoi-row[aria-disabled='true']:hover { background: none; }
+.smoi-row-label { display: flex; flex-direction: column; line-height: 1.15; }
+.smoi-row-note { font-size: 13px; font-weight: 600; }
+
+/* Hidden from view, still read by screen readers. */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}

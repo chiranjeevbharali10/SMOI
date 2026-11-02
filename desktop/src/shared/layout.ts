@@ -106,3 +106,11 @@ export function placeBubble(frog: Rect, bubble: Size, work: Rect, avoid: Rect | 
     tailX: Math.round(tailX), tail: chosen.tail,
   };
 }
+
+/**
+ * Transparent space around the bubble and the panel inside their windows: room for the bubble's
+ * tail and pop overshoot, and for the panel's 6px shadow and focus outlines. Clicks pass through
+ * this space.
+ */
+export const BUBBLE_INSET = 14;
+export const PANEL_INSET = { x: 6, top: 6, bottom: 14 };

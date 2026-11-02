@@ -7,6 +7,10 @@
  *
  * Electron's safeStorage and the file system are passed in, so the rules are unit-tested.
  */
+import type { SessionStatus } from '../shared/bridge';
+
+export type { SessionStatus };
+
 export interface Crypto {
   isEncryptionAvailable(): boolean;
   encryptString(plain: string): Buffer;
@@ -19,13 +23,6 @@ export interface Files {
   remove(path: string): void;
 }
 
-export interface SessionStatus {
-  signedIn: boolean;
-  email: string | null;
-  expiresAt: string | null;
-  /** False when the token lives only in memory, so the next launch asks to sign in again. */
-  persisted: boolean;
-}
 
 interface Saved {
   token: string;

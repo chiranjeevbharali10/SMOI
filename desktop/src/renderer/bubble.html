@@ -1,0 +1,14 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <!-- Strict policy: only this app's own files, no inline script, no network from the page. -->
+    <meta http-equiv="Content-Security-Policy"
+          content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self'; font-src 'self'; connect-src 'self'; base-uri 'none'; form-action 'none'" />
+    <title>SMOI speech bubble</title>
+  </head>
+  <body class="bubble-page">
+    <div id="root"></div>
+    <script type="module" src="./bubble-main.tsx"></script>
+  </body>
+</html>
