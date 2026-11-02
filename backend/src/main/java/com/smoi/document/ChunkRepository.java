@@ -3,6 +3,7 @@ package com.smoi.document;
 import java.util.List;
 import java.util.UUID;
 
+import com.smoi.embedding.PgVector;
 import com.smoi.ingestion.chunking.ChunkDraft;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.simple.JdbcClient;
@@ -48,7 +49,7 @@ public class ChunkRepository {
                     ps.setObject(6, chunk.pageEnd());
                     ps.setString(7, chunk.section());
                     ps.setInt(8, chunk.tokenCount());
-                    ps.setString(9, toVectorLiteral(embeddings.get(chunk.index())));
+                    ps.setString(9, PgVector.literal(embeddings.get(chunk.index())));
                     ps.setString(10, model);
                 });
     }
@@ -67,15 +68,4 @@ public class ChunkRepository {
                 .list();
     }
 
-    /** pgvector's text format: {@code [0.1,0.2,...]}. Postgres casts it to the vector type. */
-    static String toVectorLiteral(float[] vector) {
-        StringBuilder sb = new StringBuilder(vector.length * 10).append('[');
-        for (int i = 0; i < vector.length; i++) {
-            if (i > 0) {
-                sb.append(',');
-            }
-            sb.append(vector[i]);
-        }
-        return sb.append(']').toString();
-    }
 }

@@ -17,7 +17,8 @@ public record Document(
         int chunkCount,
         Instant createdAt,
         Instant updatedAt,
-        Instant indexedAt) {
+        Instant indexedAt,
+        boolean hostedLlmAllowed) {
 
     public static final String QUEUED = "queued";
     public static final String PROCESSING = "processing";

@@ -94,6 +94,14 @@ public class DocumentService {
         chunks.deleteForDocument(userId, documentId);
     }
 
+    /**
+     * Allows or forbids sending this document's text to a hosted LLM provider. Off by default.
+     * With a local provider the setting has no effect.
+     */
+    public Document setHostedLlmAllowed(UUID userId, UUID documentId, boolean allowed) {
+        return documents.setHostedLlmAllowed(userId, documentId, allowed).orElseThrow(DocumentNotFoundException::new);
+    }
+
     public Document get(UUID userId, UUID documentId) {
         return documents.findActive(userId, documentId).orElseThrow(DocumentNotFoundException::new);
     }

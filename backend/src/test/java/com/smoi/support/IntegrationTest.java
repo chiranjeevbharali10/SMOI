@@ -32,6 +32,9 @@ public abstract class IntegrationTest {
     /** A fresh random key per test run, so no secret is ever committed for tests. */
     protected static final String TEST_JWT_SECRET;
 
+    /** Shared fake reranker sidecar; tests switch its behaviour and reset it afterwards. */
+    protected static final FakeRerankerServer RERANKER = new FakeRerankerServer();
+
     static {
         POSTGRES.start();
         byte[] key = new byte[32];
@@ -46,6 +49,9 @@ public abstract class IntegrationTest {
         registry.add("spring.datasource.password", POSTGRES::getPassword);
         registry.add("smoi.jwt.secret", () -> TEST_JWT_SECRET);
         registry.add("smoi.embedding.provider", () -> "hashing");
+        registry.add("smoi.rerank.enabled", () -> "true");
+        registry.add("smoi.rerank.base-url", RERANKER::url);
+        registry.add("smoi.rerank.timeout", () -> "PT2S");
         registry.add("smoi.ingestion.workers", () -> "4");
         registry.add("smoi.ingestion.poll-interval", () -> "PT0.05S");
         registry.add("smoi.ingestion.lease", () -> "PT5S");

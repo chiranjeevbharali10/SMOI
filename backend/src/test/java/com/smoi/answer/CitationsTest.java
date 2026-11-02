@@ -1,0 +1,50 @@
+package com.smoi.answer;
+
+import java.util.Set;
+
+import org.junit.jupiter.api.Test;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+class CitationsTest {
+
+    private static final Set<String> GIVEN = Set.of("S1", "S2", "S3");
+
+    @Test
+    void collectsValidLabelsInOrderWithoutDuplicates() {
+        Citations.Check check = Citations.check("A [S2]. B [S1][S2]. C [S3, S1].", GIVEN);
+
+        assertThat(check.valid()).isTrue();
+        assertThat(check.cited()).containsExactly("S2", "S1", "S3");
+    }
+
+    @Test
+    void flagsLabelsThatWereNotGiven() {
+        Citations.Check check = Citations.check("A [S1]. B [S4]. C [S1, S12].", GIVEN);
+
+        assertThat(check.invalid()).containsExactly("S4", "S12");
+    }
+
+    @Test
+    void flagsRawIdsAndOtherCitationStyles() {
+        Citations.Check check = Citations.check(
+                "A [3f2504e0-4f89-11d3-9a0c-0305e82c3301]. B [source 2]. C [Doc 1].", GIVEN);
+
+        assertThat(check.invalid()).hasSize(3);
+    }
+
+    @Test
+    void ignoresOrdinaryBrackets() {
+        Citations.Check check = Citations.check("He said it [sic] twice [S1]. Array a[0] too.", GIVEN);
+
+        assertThat(check.valid()).isTrue();
+        assertThat(check.cited()).containsExactly("S1");
+    }
+
+    @Test
+    void recognisesTheDontKnowSentence() {
+        assertThat(Citations.isDontKnow("I don't know based on your documents.")).isTrue();
+        assertThat(Citations.isDontKnow("  I don’t know based on your documents")).isTrue();
+        assertThat(Citations.isDontKnow("The garden opens at nine [S1].")).isFalse();
+    }
+}

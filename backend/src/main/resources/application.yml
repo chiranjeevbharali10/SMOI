@@ -31,6 +31,35 @@ smoi:
   chunking:
     max-tokens: 500
     overlap-tokens: 75
+  llm:
+    # ollama (local, default) or anthropic (hosted, opt-in; needs ANTHROPIC_API_KEY). A hosted
+    # provider only receives documents whose hostedLlmAllowed setting is on.
+    provider: ${LLM_PROVIDER:ollama}
+    # Includes thinking tokens on Claude models, so leave room beyond the answer itself.
+    max-output-tokens: 2048
+    ollama:
+      base-url: ${OLLAMA_BASE_URL:http://localhost:11434}
+      # Chosen by eval/bench_local_llm.py; see eval/README.md.
+      model: ${OLLAMA_CHAT_MODEL:qwen3.5:2b-q4_K_M}
+      # Context window. Prompts are built to fit inside it minus max-output-tokens.
+      num-ctx: ${OLLAMA_NUM_CTX:8192}
+      timeout: PT180S
+    anthropic:
+      api-key: ${ANTHROPIC_API_KEY:}
+      model: ${ANTHROPIC_MODEL:claude-haiku-5-5}
+      # low, medium or high. medium is Haiku 5.5's own default; Phase 3 decides.
+      effort: ${ANTHROPIC_EFFORT:medium}
+      # Prompt budget; below 100K tokens, where Haiku 5.5's higher price tier starts.
+      max-prompt-tokens: 32000
+      timeout: PT120S
+  rerank:
+    # Cross-encoder sidecar (sidecars/reranker). Off unless configured; the hybrid_rerank mode
+    # then returns hybrid results and reports reranking as disabled.
+    enabled: ${RERANK_ENABLED:false}
+    base-url: ${RERANKER_URL:http://localhost:8001}
+    timeout: PT5S
+    # How many hybrid results the cross-encoder reorders.
+    candidates: ${RERANK_CANDIDATES:30}
   embedding:
     # ollama (local model) or hashing (deterministic, no model; for tests only)
     provider: ${EMBEDDING_PROVIDER:ollama}

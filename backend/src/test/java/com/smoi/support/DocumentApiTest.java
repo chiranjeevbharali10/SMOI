@@ -32,9 +32,14 @@ public abstract class DocumentApiTest extends IntegrationTest {
     @Autowired
     protected JdbcClient jdbc;
 
+    @Autowired
+    protected ScriptedLlmProvider llm;
+
     @AfterEach
     void resetEmbeddingFaults() {
         embeddingFaults.reset();
+        RERANKER.reset();
+        llm.reset();
     }
 
     public record TestUser(UUID id, String token) {

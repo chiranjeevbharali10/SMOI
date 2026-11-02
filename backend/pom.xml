@@ -21,6 +21,8 @@
         <java.version>21</java.version>
         <pgvector.image>pgvector/pgvector:0.8.7-pg18-trixie</pgvector.image>
         <tika.version>4.2.0</tika.version>
+        <anthropic-java.version>3.3.0</anthropic-java.version>
+        <springdoc.version>3.2.0</springdoc.version>
     </properties>
 
     <dependencyManagement>
@@ -73,6 +75,19 @@
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
             <scope>runtime</scope>
+        </dependency>
+
+        <!-- Hosted LLM provider (opt-in): the official Anthropic Java SDK. -->
+        <dependency>
+            <groupId>com.anthropic</groupId>
+            <artifactId>anthropic-java</artifactId>
+            <version>${anthropic-java.version}</version>
+        </dependency>
+        <!-- OpenAPI spec generated from the controllers (NFR-07.02): /v3/api-docs -->
+        <dependency>
+            <groupId>org.springdoc</groupId>
+            <artifactId>springdoc-openapi-starter-webmvc-api</artifactId>
+            <version>${springdoc.version}</version>
         </dependency>
 
         <!-- Text extraction. Only the three formats SMOI accepts, not the full parser bundle. -->

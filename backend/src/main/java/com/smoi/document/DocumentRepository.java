@@ -17,7 +17,7 @@ public class DocumentRepository {
 
     private static final String COLUMNS = """
             id, user_id, filename, media_type, size_bytes, content_sha256, version, status, error,
-            chunk_count, created_at, updated_at, indexed_at""";
+            chunk_count, created_at, updated_at, indexed_at, hosted_llm_allowed""";
 
     private final JdbcClient jdbc;
 
@@ -106,6 +106,31 @@ public class DocumentRepository {
                 .param("sha256", sha256)
                 .param("content", content)
                 .query(Document.class)
+                .single();
+    }
+
+    /** Sets whether this document's text may be sent to a hosted LLM. Empty if there is no such document. */
+    public Optional<Document> setHostedLlmAllowed(UUID userId, UUID id, boolean allowed) {
+        return jdbc.sql("""
+                        UPDATE documents SET hosted_llm_allowed = :allowed
+                         WHERE id = :id AND user_id = :userId AND deleted_at IS NULL
+                        RETURNING %s
+                        """.formatted(COLUMNS))
+                .param("allowed", allowed)
+                .param("id", id)
+                .param("userId", userId)
+                .query(Document.class)
+                .optional();
+    }
+
+    /** How many of the user's documents may not be sent to a hosted LLM. */
+    public int countNotAllowedForHostedLlm(UUID userId) {
+        return jdbc.sql("""
+                        SELECT count(*) FROM documents
+                         WHERE user_id = :userId AND deleted_at IS NULL AND NOT hosted_llm_allowed
+                        """)
+                .param("userId", userId)
+                .query(Integer.class)
                 .single();
     }
 

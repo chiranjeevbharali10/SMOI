@@ -7,6 +7,8 @@ import java.util.List;
 import java.util.UUID;
 
 import com.smoi.auth.CurrentUser;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ProblemDetail;
@@ -16,9 +18,11 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -83,6 +87,19 @@ public class DocumentController {
         return result.created() ? ResponseEntity.accepted().body(body) : ResponseEntity.ok(body);
     }
 
+    /**
+     * Change a document's settings. {@code hostedLlmAllowed}: whether its text may be sent to a
+     * hosted (cloud) LLM. Off by default; with a local LLM it has no effect.
+     */
+    @PatchMapping("/{id}")
+    public DocumentResponse update(@AuthenticationPrincipal Jwt jwt, @PathVariable UUID id,
+                                   @Valid @RequestBody UpdateRequest request) {
+        return DocumentResponse.from(service.setHostedLlmAllowed(CurrentUser.id(jwt), id, request.hostedLlmAllowed()));
+    }
+
+    public record UpdateRequest(@NotNull Boolean hostedLlmAllowed) {
+    }
+
     /** Deletes the document and all its chunks and vectors. */
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
@@ -112,11 +129,12 @@ public class DocumentController {
 
     public record DocumentResponse(UUID id, String filename, String mediaType, long sizeBytes, String status,
                                    String error, int chunkCount, int version, Instant createdAt, Instant updatedAt,
-                                   Instant indexedAt) {
+                                   Instant indexedAt, boolean hostedLlmAllowed) {
 
         static DocumentResponse from(Document d) {
             return new DocumentResponse(d.id(), d.filename(), d.mediaType(), d.sizeBytes(), d.status(), d.error(),
-                    d.chunkCount(), d.version(), d.createdAt(), d.updatedAt(), d.indexedAt());
+                    d.chunkCount(), d.version(), d.createdAt(), d.updatedAt(), d.indexedAt(),
+                    d.hostedLlmAllowed());
         }
     }
 
