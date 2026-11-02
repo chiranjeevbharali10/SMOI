@@ -1,6 +1,6 @@
 package com.smoi.embedding;
 
-/** Formats a vector in pgvector's text format, {@code [0.1,0.2,...]}, for {@code CAST(? AS vector)} in SQL. */
+/** Converts vectors to and from pgvector's text format, {@code [0.1,0.2,...]}. */
 public final class PgVector {
 
     private PgVector() {
@@ -15,5 +15,17 @@ public final class PgVector {
             sb.append(vector[i]);
         }
         return sb.append(']').toString();
+    }
+
+    /** Parses pgvector's text output ({@code embedding::text}). */
+    public static float[] parse(String text) {
+        String body = text.strip();
+        body = body.substring(1, body.length() - 1);
+        String[] parts = body.split(",");
+        float[] vector = new float[parts.length];
+        for (int i = 0; i < parts.length; i++) {
+            vector[i] = Float.parseFloat(parts[i]);
+        }
+        return vector;
     }
 }

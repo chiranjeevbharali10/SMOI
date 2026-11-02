@@ -1,0 +1,109 @@
+{
+  "scenario": "search",
+  "settings": {
+    "LLM_PROVIDER": "stub",
+    "RATE_LIMIT_ENABLED": "false",
+    "mode": "hybrid",
+    "users": 10,
+    "stages": [
+      {
+        "duration": "30s",
+        "target": 5
+      },
+      {
+        "duration": "30s",
+        "target": 10
+      },
+      {
+        "duration": "30s",
+        "target": 20
+      },
+      {
+        "duration": "30s",
+        "target": 40
+      }
+    ],
+    "stub_latency": "PT0.2S"
+  },
+  "k6": {
+    "requests": 5684,
+    "requests_per_second": 34.68,
+    "failed_share": 0,
+    "latency_ms": {
+      "p(50)": 218.9,
+      "p(95)": 702.7,
+      "p(99)": 835.4,
+      "max": 960.4,
+      "avg": 285.2
+    },
+    "max_vus": 40,
+    "server_total_ms": {
+      "p(95)": 708.8,
+      "p(99)": 832.6,
+      "max": 956,
+      "avg": 287.6,
+      "p(50)": 221
+    }
+  },
+  "per_stage": {
+    "keyword": 1.9,
+    "total": 703.4,
+    "vector": 3.0,
+    "embed": 698.4
+  },
+  "containers": {
+    "smoi-backend-1": {
+      "cpu_avg_pct": 52.2,
+      "cpu_max_pct": 126.07,
+      "mem_at_end": "506MiB"
+    },
+    "smoi-grafana-1": {
+      "cpu_avg_pct": 1.7,
+      "cpu_max_pct": 2.92,
+      "mem_at_end": "306.4MiB"
+    },
+    "smoi-prometheus-1": {
+      "cpu_avg_pct": 0.6,
+      "cpu_max_pct": 1.28,
+      "mem_at_end": "40.95MiB"
+    },
+    "smoi-jaeger-1": {
+      "cpu_avg_pct": 0.5,
+      "cpu_max_pct": 1.18,
+      "mem_at_end": "130.2MiB"
+    },
+    "smoi-ollama-1": {
+      "cpu_avg_pct": 867.7,
+      "cpu_max_pct": 1060.26,
+      "mem_at_end": "406.4MiB"
+    },
+    "smoi-db-1": {
+      "cpu_avg_pct": 10.1,
+      "cpu_max_pct": 27.21,
+      "mem_at_end": "93.43MiB"
+    }
+  },
+  "environment": {
+    "git": {
+      "commit": "e6456919318218306bfda97487bee82a2445c99d",
+      "dirty": true,
+      "backend_tree": "ea074ff3fe0565557503d46acd3b5441d95a973b",
+      "reranker_tree": "5b075b5e1b9a13615c2fc9f4dd2d39a436a41f81"
+    },
+    "hardware": {
+      "os": "Windows 11",
+      "machine": "AMD64",
+      "logical_cpus": 20,
+      "cpu": "13th Gen Intel(R) Core(TM) i7-13650HX",
+      "ram_gib": 15.6,
+      "docker": {
+        "cpus": 20,
+        "memory_gib": 7.6,
+        "os": "Docker Desktop (containerized)",
+        "server_version": "28.5.2"
+      },
+      "gpu_used": false
+    },
+    "finished": "2026-11-02T19:59:06+00:00"
+  }
+}

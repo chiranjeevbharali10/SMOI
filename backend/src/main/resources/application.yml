@@ -62,6 +62,11 @@ smoi:
       # Prompt budget; below 100K tokens, where Haiku 5.5's higher price tier starts.
       max-prompt-tokens: 32000
       timeout: PT120S
+  retrieval:
+    query-cache:
+      # Per-user exact-match cache of query embeddings in Postgres (QueryEmbeddingCache).
+      enabled: ${QUERY_CACHE_ENABLED:true}
+      ttl: P1D
   rerank:
     # Cross-encoder sidecar (sidecars/reranker). Off unless configured; the hybrid_rerank mode
     # then returns hybrid results and reports reranking as disabled.

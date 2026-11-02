@@ -13,6 +13,7 @@ import com.smoi.llm.LlmProvider;
 import com.smoi.llm.LlmMetrics;
 import com.smoi.llm.LlmResult;
 import com.smoi.llm.LlmUnavailableException;
+import com.smoi.observability.Spans;
 import com.smoi.resilience.ProviderCircuitBreakers;
 import com.smoi.retrieval.RetrievalMode;
 import com.smoi.retrieval.RetrievalResult;
@@ -39,9 +40,11 @@ public class AnswerService {
     private final MeterRegistry metrics;
     private final ProviderCircuitBreakers breakers;
     private final LlmMetrics llmMetrics;
+    private final Spans spans;
 
     public AnswerService(RetrievalService retrieval, LlmProvider llm, DocumentRepository documents,
-                         MeterRegistry metrics, ProviderCircuitBreakers breakers, LlmMetrics llmMetrics) {
+                         MeterRegistry metrics, ProviderCircuitBreakers breakers, LlmMetrics llmMetrics, Spans spans) {
+        this.spans = spans;
         this.retrieval = retrieval;
         this.llm = llm;
         this.documents = documents;
@@ -83,7 +86,7 @@ public class AnswerService {
         onSources.accept(prompt.included());
         LlmResult result;
         try {
-            result = breakers.llm(() -> llm.generate(prompt.request(), onText));
+            result = spans.in("llm.generate", () -> breakers.llm(() -> llm.generate(prompt.request(), onText)));
         } catch (LlmUnavailableException e) {
             // Fallback (NFR-02.07): retrieval worked, so return the passages rather than an error.
             log.warn("LLM unavailable, returning passages only: {}", e.getMessage());

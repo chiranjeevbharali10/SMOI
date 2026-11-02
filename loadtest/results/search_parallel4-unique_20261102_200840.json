@@ -1,0 +1,111 @@
+{
+  "scenario": "search",
+  "settings": {
+    "LLM_PROVIDER": "stub",
+    "RATE_LIMIT_ENABLED": "false",
+    "mode": "hybrid",
+    "users": 10,
+    "stages": [
+      {
+        "duration": "30s",
+        "target": 5
+      },
+      {
+        "duration": "30s",
+        "target": 10
+      },
+      {
+        "duration": "30s",
+        "target": 20
+      },
+      {
+        "duration": "30s",
+        "target": 40
+      }
+    ],
+    "unique_questions": true,
+    "label": "parallel4-unique",
+    "stub_latency": "PT0.2S"
+  },
+  "k6": {
+    "requests": 4227,
+    "requests_per_second": 25.5,
+    "failed_share": 0,
+    "latency_ms": {
+      "p(99)": 1172.0,
+      "max": 1296.4,
+      "avg": 384.8,
+      "p(50)": 277.9,
+      "p(95)": 1046.1
+    },
+    "max_vus": 40,
+    "server_total_ms": {
+      "avg": 395.3,
+      "p(50)": 281,
+      "p(95)": 1045.8,
+      "p(99)": 1170.3,
+      "max": 1291
+    }
+  },
+  "per_stage": {
+    "embed": 1039.9,
+    "keyword": 1.9,
+    "total": 1040.8,
+    "vector": 2.1
+  },
+  "containers": {
+    "smoi-ollama-1": {
+      "cpu_avg_pct": 935.7,
+      "cpu_max_pct": 1041.76,
+      "mem_at_end": "466.8MiB"
+    },
+    "smoi-backend-1": {
+      "cpu_avg_pct": 18.6,
+      "cpu_max_pct": 43.93,
+      "mem_at_end": "578.7MiB"
+    },
+    "smoi-grafana-1": {
+      "cpu_avg_pct": 1.6,
+      "cpu_max_pct": 3.2,
+      "mem_at_end": "356.7MiB"
+    },
+    "smoi-prometheus-1": {
+      "cpu_avg_pct": 0.6,
+      "cpu_max_pct": 1.09,
+      "mem_at_end": "48.91MiB"
+    },
+    "smoi-jaeger-1": {
+      "cpu_avg_pct": 1.5,
+      "cpu_max_pct": 31.4,
+      "mem_at_end": "407.9MiB"
+    },
+    "smoi-db-1": {
+      "cpu_avg_pct": 8.7,
+      "cpu_max_pct": 22.36,
+      "mem_at_end": "97.93MiB"
+    }
+  },
+  "environment": {
+    "git": {
+      "commit": "e6456919318218306bfda97487bee82a2445c99d",
+      "dirty": true,
+      "backend_tree": "ea074ff3fe0565557503d46acd3b5441d95a973b",
+      "reranker_tree": "5b075b5e1b9a13615c2fc9f4dd2d39a436a41f81"
+    },
+    "hardware": {
+      "os": "Windows 11",
+      "machine": "AMD64",
+      "logical_cpus": 20,
+      "cpu": "13th Gen Intel(R) Core(TM) i7-13650HX",
+      "ram_gib": 15.6,
+      "docker": {
+        "cpus": 20,
+        "memory_gib": 7.6,
+        "os": "Docker Desktop (containerized)",
+        "server_version": "28.5.2"
+      },
+      "gpu_used": false
+    },
+    "finished": "2026-11-02T20:08:40+00:00"
+  }
+}

@@ -1,0 +1,12 @@
+# Scrapes SMOI's metrics port (8081, not published outside the Compose network).
+global:
+  scrape_interval: 5s
+  evaluation_interval: 5s
+
+scrape_configs:
+  - job_name: smoi
+    metrics_path: /actuator/prometheus
+    static_configs:
+      # backend: the default single process. backend-api / backend-worker: the "split" profile
+      # (NFR-06.04). Targets that aren't running are simply shown as down.
+      - targets: ["backend:8081", "backend-api:8081", "backend-worker:8081"]

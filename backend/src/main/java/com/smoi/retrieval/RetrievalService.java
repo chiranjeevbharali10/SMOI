@@ -8,6 +8,7 @@ import java.util.UUID;
 
 import com.smoi.embedding.EmbeddingException;
 import com.smoi.embedding.EmbeddingProvider;
+import com.smoi.observability.Spans;
 import com.smoi.resilience.ProviderCircuitBreakers;
 import com.smoi.retrieval.rerank.RerankProperties;
 import com.smoi.retrieval.rerank.Reranker;
@@ -35,9 +36,14 @@ public class RetrievalService {
     private final RerankProperties rerankProps;
     private final ProviderCircuitBreakers breakers;
     private final RetrievalMetrics metrics;
+    private final Spans spans;
+    private final QueryEmbeddingCache queryCache;
 
     public RetrievalService(RetrievalRepository repository, EmbeddingProvider embeddings, Optional<Reranker> reranker,
-                            RerankProperties rerankProps, ProviderCircuitBreakers breakers, RetrievalMetrics metrics) {
+                            RerankProperties rerankProps, ProviderCircuitBreakers breakers, RetrievalMetrics metrics,
+                            Spans spans, QueryEmbeddingCache queryCache) {
+        this.spans = spans;
+        this.queryCache = queryCache;
         this.repository = repository;
         this.embeddings = embeddings;
         this.reranker = reranker;
@@ -55,6 +61,8 @@ public class RetrievalService {
         if (mode == RetrievalMode.HYBRID_RERANK) {
             firstStage = Math.max(firstStage, rerankProps.candidates());
         }
+        final int candidates = firstStage;
+        spans.tag("smoi.retrieval.mode", mode.value());
         long embedMs = 0;
         long keywordMs = 0;
         long vectorMs = 0;
@@ -66,7 +74,8 @@ public class RetrievalService {
         if (mode != RetrievalMode.KEYWORD) {
             long t = System.nanoTime();
             try {
-                queryVector = breakers.embedding(() -> embeddings.embedQuery(query));
+                queryVector = spans.in("retrieval.embed", () -> queryCache.get(userId, embeddings.modelId(), query,
+                        () -> breakers.embedding(() -> embeddings.embedQuery(query))));
             } catch (EmbeddingException e) {
                 // Without a query vector only keyword search can run. Degrade instead of failing (NFR-02.07).
                 log.warn("Embedding the query failed, falling back to keyword search: {}", e.getMessage());
@@ -76,12 +85,14 @@ public class RetrievalService {
         }
         if (mode != RetrievalMode.VECTOR || queryVector == null) {
             long t = System.nanoTime();
-            keyword = repository.keyword(userId, query, firstStage, hostedOnly);
+            keyword = spans.in("retrieval.keyword", () -> repository.keyword(userId, query, candidates, hostedOnly));
             keywordMs = millisSince(t);
         }
         if (queryVector != null) {
             long t = System.nanoTime();
-            vector = repository.vector(userId, queryVector, embeddings.modelId(), firstStage, hostedOnly);
+            float[] v = queryVector;
+            vector = spans.in("retrieval.vector",
+                    () -> repository.vector(userId, v, embeddings.modelId(), candidates, hostedOnly));
             vectorMs = millisSince(t);
         }
 
@@ -106,7 +117,7 @@ public class RetrievalService {
                 long t = System.nanoTime();
                 try {
                     List<RetrievedChunk> hybrid = ranked;
-                    ranked = breakers.reranker(() -> rerank(query, hybrid, reranker.get()));
+                    ranked = spans.in("retrieval.rerank", () -> breakers.reranker(() -> rerank(query, hybrid, reranker.get())));
                     rerankStatus = "applied";
                     rerankModel = reranker.get().modelId();
                 } catch (RerankerUnavailableException e) {

@@ -35,9 +35,12 @@ docs/       srs.md, adr/, design/
   same columns except `user_id`.
 - Every query on a user-owned table filters by `user_id` and by `deleted_at IS NULL`, unless
   it is deliberately reading deleted rows. No exceptions, including admin, batch and test helpers.
-  The single documented exception is the ingestion worker's job claim query (`JobQueue.claim`),
-  which can't know the user before claiming; see `docs/adr/0005-postgres-job-queue.md`. Everything
-  after the claim is scoped to the job's `user_id`.
+  There are two documented exceptions, both approved by the owner:
+  - the ingestion worker's job claim query (`JobQueue.claim`), which can't know the user before
+    claiming; see `docs/adr/0005-postgres-job-queue.md`. Everything after the claim is scoped to the
+    job's `user_id`.
+  - the queue-depth metric (`JobQueue.depth`), a read-only aggregate that returns four counts and
+    no rows or user data; see `docs/adr/0011-observability-and-resilience.md`.
 - Schema changes only through new Flyway migrations. Never edit a migration that has been committed.
 
 ## RAG code

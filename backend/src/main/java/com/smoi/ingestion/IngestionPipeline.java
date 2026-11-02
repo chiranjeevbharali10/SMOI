@@ -15,6 +15,7 @@ import com.smoi.ingestion.chunking.Chunker;
 import com.smoi.ingestion.parsing.Block;
 import com.smoi.ingestion.parsing.DocumentParseException;
 import com.smoi.ingestion.parsing.DocumentParser;
+import com.smoi.observability.Spans;
 import com.smoi.resilience.ProviderCircuitBreakers;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
@@ -50,11 +51,13 @@ public class IngestionPipeline {
     private final TransactionTemplate tx;
     private final ProviderCircuitBreakers breakers;
     private final MeterRegistry meters;
+    private final Spans spans;
 
     public IngestionPipeline(JobQueue queue, DocumentRepository documents, ChunkRepository chunks, DocumentParser parser,
                              Chunker chunker, EmbeddingProvider embeddings, IngestionProperties props,
                              EmbeddingProperties embeddingProps, TransactionTemplate tx,
-                             ProviderCircuitBreakers breakers, MeterRegistry meters) {
+                             ProviderCircuitBreakers breakers, MeterRegistry meters, Spans spans) {
+        this.spans = spans;
         this.breakers = breakers;
         this.meters = meters;
         this.queue = queue;
@@ -73,6 +76,11 @@ public class IngestionPipeline {
      * failure while recording the outcome escapes; the job's lease then expires and it is retried.
      */
     public void run(IngestionJob job) {
+        // One trace per job attempt (a worker has no incoming request to continue).
+        spans.in("ingestion.job", () -> runTraced(job));
+    }
+
+    private void runTraced(IngestionJob job) {
         long start = System.nanoTime();
         String outcome = "retry";
         try {
@@ -119,10 +127,10 @@ public class IngestionPipeline {
 
         // Parse and clean, then chunk.
         long t = System.nanoTime();
-        List<Block> blocks = parser.parse(content.get().bytes(), content.get().mediaType());
+        List<Block> blocks = spans.in("ingestion.parse", () -> parser.parse(content.get().bytes(), content.get().mediaType()));
         stage("parse", t);
         t = System.nanoTime();
-        List<ChunkDraft> drafts = chunker.chunk(blocks);
+        List<ChunkDraft> drafts = spans.in("ingestion.chunk", () -> chunker.chunk(blocks));
         stage("chunk", t);
         queue.renewLease(job);
 
@@ -135,7 +143,8 @@ public class IngestionPipeline {
                     .stream().map(ChunkDraft::text).toList();
             // Through the breaker: while the embedding provider is down, jobs fail fast and back off
             // instead of each waiting for the full timeout.
-            vectors.addAll(checked(breakers.embedding(() -> embeddings.embedDocuments(texts)), texts.size()));
+            vectors.addAll(checked(spans.in("ingestion.embed", () -> breakers.embedding(() -> embeddings.embedDocuments(texts))),
+                    texts.size()));
         }
         stage("embed", t);
 

@@ -68,3 +68,21 @@ results file it came from. The method is in `docs/adr/0010-evaluation-method.md`
 | NFR-09.08 latency reported with quality | p50 and p95 per retrieval mode and per answer stage |
 | Scoring code is correct | `eval/tests/test_metrics.py` (quote matching, recall, MRR, nDCG, percentiles, kappa, sentence splitting, evidence parsing, judge parsing) |
 | Labels match the corpus | `run_eval.py validate` (offline) and a check against the indexed chunks at the start of every run |
+
+## Phase 4: observability and resilience
+
+Measured results are in `docs/performance.md`, produced by `loadtest/run.py`. Decisions are in
+`docs/adr/0011-observability-and-resilience.md`.
+
+| Requirement | Checked by |
+| --- | --- |
+| NFR-01.05 retrieval p95 under 5 s | `loadtest/run.py search` and `scale` (results in `loadtest/results/`) |
+| NFR-02.04 no jobs lost when a worker is killed | `loadtest/run.py worker-kill` (SIGKILL of the worker process during upload load); `IngestionReliabilityIT` (Phase 1) |
+| NFR-02.07 provider down: fallback within a timeout | `resilience/ResilienceIT` (LLM down gives passages, breaker opens and stops calling, closes on recovery; embedding down gives keyword fallback); `loadtest/run.py llm-down` against the real stack |
+| NFR-06.01 no per-user state in memory | Rate limits (`RateLimitIT`, including concurrent requests) and the query cache (`QueryEmbeddingCacheIT`) live in Postgres |
+| NFR-06.03 latency at increasing corpus sizes | `loadtest/run.py scale` (1k, 10k, 100k chunks) |
+| NFR-06.04 API and workers as separate processes | `INGESTION_WORKERS=0` vs workers; Compose `split` profile, used by `loadtest/run.py worker-kill` |
+| NFR-07.04 JSON logs with request id, no content or secrets | `observability/ObservabilityIT` (sentinel text, password and token absent; job lines carry the upload's id), `RequestIdsTest` |
+| Metrics, traces, dashboards | `ObservabilityIT.prometheusExposesSmoiMetrics`; dashboards and Jaeger checked live with the Compose stack |
+| Per-user rate limiting | `ratelimit/RateLimitIT` (burst, Retry-After, per-user buckets, concurrency, unlimited endpoints) |
+| LLM token and cost metrics | `llm/LlmMetricsTest` |

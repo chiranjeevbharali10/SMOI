@@ -1,0 +1,88 @@
+{
+  "scenario": "upload",
+  "settings": {
+    "LLM_PROVIDER": "stub",
+    "RATE_LIMIT_ENABLED": "false",
+    "rate_per_s": 2,
+    "duration": "60s",
+    "split_processes": false,
+    "kill_after_s": null
+  },
+  "k6": {
+    "requests": 131,
+    "requests_per_second": 2.16,
+    "failed_share": 0,
+    "latency_ms": {
+      "avg": 28.2,
+      "p(50)": 22.8,
+      "p(95)": 74.0,
+      "p(99)": 108.4,
+      "max": 146.3
+    },
+    "max_vus": 10
+  },
+  "uploads_accepted": 121,
+  "seconds_after_load_until_queue_empty": 156.5,
+  "documents_per_second_end_to_end": 0.55,
+  "jobs_by_status": {
+    "succeeded": 121
+  },
+  "documents_by_status": {
+    "indexed": 121
+  },
+  "containers": {
+    "smoi-backend-1": {
+      "cpu_avg_pct": 15.7,
+      "cpu_max_pct": 421.43,
+      "mem_at_end": "831.1MiB"
+    },
+    "smoi-ollama-1": {
+      "cpu_avg_pct": 961.9,
+      "cpu_max_pct": 1027.1,
+      "mem_at_end": "358.9MiB"
+    },
+    "smoi-grafana-1": {
+      "cpu_avg_pct": 2.2,
+      "cpu_max_pct": 5.31,
+      "mem_at_end": "527.8MiB"
+    },
+    "smoi-prometheus-1": {
+      "cpu_avg_pct": 0.9,
+      "cpu_max_pct": 4.26,
+      "mem_at_end": "62.58MiB"
+    },
+    "smoi-jaeger-1": {
+      "cpu_avg_pct": 15.2,
+      "cpu_max_pct": 485.68,
+      "mem_at_end": "1.88GiB"
+    },
+    "smoi-db-1": {
+      "cpu_avg_pct": 6.6,
+      "cpu_max_pct": 22.46,
+      "mem_at_end": "161.4MiB"
+    }
+  },
+  "environment": {
+    "git": {
+      "commit": "e6456919318218306bfda97487bee82a2445c99d",
+      "dirty": true,
+      "backend_tree": "ea074ff3fe0565557503d46acd3b5441d95a973b",
+      "reranker_tree": "5b075b5e1b9a13615c2fc9f4dd2d39a436a41f81"
+    },
+    "hardware": {
+      "os": "Windows 11",
+      "machine": "AMD64",
+      "logical_cpus": 20,
+      "cpu": "13th Gen Intel(R) Core(TM) i7-13650HX",
+      "ram_gib": 15.6,
+      "docker": {
+        "cpus": 20,
+        "memory_gib": 7.6,
+        "os": "Docker Desktop (containerized)",
+        "server_version": "28.5.2"
+      },
+      "gpu_used": false
+    },
+    "finished": "2026-11-02T20:27:18+00:00"
+  }
+}

@@ -21,7 +21,9 @@ cp .env.example .env          # then set POSTGRES_PASSWORD and JWT_SECRET (opens
 docker compose up --build
 ```
 
-- Health: `GET http://localhost:8080/actuator/health`
+- Health: `GET http://localhost:8080/livez` (and `/readyz`)
+- Dashboards: Grafana at http://localhost:3000 (SMOI folder), traces in Jaeger at http://localhost:16686,
+  raw metrics in Prometheus at http://localhost:9090
 - Register: `POST /api/auth/register` with `{"email": "...", "password": "..."}` (password 12 to 72 characters)
 - Login: `POST /api/auth/login` returns `{"accessToken": "...", "tokenType": "Bearer", "expiresAt": "..."}`
 - Current user: `GET /api/me` with `Authorization: Bearer <accessToken>`
@@ -91,6 +93,21 @@ Tests use a deterministic hashing embedder instead of Ollama, so no model downlo
 
 CI (`.github/workflows/backend.yml`) runs the same command on every push and pull request.
 
+### Observability and resilience
+
+- **Metrics** per pipeline stage, queue depth, job outcomes, LLM tokens and estimated cost, circuit
+  breaker state and rate-limit rejections go to Prometheus. Grafana shows two provisioned dashboards.
+- **Traces** of every upload and query (retrieval stages, LLM call, ingestion stages) go to Jaeger.
+- **Logs** are JSON with a request id (`X-Request-Id`) that follows an upload into its ingestion
+  job. They never contain document text, questions, passwords or tokens.
+- **When the LLM is down**, `/api/query` returns the retrieved passages with a notice (outcome
+  `llm_unavailable`). When the embedding model is down, search falls back to keyword-only and says
+  so. Circuit breakers stop calling a failing provider for 30 s.
+- **Per-user rate limits** (429 with `Retry-After`) and a per-user query-embedding cache are stored
+  in Postgres, so several backend instances share them.
+- **Load and failure tests:** `python loadtest/run.py query|search|upload|worker-kill|llm-down|scale`.
+  Measured results are in `docs/performance.md`.
+
 ## Repository
 
 | Path | Contents |
@@ -98,7 +115,9 @@ CI (`.github/workflows/backend.yml`) runs the same command on every push and pul
 | `backend/` | Spring Boot API |
 | `desktop/` | Electron frog app (Phase 6) |
 | `sidecars/` | Python FastAPI ML helpers, when needed |
-| `eval/` | Evaluation scripts (Phase 3) |
+| `eval/` | Evaluation harness, demo corpus and question set (Phase 3) |
+| `loadtest/` | k6 load tests and failure tests (Phase 4) |
+| `observability/` | Prometheus config and Grafana dashboards |
 | `docs/srs.md` | Requirements |
 | `docs/adr/` | Architecture decision records |
 | `docs/design/` | Character design: source of truth for SMOI's look and personality |
