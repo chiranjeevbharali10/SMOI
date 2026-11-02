@@ -1,0 +1,169 @@
+package com.smoi.ingestion;
+
+import java.time.Duration;
+import java.util.Optional;
+import java.util.UUID;
+
+import org.springframework.jdbc.core.simple.JdbcClient;
+import org.springframework.stereotype.Repository;
+
+/**
+ * The ingestion job queue, stored in the {@code ingestion_jobs} table. See
+ * docs/adr/0005-postgres-job-queue.md for why this is Postgres and not a message broker.
+ *
+ * <p>Every method that changes a claimed job checks its {@code lease_token} and
+ * {@code status = 'running'}. If another worker has taken the job over, or it was cancelled,
+ * the update matches no row and the caller learns it no longer owns the job.
+ */
+@Repository
+public class JobQueue {
+
+    private static final int MAX_ERROR_LENGTH = 2000;
+
+    private final JdbcClient jdbc;
+    private final IngestionProperties props;
+
+    public JobQueue(JdbcClient jdbc, IngestionProperties props) {
+        this.jdbc = jdbc;
+        this.props = props;
+    }
+
+    /** Adds a job for one version of a document. Call inside the transaction that wrote the document. */
+    public void enqueue(UUID userId, UUID documentId, int documentVersion) {
+        jdbc.sql("""
+                        INSERT INTO ingestion_jobs (user_id, document_id, document_version, max_attempts)
+                        VALUES (:userId, :documentId, :version, :maxAttempts)
+                        """)
+                .param("userId", userId)
+                .param("documentId", documentId)
+                .param("version", documentVersion)
+                .param("maxAttempts", props.maxAttempts())
+                .update();
+    }
+
+    /**
+     * Claims the oldest job that is ready to run: a queued job whose retry time has come, or a
+     * running job whose lease has expired because its worker died.
+     *
+     * <p>{@code FOR UPDATE SKIP LOCKED} is what makes several workers safe: the inner SELECT
+     * locks the row it picks, and other workers running the same query at the same moment skip
+     * locked rows instead of waiting for them or taking the same one. The outer UPDATE then
+     * marks the job as running and sets a new lease in the same statement.
+     *
+     * <p>This is the one deliberate query on a user-owned table without a {@code user_id}
+     * filter: a worker can't know whose job is next until it has claimed it. It returns only
+     * ids, and everything the worker does afterwards is scoped to the job's {@code user_id}.
+     * See docs/adr/0005-postgres-job-queue.md.
+     */
+    public Optional<IngestionJob> claim() {
+        return jdbc.sql("""
+                        UPDATE ingestion_jobs
+                           SET status = 'running',
+                               attempts = attempts + 1,
+                               lease_token = gen_random_uuid(),
+                               available_at = now() + :leaseMillis * interval '1 millisecond'
+                         WHERE id = (
+                                 SELECT id FROM ingestion_jobs
+                                  WHERE status IN ('queued', 'running')
+                                    AND available_at <= now()
+                                    AND deleted_at IS NULL
+                                  ORDER BY available_at
+                                  LIMIT 1
+                                    FOR UPDATE SKIP LOCKED)
+                        RETURNING id, user_id, document_id, document_version, attempts, max_attempts, lease_token
+                        """)
+                .param("leaseMillis", props.lease().toMillis())
+                .query(IngestionJob.class)
+                .optional();
+    }
+
+    /**
+     * Extends the lease: the worker's "still alive" signal, sent between pipeline steps.
+     *
+     * @throws LeaseLostException if the job now belongs to another worker or was cancelled
+     */
+    public void renewLease(IngestionJob job) {
+        int updated = jdbc.sql("""
+                        UPDATE ingestion_jobs
+                           SET available_at = now() + :leaseMillis * interval '1 millisecond'
+                         WHERE id = :id AND user_id = :userId AND lease_token = :token
+                           AND status = 'running' AND deleted_at IS NULL
+                        """)
+                .param("leaseMillis", props.lease().toMillis())
+                .param("id", job.id())
+                .param("userId", job.userId())
+                .param("token", job.leaseToken())
+                .update();
+        if (updated == 0) {
+            throw new LeaseLostException(job);
+        }
+    }
+
+    /** Returns false if the worker no longer owns the job. */
+    public boolean markSucceeded(IngestionJob job) {
+        return finish(job, "succeeded", null);
+    }
+
+    /** The dead-letter state: no more retries, and {@code last_error} keeps the reason. */
+    public boolean markDead(IngestionJob job, String error) {
+        return finish(job, "dead", error);
+    }
+
+    /** The document was deleted or replaced while the job was running. */
+    public boolean markCancelled(IngestionJob job, String reason) {
+        return finish(job, "cancelled", reason);
+    }
+
+    /** Puts the job back in the queue, claimable again after {@code delay}. */
+    public boolean scheduleRetry(IngestionJob job, String error, Duration delay) {
+        return jdbc.sql("""
+                        UPDATE ingestion_jobs
+                           SET status = 'queued', lease_token = NULL, last_error = :error,
+                               available_at = now() + :delayMillis * interval '1 millisecond'
+                         WHERE id = :id AND user_id = :userId AND lease_token = :token
+                           AND status = 'running' AND deleted_at IS NULL
+                        """)
+                .param("error", truncate(error))
+                .param("delayMillis", delay.toMillis())
+                .param("id", job.id())
+                .param("userId", job.userId())
+                .param("token", job.leaseToken())
+                .update() == 1;
+    }
+
+    /** Cancels every unfinished job for a document. Used when it is replaced or deleted. */
+    public void cancelUnfinished(UUID userId, UUID documentId, String reason) {
+        jdbc.sql("""
+                        UPDATE ingestion_jobs
+                           SET status = 'cancelled', lease_token = NULL, last_error = :reason
+                         WHERE user_id = :userId AND document_id = :documentId
+                           AND status IN ('queued', 'running') AND deleted_at IS NULL
+                        """)
+                .param("reason", reason)
+                .param("userId", userId)
+                .param("documentId", documentId)
+                .update();
+    }
+
+    private boolean finish(IngestionJob job, String status, String error) {
+        return jdbc.sql("""
+                        UPDATE ingestion_jobs
+                           SET status = :status, lease_token = NULL, last_error = :error
+                         WHERE id = :id AND user_id = :userId AND lease_token = :token
+                           AND status = 'running' AND deleted_at IS NULL
+                        """)
+                .param("status", status)
+                .param("error", truncate(error))
+                .param("id", job.id())
+                .param("userId", job.userId())
+                .param("token", job.leaseToken())
+                .update() == 1;
+    }
+
+    static String truncate(String error) {
+        if (error == null || error.length() <= MAX_ERROR_LENGTH) {
+            return error;
+        }
+        return error.substring(0, MAX_ERROR_LENGTH - 3) + "...";
+    }
+}
