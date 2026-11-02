@@ -1,0 +1,44 @@
+{
+  "name": "smoi-desktop",
+  "productName": "SMOI",
+  "version": "0.1.0",
+  "description": "SMOI, the pixel-art frog on your desktop",
+  "private": true,
+  "main": "dist-electron/main/main.js",
+  "scripts": {
+    "extract-assets": "tsx scripts/extract-design-assets.ts",
+    "build:renderer": "vite build",
+    "build:electron": "tsc -p tsconfig.electron.json",
+    "build": "npm run build:renderer && npm run build:electron",
+    "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.electron.json --noEmit",
+    "dev": "npm run build:electron && concurrently -k \"vite\" \"wait-on http://localhost:5173 && cross-env SMOI_DEV_SERVER=http://localhost:5173 electron .\"",
+    "start": "npm run build && electron .",
+    "test": "vitest run",
+    "dist": "npm run build && electron-builder --win nsis"
+  },
+  "devDependencies": {
+    "@resvg/resvg-js": "2.6.2",
+    "@types/node": "26.6.6",
+    "@types/omggif": "1.0.5",
+    "@types/pngjs": "6.0.5",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "@vitejs/plugin-react": "6.2.1",
+    "concurrently": "10.0.6",
+    "cross-env": "10.1.0",
+    "electron": "45.2.1",
+    "electron-builder": "26.18.0",
+    "omggif": "1.0.10",
+    "png-to-ico": "3.0.2",
+    "pngjs": "7.0.0",
+    "tsx": "4.23.15",
+    "typescript": "7.0.2",
+    "vite": "8.3.5",
+    "vitest": "5.1.0",
+    "wait-on": "9.5.1"
+  },
+  "dependencies": {
+    "react": "19.3.1",
+    "react-dom": "19.3.1"
+  }
+}

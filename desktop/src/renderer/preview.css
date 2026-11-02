@@ -1,0 +1,50 @@
+@font-face {
+  font-family: 'Pixelify Sans';
+  src: url('./fonts/PixelifySans.ttf') format('truetype');
+}
+@font-face {
+  font-family: 'Nunito';
+  src: url('./fonts/Nunito.ttf') format('truetype');
+}
+body {
+  margin: 0;
+  padding: 24px;
+  background: #FFFAEE;
+  color: #514B50;
+  font-family: 'Nunito', sans-serif;
+}
+h1 {
+  font-family: 'Pixelify Sans', sans-serif;
+  margin: 0 0 4px;
+}
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 16px;
+}
+.card {
+  margin: 0;
+  padding: 12px;
+  border: 2px solid #514B50;
+  border-radius: 12px;
+  background: #E3EFCB;
+}
+.card canvas {
+  display: block;
+  image-rendering: pixelated;
+}
+.card figcaption {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 13px;
+  margin: 8px 0;
+}
+.card strong {
+  font-family: 'Pixelify Sans', sans-serif;
+  font-size: 16px;
+}
+.strip {
+  max-width: 100%;
+  image-rendering: pixelated;
+}

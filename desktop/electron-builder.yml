@@ -1,0 +1,19 @@
+# Windows installer: npm run dist -> release/SMOI-Setup-<version>.exe
+appId: com.smoi.desktop
+productName: SMOI
+directories:
+  output: release
+files:
+  - dist/**
+  - dist-electron/**
+  - package.json
+asar: true
+win:
+  target: nsis
+  icon: assets/icons/smoi.ico
+nsis:
+  oneClick: false
+  perMachine: false
+  allowToChangeInstallationDirectory: true
+  artifactName: SMOI-Setup-${version}.${ext}
+  shortcutName: SMOI

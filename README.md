@@ -113,7 +113,7 @@ CI (`.github/workflows/backend.yml`) runs the same command on every push and pul
 | Path | Contents |
 | --- | --- |
 | `backend/` | Spring Boot API |
-| `desktop/` | Electron frog app (Phase 6) |
+| `desktop/` | Electron frog app: see `desktop/README.md` |
 | `sidecars/` | Python FastAPI ML helpers, when needed |
 | `eval/` | Evaluation harness, demo corpus and question set (Phase 3) |
 | `loadtest/` | k6 load tests and failure tests (Phase 4) |
