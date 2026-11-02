@@ -1,0 +1,30 @@
+name: sidecars
+
+on:
+  push:
+    branches: [main]
+    paths: ["sidecars/**", ".github/workflows/sidecars.yml"]
+  pull_request:
+    paths: ["sidecars/**", ".github/workflows/sidecars.yml"]
+
+permissions:
+  contents: read
+
+jobs:
+  reranker:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: sidecars/reranker
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.13"
+
+      # API tests use a fake scorer, so PyTorch and the model aren't installed here.
+      - name: Test
+        run: |
+          pip install -r requirements-dev.txt
+          python -m pytest -q
