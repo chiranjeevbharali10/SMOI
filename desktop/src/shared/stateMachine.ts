@@ -33,13 +33,21 @@ export const PRIORITY: Record<FrogState, number> = {
 };
 
 export type Condition = 'error' | 'listening' | 'speaking' | 'thinking' | 'working' | 'sleeping' | 'walking';
-export type Reaction = 'surprised' | 'happy' | 'celebrating' | 'annoyed';
+/**
+ * Thinking, working and error can also be brief reactions: opening SMOI Brain shows thinking for a
+ * moment, and an answer that fell back to passages shows error for a moment, without either being
+ * a lasting condition.
+ */
+export type Reaction = 'surprised' | 'happy' | 'celebrating' | 'annoyed' | 'thinking' | 'working' | 'error';
 
 /** How long a timed reaction shows by default. Surprised instead ends when its animation finishes. */
 export const REACTION_MS: Record<Exclude<Reaction, 'surprised'>, number> = {
   happy: 2500,
   celebrating: 3500,
   annoyed: 4000,
+  thinking: 2000,
+  working: 2500,
+  error: 4000,
 };
 
 interface ActiveReaction {
@@ -81,6 +89,12 @@ export class FrogStateMachine {
     this.reactions = this.reactions.filter((r) => r.state !== reaction);
     const until = reaction === 'surprised' ? null : now + (durationMs ?? REACTION_MS[reaction]);
     this.reactions.push({ state: reaction, until });
+    return this.update(now);
+  }
+
+  /** Ends all reactions at once, for example when a panel action replaces the previous one. */
+  clearReactions(now: number): FrogState {
+    this.reactions = [];
     return this.update(now);
   }
 

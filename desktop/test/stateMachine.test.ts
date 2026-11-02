@@ -113,3 +113,52 @@ describe('pixel-perfect scaling', () => {
     expect(frogSize(1.5).devicePixels).toBe(192);
   });
 });
+
+describe('Phase 6B state priority: error, then thinking or speaking, then working, then idle', () => {
+  it('error beats thinking and speaking, which beat working, which beats idle', () => {
+    const m = new FrogStateMachine();
+    expect(m.state).toBe('idle');
+    m.set('working', true, 0);
+    expect(m.state).toBe('working');
+    m.set('thinking', true, 0);
+    expect(m.state).toBe('thinking');
+    m.set('thinking', false, 0);
+    m.set('speaking', true, 0);
+    expect(m.state).toBe('speaking');
+    m.set('error', true, 0);
+    expect(m.state).toBe('error');
+    m.set('error', false, 0);
+    m.set('speaking', false, 0);
+    expect(m.state).toBe('working');
+  });
+
+  it('thinking and error can be brief reactions that end on their own', () => {
+    const m = new FrogStateMachine();
+    m.react('thinking', 0);
+    expect(m.state).toBe('thinking');
+    m.tick(REACTION_MS.thinking);
+    expect(m.state).toBe('idle');
+    m.react('error', 0);
+    m.tick(REACTION_MS.error - 1);
+    expect(m.state).toBe('error');
+    m.tick(REACTION_MS.error);
+    expect(m.state).toBe('idle');
+  });
+
+  it('a thinking reaction ends, but a running query keeps SMOI thinking', () => {
+    const m = new FrogStateMachine();
+    m.react('thinking', 0);
+    m.set('thinking', true, 100);
+    m.tick(REACTION_MS.thinking);
+    expect(m.state).toBe('thinking');
+  });
+
+  it('clearReactions returns to the lasting conditions', () => {
+    const m = new FrogStateMachine();
+    m.set('working', true, 0);
+    m.react('happy', 0);
+    expect(m.state).toBe('happy');
+    m.clearReactions(1);
+    expect(m.state).toBe('working');
+  });
+});
