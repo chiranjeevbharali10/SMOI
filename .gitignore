@@ -1,0 +1,33 @@
+# Secrets
+.env
+.env.*
+!.env.example
+
+# Personal planning notes (kept out of the repo)
+MISO Build Plan and Claude Code Prompts.md
+
+# Java / Maven
+target/
+*.class
+*.log
+
+# Node / Electron
+node_modules/
+dist/
+out/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# IDE / OS
+.idea/
+*.iml
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Claude Code local settings
+.claude/settings.local.json
