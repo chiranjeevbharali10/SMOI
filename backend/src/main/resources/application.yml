@@ -29,8 +29,8 @@ smoi:
     backoff-base: PT10S
     backoff-max: PT10M
   chunking:
-    max-tokens: 500
-    overlap-tokens: 75
+    max-tokens: ${CHUNK_MAX_TOKENS:500}
+    overlap-tokens: ${CHUNK_OVERLAP_TOKENS:75}
   llm:
     # ollama (local, default) or anthropic (hosted, opt-in; needs ANTHROPIC_API_KEY). A hosted
     # provider only receives documents whose hostedLlmAllowed setting is on.

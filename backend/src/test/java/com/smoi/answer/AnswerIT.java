@@ -289,6 +289,7 @@ class AnswerIT extends DocumentApiTest {
 
         assertThat(body.get("llm")).isEqualTo(Map.of("provider", "scripted", "model", "scripted-test-model", "hosted", false));
         assertThat(body.get("embedding")).isEqualTo(Map.of("model", "hashing-v1", "hosted", false));
+        assertThat(body.get("chunking")).isEqualTo(Map.of("maxTokens", 100, "overlapTokens", 20));
     }
 
     @Test

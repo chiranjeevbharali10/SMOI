@@ -36,6 +36,7 @@ services:
 
   # One-off: downloads the embedding model (about 274 MB) and the local chat model (about
   # 1.9 GB for the default) into the ollama volume the first time, then exits.
+  # PULL_CHAT_MODEL=false skips the chat model (the retrieval-only CI check doesn't need it).
   ollama-pull:
     image: ollama/ollama:0.40.13
     depends_on:
@@ -45,7 +46,8 @@ services:
       OLLAMA_HOST: ollama:11434
       EMBED_MODEL: ${OLLAMA_EMBEDDING_MODEL:-nomic-embed-text}
       CHAT_MODEL: ${OLLAMA_CHAT_MODEL:-qwen3.5:2b-q4_K_M}
-    entrypoint: ["sh", "-c", "ollama pull \"$$EMBED_MODEL\" && ollama pull \"$$CHAT_MODEL\""]
+      PULL_CHAT_MODEL: ${PULL_CHAT_MODEL:-true}
+    entrypoint: ["sh", "-c", "ollama pull \"$$EMBED_MODEL\" && if [ \"$$PULL_CHAT_MODEL\" != false ]; then ollama pull \"$$CHAT_MODEL\"; fi"]
     restart: "no"
 
   # Optional cross-encoder reranker (sidecars/reranker). Start it with
@@ -73,6 +75,8 @@ services:
       OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-http://ollama:11434}
       OLLAMA_EMBEDDING_MODEL: ${OLLAMA_EMBEDDING_MODEL:-nomic-embed-text}
       INGESTION_WORKERS: ${INGESTION_WORKERS:-2}
+      CHUNK_MAX_TOKENS: ${CHUNK_MAX_TOKENS:-500}
+      CHUNK_OVERLAP_TOKENS: ${CHUNK_OVERLAP_TOKENS:-75}
       LLM_PROVIDER: ${LLM_PROVIDER:-ollama}
       OLLAMA_CHAT_MODEL: ${OLLAMA_CHAT_MODEL:-qwen3.5:2b-q4_K_M}
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
