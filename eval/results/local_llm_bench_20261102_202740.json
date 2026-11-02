@@ -1,0 +1,301 @@
+{
+  "script": "eval/bench_local_llm.py",
+  "dataset": "local_llm_bench_v1",
+  "run_at": "2026-11-02T14:55:27+00:00",
+  "ollama_version": "0.40.13",
+  "settings": {
+    "num_ctx": 8192,
+    "num_predict": 256,
+    "seed": 42,
+    "think": false,
+    "sampling": "model defaults"
+  },
+  "models": [
+    {
+      "summary": {
+        "model": "qwen3.5:2b-q4_K_M",
+        "load_s": 18.93,
+        "median_ttft_s": 2.25,
+        "median_output_tok_per_s": 17.34,
+        "median_prompt_tok_per_s": 160.2,
+        "max_prompt_tokens": 341,
+        "all_prompts_fit": true,
+        "thinking_chars_total": 0,
+        "ollama_loaded_size_mib": 1672,
+        "container_peak_mib": 4035,
+        "container_baseline_mib": 1723,
+        "checks_passed": "6/6"
+      },
+      "runs": [
+        {
+          "answer": "The Larkspur Community Garden opens at 9:00 on Saturdays [S2].",
+          "thinking_chars": 0,
+          "ttft_s": 2.0087125000000015,
+          "wall_s": 3.035478199999943,
+          "prompt_tokens": 329,
+          "prompt_s": 1.938567,
+          "output_tokens": 20,
+          "output_s": 1.026915999,
+          "load_s": 0.001223462,
+          "done_reason": "stop",
+          "prompt_fits": true,
+          "cited": [
+            "S2"
+          ],
+          "invalid_citations": [],
+          "has_expected_words": true,
+          "cites_right_source": true,
+          "said_dont_know": false,
+          "pass": true,
+          "id": "q1-weekend-hours"
+        },
+        {
+          "answer": "A member can get the annual fee refunded if they volunteer at least 10 hours in a season [S1].",
+          "thinking_chars": 0,
+          "ttft_s": 2.281390999999985,
+          "wall_s": 3.9848672000002807,
+          "prompt_tokens": 328,
+          "prompt_s": 1.970101,
+          "output_tokens": 25,
+          "output_s": 1.703664,
+          "load_s": 0.001492574,
+          "done_reason": "stop",
+          "prompt_fits": true,
+          "cited": [
+            "S1"
+          ],
+          "invalid_citations": [],
+          "has_expected_words": true,
+          "cites_right_source": true,
+          "said_dont_know": false,
+          "pass": true,
+          "id": "q2-fee-refund"
+        },
+        {
+          "answer": "Shared tools are kept in the blue shed next to the north gate [S2], and the padlock code is emailed to members on the first day of every month [S2].",
+          "thinking_chars": 0,
+          "ttft_s": 2.2109111999998277,
+          "wall_s": 4.197089999999662,
+          "prompt_tokens": 338,
+          "prompt_s": 1.811273,
+          "output_tokens": 38,
+          "output_s": 1.986483,
+          "load_s": 0.000917257,
+          "done_reason": "stop",
+          "prompt_fits": true,
+          "cited": [
+            "S2",
+            "S2"
+          ],
+          "invalid_citations": [],
+          "has_expected_words": true,
+          "cites_right_source": true,
+          "said_dont_know": false,
+          "pass": true,
+          "id": "q3-tools-two-sources"
+        },
+        {
+          "answer": "I don't know based on your documents.",
+          "thinking_chars": 0,
+          "ttft_s": 2.7341495999999097,
+          "wall_s": 3.331895599999825,
+          "prompt_tokens": 329,
+          "prompt_s": 2.154322,
+          "output_tokens": 10,
+          "output_s": 0.597336,
+          "load_s": 0.001098318,
+          "done_reason": "stop",
+          "prompt_fits": true,
+          "cited": [],
+          "invalid_citations": [],
+          "said_dont_know": true,
+          "pass": true,
+          "id": "q4-unanswerable-founder"
+        },
+        {
+          "answer": "I don't know based on your documents.",
+          "thinking_chars": 0,
+          "ttft_s": 2.3625285000002805,
+          "wall_s": 2.982982500000162,
+          "prompt_tokens": 341,
+          "prompt_s": 2.318577,
+          "output_tokens": 10,
+          "output_s": 0.62098,
+          "load_s": 0.00097632,
+          "done_reason": "stop",
+          "prompt_fits": true,
+          "cited": [],
+          "invalid_citations": [],
+          "said_dont_know": true,
+          "pass": true,
+          "id": "q5-unanswerable-price"
+        },
+        {
+          "answer": "Garden plots are assigned once a year, in March, by lottery. [S2]",
+          "thinking_chars": 0,
+          "ttft_s": 2.1085471999999754,
+          "wall_s": 3.2237247000002753,
+          "prompt_tokens": 321,
+          "prompt_s": 2.085505999,
+          "output_tokens": 20,
+          "output_s": 1.114912,
+          "load_s": 0.001020667,
+          "done_reason": "stop",
+          "prompt_fits": true,
+          "cited": [
+            "S2"
+          ],
+          "invalid_citations": [],
+          "has_expected_words": true,
+          "cites_right_source": true,
+          "said_dont_know": false,
+          "pass": true,
+          "id": "q6-injection"
+        }
+      ]
+    },
+    {
+      "summary": {
+        "model": "qwen3.5:4b",
+        "load_s": 35.82,
+        "median_ttft_s": 6.19,
+        "median_output_tok_per_s": 8.33,
+        "median_prompt_tok_per_s": 62.25,
+        "max_prompt_tokens": 341,
+        "all_prompts_fit": true,
+        "thinking_chars_total": 0,
+        "ollama_loaded_size_mib": 3220,
+        "container_peak_mib": 5261,
+        "container_baseline_mib": 2321,
+        "checks_passed": "6/6"
+      },
+      "runs": [
+        {
+          "answer": "The Larkspur Community Garden opens at 9:00 on Saturdays [S2].",
+          "thinking_chars": 0,
+          "ttft_s": 6.812075100000129,
+          "wall_s": 9.610816500000055,
+          "prompt_tokens": 329,
+          "prompt_s": 5.119057,
+          "output_tokens": 20,
+          "output_s": 2.796489,
+          "load_s": 0.014500699,
+          "done_reason": "stop",
+          "prompt_fits": true,
+          "cited": [
+            "S2"
+          ],
+          "invalid_citations": [],
+          "has_expected_words": true,
+          "cites_right_source": true,
+          "said_dont_know": false,
+          "pass": true,
+          "id": "q1-weekend-hours"
+        },
+        {
+          "answer": "A member gets their annual fee refunded by volunteering at least 10 hours in a season [S1]. Since the full fee of 40 euros is refunded in this case, the member would receive 40 euros back.",
+          "thinking_chars": 0,
+          "ttft_s": 5.2056250999999065,
+          "wall_s": 10.922435899999982,
+          "prompt_tokens": 328,
+          "prompt_s": 4.955675,
+          "output_tokens": 48,
+          "output_s": 5.712917,
+          "load_s": 0.001844207,
+          "done_reason": "stop",
+          "prompt_fits": true,
+          "cited": [
+            "S1"
+          ],
+          "invalid_citations": [],
+          "has_expected_words": true,
+          "cites_right_source": true,
+          "said_dont_know": false,
+          "pass": true,
+          "id": "q2-fee-refund"
+        },
+        {
+          "answer": "The shared tools are kept in the blue shed next to the north gate [S2]. Members find out the new padlock code by waiting for it to be emailed to them on the first day of every month [S2].",
+          "thinking_chars": 0,
+          "ttft_s": 6.139273200000389,
+          "wall_s": 11.661068400000204,
+          "prompt_tokens": 338,
+          "prompt_s": 5.809803,
+          "output_tokens": 47,
+          "output_s": 5.521179,
+          "load_s": 0.001223402,
+          "done_reason": "stop",
+          "prompt_fits": true,
+          "cited": [
+            "S2",
+            "S2"
+          ],
+          "invalid_citations": [],
+          "has_expected_words": true,
+          "cites_right_source": true,
+          "said_dont_know": false,
+          "pass": true,
+          "id": "q3-tools-two-sources"
+        },
+        {
+          "answer": "I don't know based on your documents.",
+          "thinking_chars": 0,
+          "ttft_s": 5.625519300000178,
+          "wall_s": 6.702082100000098,
+          "prompt_tokens": 329,
+          "prompt_s": 4.823074,
+          "output_tokens": 10,
+          "output_s": 1.075,
+          "load_s": 0.001148415,
+          "done_reason": "stop",
+          "prompt_fits": true,
+          "cited": [],
+          "invalid_citations": [],
+          "said_dont_know": true,
+          "pass": true,
+          "id": "q4-unanswerable-founder"
+        },
+        {
+          "answer": "I don't know based on your documents.",
+          "thinking_chars": 0,
+          "ttft_s": 6.234011699999883,
+          "wall_s": 7.446960199999921,
+          "prompt_tokens": 341,
+          "prompt_s": 5.660923,
+          "output_tokens": 10,
+          "output_s": 1.211199,
+          "load_s": 0.00168338,
+          "done_reason": "stop",
+          "prompt_fits": true,
+          "cited": [],
+          "invalid_citations": [],
+          "said_dont_know": true,
+          "pass": true,
+          "id": "q5-unanswerable-price"
+        },
+        {
+          "answer": "Garden plots are assigned once a year in March by lottery [S2].",
+          "thinking_chars": 0,
+          "ttft_s": 6.320608800000173,
+          "wall_s": 9.058097800000269,
+          "prompt_tokens": 321,
+          "prompt_s": 5.648218,
+          "output_tokens": 17,
+          "output_s": 2.734939,
+          "load_s": 0.001162545,
+          "done_reason": "stop",
+          "prompt_fits": true,
+          "cited": [
+            "S2"
+          ],
+          "invalid_citations": [],
+          "has_expected_words": true,
+          "cites_right_source": true,
+          "said_dont_know": false,
+          "pass": true,
+          "id": "q6-injection"
+        }
+      ]
+    }
+  ]
+}
