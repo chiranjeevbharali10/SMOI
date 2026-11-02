@@ -1,0 +1,26 @@
+spring:
+  application:
+    name: smoi-backend
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/smoi}
+    username: ${DB_USER:smoi}
+    password: ${DB_PASSWORD:}
+  mvc:
+    problemdetails:
+      enabled: true
+
+smoi:
+  jwt:
+    # Base64-encoded HMAC key, at least 32 bytes after decoding. Set in .env.
+    secret: ${JWT_SECRET:}
+    issuer: smoi
+    ttl: ${JWT_TTL:PT1H}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      show-details: never
