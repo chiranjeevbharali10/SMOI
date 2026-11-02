@@ -1,0 +1,73 @@
+/*
+ * SMOI design tokens: the one shared file for colours, fonts, borders, radii, shadows and the two
+ * animations. Every value here comes from docs/design/smoi-character-design.html (the "speech
+ * bubble and panel" and "concept sheet" boards). Change them only with the owner's approval.
+ *
+ * test/contrast.test.ts reads this file and checks every text/background pair the UI uses.
+ */
+
+@font-face {
+  font-family: 'Pixelify Sans';
+  src: url('/fonts/PixelifySans.ttf') format('truetype');
+  font-weight: 400 700;
+  font-display: block;
+}
+
+@font-face {
+  font-family: 'Nunito';
+  src: url('/fonts/Nunito.ttf') format('truetype');
+  font-weight: 200 1000;
+  font-display: block;
+}
+
+:root {
+  /* Palette */
+  --smoi-green: #B8DDB1;    /* Frog Green: panel header, the body */
+  --smoi-pink: #F6C8D5;     /* Blush Pink: time-sensitive bubbles */
+  --smoi-cream: #FFF1D6;    /* Cream: page background */
+  --smoi-blue: #C9D8F4;     /* Powder Blue: nudge bubbles */
+  --smoi-lavender: #E9D9F5; /* Lavender: finding bubbles, row hover */
+  --smoi-charcoal: #514B50; /* Soft Charcoal: text, borders, shadow */
+  --smoi-panel: #FFFAEE;    /* Panel background, dismiss button */
+
+  /* Fonts */
+  --smoi-font-pixel: 'Pixelify Sans', monospace;       /* headings and bubbles */
+  --smoi-font-body: 'Nunito', system-ui, sans-serif;   /* body text and menu rows */
+
+  /* Shapes */
+  --smoi-border: 2px solid var(--smoi-charcoal);
+  --smoi-bubble-radius: 18px;
+  --smoi-panel-radius: 22px;
+  --smoi-panel-shadow: 0 6px 0 var(--smoi-charcoal); /* hard, no blur */
+  --smoi-row-radius: 12px;
+  --smoi-focus: 3px solid var(--smoi-charcoal);
+  --smoi-focus-offset: 2px;
+
+  /* Motion */
+  --smoi-pop-ms: 300ms;
+  --smoi-rise-ms: 220ms;
+}
+
+/* The design's keyframes, unchanged. */
+@keyframes smoi-pop {
+  0% { transform: scale(.7) translateY(8px); opacity: 0 }
+  70% { transform: scale(1.04) }
+  100% { transform: scale(1); opacity: 1 }
+}
+
+@keyframes smoi-rise {
+  0% { transform: translateY(12px); opacity: 0 }
+  100% { transform: translateY(0); opacity: 1 }
+}
+
+/* Reduced motion: things appear without moving. Set by the OS preference or SMOI's own setting. */
+@media (prefers-reduced-motion: reduce) {
+  :root { --smoi-pop-ms: 0ms; --smoi-rise-ms: 0ms; }
+}
+:root.reduced-motion { --smoi-pop-ms: 0ms; --smoi-rise-ms: 0ms; }
+
+/* The design's focus outline, used for every focusable control. */
+:focus-visible {
+  outline: var(--smoi-focus);
+  outline-offset: var(--smoi-focus-offset);
+}
