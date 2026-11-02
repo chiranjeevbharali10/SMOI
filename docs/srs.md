@@ -1,243 +1,320 @@
-Let's start with the Software Requirements Specification (SRS) for MISO. We'll define the functional and non-functional requirements before moving into architecture, UI design or implementation.
+# SMOI: Software Requirements Specification
 
-I'll structure this like a proper engineering project document, with uniquely numbered requirements so we can later map each one to its verification and testing approach.
+Personal desktop intelligence companion
 
-# MISO — Software Requirements Specification
+| Attribute | Value |
+| --- | --- |
+| Document | Software Requirements Specification |
+| Version | 0.2 (draft) |
+| Date | 2026-11-02 |
+| Product | SMOI |
+| Knowledge base | SMOI Brain |
+| Desktop platform | Windows 11 |
+| Interface | Pixel-art frog companion (art, palette, fonts and personality defined in `docs/design/smoi-character-design.html`) |
+| Backend | Java 21, Spring Boot 4, PostgreSQL + pgvector |
+| Intelligence | Voice, retrieval-augmented generation (RAG), LLM |
 
-# MISO 🐸
+## Changes from v0.1
 
-Personal Desktop Intelligence Companion
+- The product is renamed from MISO to **SMOI**. The personal knowledge base is named **SMOI Brain**.
+- Every requirement has a unique ID in the form `FR-xx.yy` or `NFR-xx.yy`. IDs from v0.1 are kept
+  where the requirement survives, so FR-06.01 in v0.1 is still FR-06.01.
+- The default voice shortcut is now `Ctrl+Alt+J` (FR-03.01).
+- FR-01.03 lists the 12 animation states in the character design.
+- These moved to [Future work](#6-future-work): FR-07 (job radar), FR-09 (sync and iOS), FR-04.07,
+  NFR-08.02 (iOS). NFR-02.02 and the "discovered opportunities" part of FR-02.05 also moved, because
+  they only make sense with FR-09 and FR-07. The iOS row was removed from the attribute table.
+- FR-05 gains Gmail drafts, links between reminders and drafts, cancelling a reminder when its draft is gone,
+  detecting revoked Google access (FR-05.08 to FR-05.12), and an explicit ban on sending or deleting email (FR-05.13).
+- FR-06 gains local-directory indexing as its own requirement (FR-06.11, split from FR-06.02) and citation
+  validation (FR-06.12).
+- New security requirements cover prompt injection and per-user data isolation (NFR-03.08 to NFR-03.15).
+- The new NFR-09 holds measurable quality requirements for retrieval, citations and intent detection.
+  Their targets are `TBD` until they are measured.
+- Untestable wording ("intuitive", "gracefully", "secure", "appropriate", "concise", "normal operating
+  conditions") was replaced with conditions that can be checked.
+- The release plan was replaced by the ten build phases in [Section 5](#5-build-phases).
 
-Document: Software Requirements Specification · Version 0.1 · Draft
+## Conventions
 
-| Attribute        | Specification            |
-| ---------------- | ------------------------ |
-| Product          | MISO                     |
-| Desktop platform | Windows 11               |
-| Mobile platform  | iOS                      |
-| Interface        | Pixel-art frog companion |
-| Theme            | Pastel cozy              |
-| Backend          | Spring Boot              |
-| Intelligence     | Voice + RAG + AI         |
-| Synchronization  | Cloud-based              |
+- **Shall** marks a mandatory requirement.
+- **Target** values are acceptance targets, not measured results. A number becomes a measured result only
+  when a script in this repository produces it, and the document names that script.
+- **TBD** marks a value to be set once it has been measured, normally in Phase 3 (quality) or Phase 4
+  (performance).
+- **Consequential action:** any action that creates, changes or deletes data in an external service
+  (Google Calendar events, Gmail drafts), or permanently deletes the user's local data.
+- **Reference environment:** the hardware, OS, dataset and network conditions that performance targets
+  are measured on. It will be defined in Phase 4 and recorded in `docs/` together with the benchmark script.
 
-## 1. Functional Requirements (FR)
+---
 
-Functional requirements describe what the system shall do.
+## 1. Functional requirements (FR)
 
-### FR-01: Desktop Companion Management
+### FR-01: Desktop companion
 
-1. The system shall display an interactive pixel-art frog companion on the Windows desktop.
-2. The system shall support dragging and repositioning the companion across the desktop.
-3. The system shall provide multiple character animation states, including idle, walking, sleeping, happy, surprised and annoyed.
-4. The system shall provide an expandable dashboard accessible through the desktop companion.
-5. The system shall support system-tray controls, application startup and graceful shutdown.
-6. The system shall allow users to customize the companion's personality, appearance and notification behaviour.
+| ID | Requirement | Phase |
+| --- | --- | --- |
+| FR-01.01 | The system shall display the SMOI pixel-art frog on the Windows desktop in a frameless, transparent, always-on-top window, using sprites from `docs/design/smoi-character-design.html`. | 6 |
+| FR-01.02 | The user shall be able to drag the frog anywhere on any connected monitor. Its position shall be saved and restored on next launch. | 6 |
+| FR-01.03 | The frog shall support the 12 animation states in the character design: idle, happy, sleeping, working, thinking, surprised, annoyed, celebrating, listening, speaking, walking and error. | 6 |
+| FR-01.04 | Clicking the frog shall open the menu panel defined in the character design. The menu panel shall open the dashboard. | 6 |
+| FR-01.05 | The system shall provide a system-tray icon with at least: show/hide frog, open dashboard, pause notifications and quit. Launch at Windows sign-in shall be available and off by default. On quit, all changes the user has saved shall persist and be visible on the next launch. | 6, 9 |
+| FR-01.06 | The user shall be able to configure the companion's personality settings (FR-08.02), appearance and notification behaviour. Appearance options are limited to variants defined in the character design. | 6 |
 
-### FR-02: Task and Reminder Management
+### FR-02: Tasks and reminders
 
-1. The system shall allow users to create, edit, delete and complete tasks.
-2. The system shall allow users to assign priorities, categories, due dates and descriptions to tasks.
-3. The system shall support one-time and recurring reminders.
-4. The system shall generate desktop notifications for scheduled reminders.
-5. The system shall allow users to convert incoming emails and discovered opportunities into tasks.
-6. The system shall maintain task completion history and overdue task information.
+| ID | Requirement | Phase |
+| --- | --- | --- |
+| FR-02.01 | The user shall be able to create, edit, delete and complete tasks. | 7 |
+| FR-02.02 | A task shall support a priority, a category, a due date and a description. | 7 |
+| FR-02.03 | The system shall support one-time reminders and recurring reminders (daily, weekly, monthly, or custom weekdays). | 7 |
+| FR-02.04 | While the desktop app is running, a reminder shall produce a desktop notification within 60 seconds of its scheduled time. | 7 |
+| FR-02.05 | The user shall be able to convert an email into a task, with a link back to the source email. | 8 |
+| FR-02.06 | The system shall keep the completion time of each completed task and list overdue tasks (due date passed, not completed). | 7 |
 
-### FR-03: Voice Interaction
+### FR-03: Voice interaction
 
-1. The system shall support a configurable global keyboard shortcut, with `J + K` as the default, to activate voice interaction.
-2. The system shall display the companion and activate the microphone when the configured shortcut is triggered.
-3. The system shall convert captured speech into text using a speech-to-text engine.
-4. The system shall interpret natural-language commands and identify the corresponding intent.
-5. The system shall route voice commands to the appropriate system module, including tasks, calendar, email and knowledge retrieval.
-6. The system shall display the interpreted command and provide a confirmation mechanism for consequential actions.
-7. The system shall allow users to cancel voice interactions and control microphone access.
+| ID | Requirement | Phase |
+| --- | --- | --- |
+| FR-03.01 | A global keyboard shortcut shall start voice interaction. The default is `Ctrl+Alt+J`, and the user can change it. If the operating system refuses to register the shortcut, the system shall tell the user and ask for another. | 7 |
+| FR-03.02 | When the shortcut is pressed, the frog shall appear in the listening state and the microphone shall start capturing. | 7 |
+| FR-03.03 | Captured speech shall be converted to text by a speech-to-text engine behind a provider interface chosen by configuration. | 7 |
+| FR-03.04 | The system shall classify each command into one intent from a documented intent list (for example: create task, create reminder, ask SMOI Brain, list events, create event, draft email), or "unknown". Accuracy is specified in NFR-09.06. | 7 |
+| FR-03.05 | Each recognised intent shall be routed to the module that handles it: tasks, calendar, email or knowledge retrieval. | 7, 8 |
+| FR-03.06 | The system shall display the interpreted command before acting. Consequential actions shall run only after the user confirms. | 7 |
+| FR-03.07 | The user shall be able to cancel voice interaction with `Esc` or by pressing the shortcut again. The microphone shall be released within 1 second of cancelling, and voice input can be disabled entirely in settings. | 7 |
 
-### FR-04: Google Calendar Integration
+### FR-04: Google Calendar
 
-1. The system shall support secure Google account authentication through OAuth 2.0.
-2. The system shall retrieve upcoming events from the user's connected Google Calendar.
-3. The system shall allow users to create calendar events using natural-language text or voice commands.
-4. The system shall allow users to modify and delete calendar events with appropriate confirmation.
-5. The system shall identify scheduling conflicts when creating or modifying events.
-6. The system shall support event reminders and configurable notification intervals.
-7. The system shall synchronize calendar-related information with the desktop and iOS applications.
+| ID | Requirement | Phase |
+| --- | --- | --- |
+| FR-04.01 | The system shall connect to Google using the OAuth 2.0 authorization code flow with PKCE, requesting only the scopes listed in NFR-03.05. | 8 |
+| FR-04.02 | The system shall show upcoming events from the user's primary Google Calendar. | 8 |
+| FR-04.03 | The user shall be able to create events from typed text or voice. | 8 |
+| FR-04.04 | The user shall be able to change or delete events. Before any change, the system shall show the event's details and the proposed change, and apply it only after the user confirms. | 8 |
+| FR-04.05 | When an event is created or changed, the system shall list any overlapping events in the primary calendar before the user confirms. | 8 |
+| FR-04.06 | The user shall be able to set reminder intervals for events (for example 10 minutes or 1 hour before). | 8 |
 
-### FR-05: Email Intelligence
+### FR-05: Email intelligence (Gmail)
 
-1. The system shall support secure Gmail integration.
-2. The system shall retrieve authorized email information from the connected Gmail account.
-3. The system shall classify incoming emails into categories such as recruitment, personal, academic, important and promotional.
-4. The system shall identify high-priority emails and generate corresponding notifications.
-5. The system shall generate concise summaries of retrieved emails.
-6. The system shall allow users to convert relevant email information into tasks and reminders.
-7. The system shall provide access to the original email from the application.
+| ID | Requirement | Phase |
+| --- | --- | --- |
+| FR-05.01 | The system shall connect to Gmail through the OAuth 2.0 flow in FR-04.01, requesting only the Gmail scopes listed in NFR-03.05. | 8 |
+| FR-05.02 | The system shall retrieve messages from the connected account that fall inside the user's configured filters (date range and labels). | 8 |
+| FR-05.03 | The system shall classify each retrieved email into exactly one category: recruitment, personal, academic, important or promotional. Accuracy is specified in NFR-09.07. | 8 |
+| FR-05.04 | Emails classified as important shall produce a notification, subject to FR-08.04 and FR-08.06. | 8 |
+| FR-05.05 | The system shall summarise an email in at most 80 words. Each summary shall link to its source email. | 8 |
+| FR-05.06 | The user shall be able to create tasks and reminders from an email. | 8 |
+| FR-05.07 | For each email shown, the system shall provide a link that opens the original message in Gmail. | 8 |
+| FR-05.08 | The system shall be able to create Gmail drafts for the user to review in Gmail. A draft is created only after the user confirms its recipient, subject and body. | 8 |
+| FR-05.09 | The system shall be able to update drafts it created, after the user confirms the change. It shall not change drafts it did not create. | 8 |
+| FR-05.10 | The user shall be able to link a reminder to a draft ("remind me to send this tomorrow at 9"). | 8 |
+| FR-05.11 | If a linked draft no longer exists (sent or deleted by the user in Gmail), the system shall cancel its reminder before the reminder fires and tell the user why. | 8 |
+| FR-05.12 | When Google rejects SMOI's credentials (for example access revoked or refresh token expired), the system shall pause Calendar and Gmail features, keep all local data, and ask the user to reconnect. No other features are affected. | 8 |
+| FR-05.13 | The system shall never send, delete or trash email. The backend shall have no code path that calls Gmail's send, delete or trash operations, and an automated test shall check this. | 8 |
 
-### FR-06: Personal Knowledge Base and RAG
+### FR-06: SMOI Brain (knowledge base and RAG)
 
-1. The system shall allow users to upload and index supported documents, including PDF, DOCX and TXT files.
-2. The system shall support indexing of authorized emails, attachments and selected local directories.
-3. The system shall extract, process and divide document content into searchable chunks.
-4. The system shall generate and store vector embeddings for indexed content.
-5. The system shall support semantic and keyword-based retrieval.
-6. The system shall generate contextual answers using retrieved information.
-7. The system shall provide source references for generated answers.
-8. The system shall allow users to search their personal knowledge base using text and voice queries.
-9. The system shall support document summarization and comparison.
-10. The system shall allow users to remove indexed sources and their associated knowledge data.
+| ID | Requirement | Phase |
+| --- | --- | --- |
+| FR-06.01 | The user shall be able to upload PDF, DOCX and TXT files to SMOI Brain. Upload returns immediately with a document ID and status. Indexing happens in the background. | 1 |
+| FR-06.02 | The system shall be able to index authorised emails and their attachments. | 8 |
+| FR-06.03 | The system shall extract text, clean it and split it into chunks. Each chunk records its source location (page or section) for citations. | 1 |
+| FR-06.04 | The system shall generate and store a vector embedding for every chunk, using an embedding provider behind an interface chosen by configuration. | 1 |
+| FR-06.05 | The system shall support keyword retrieval, vector retrieval and hybrid retrieval. The mode is selectable per request. | 2 |
+| FR-06.06 | The system shall generate answers using only retrieved chunks as sources. When the sources don't cover the question, it shall say it doesn't know. | 2 |
+| FR-06.07 | Every answer shall include citations identifying the document, the page or section, and the chunk. | 2 |
+| FR-06.08 | The user shall be able to query SMOI Brain by typed text and by voice. | 2, 7 |
+| FR-06.09 | The system shall summarise a document and compare two documents, with citations. | 2 |
+| FR-06.10 | The user shall be able to delete an indexed source. Deleting it removes its chunks and vectors, and they no longer appear in any retrieval result. | 1 |
+| FR-06.11 | The user shall be able to choose local directories to index. Only files in supported formats inside the chosen directories are indexed. | 8 |
+| FR-06.12 | Every citation in an answer shall refer to a chunk that was retrieved for that query. The backend shall reject an answer that cites anything else. | 2 |
 
-### FR-07: Job and Internship Radar
+### FR-08: Personality and notifications
 
-1. The system shall allow users to configure job preferences, including role, location, employment type and keywords.
-2. The system shall retrieve job listings from supported job sources.
-3. The system shall identify and eliminate duplicate job listings.
-4. The system shall rank opportunities based on configured user preferences.
-5. The system shall notify users about newly discovered relevant opportunities.
-6. The system shall allow users to save opportunities and track application statuses.
-7. The system shall provide links to original job listings and application pages.
+| ID | Requirement | Phase |
+| --- | --- | --- |
+| FR-08.01 | The user shall be able to choose the companion's conversational personality within the personality defined in the character design. | 7 |
+| FR-08.02 | The user shall be able to set humour, sarcasm, friendliness and reminder strictness, each on a fixed scale (for example 0 to 4). | 7 |
+| FR-08.03 | The companion's speech-bubble responses shall reflect the triggering event (for example a reminder or finished indexing) and the settings in FR-08.02. | 7 |
+| FR-08.04 | The user shall be able to set which notification categories are enabled, their priority levels, and quiet hours during which non-critical notifications are held. | 7 |
+| FR-08.05 | Notifications shall be shown either as speech bubbles (styled as in the character design) or as native Windows notifications, depending on the user's setting. | 6, 7 |
+| FR-08.06 | A non-critical notification of the same category and source shall not repeat within a configurable cooldown period (default 30 minutes). | 7 |
 
-### FR-08: Personality and Notification Management
+---
 
-1. The system shall allow users to customize the companion's conversational personality.
-2. The system shall support configurable humour, sarcasm, friendliness and reminder strictness.
-3. The system shall generate contextual responses based on incoming events and user preferences.
-4. The system shall allow users to configure notification categories, priority levels and quiet hours.
-5. The system shall support different notification styles, including speech bubbles and native desktop notifications.
-6. The system shall prevent repeated non-critical notifications within configurable cooldown periods.
-
-### FR-09: Cloud Synchronization and iOS Integration
-
-1. The system shall support secure user authentication across supported devices.
-2. The system shall synchronize tasks, reminders, preferences and relevant application data between Windows and iOS.
-3. The system shall support offline access to previously synchronized tasks.
-4. The system shall synchronize locally modified data when network connectivity is restored.
-5. The system shall provide push notifications through supported mobile notification services.
-6. The system shall allow users to create, edit and complete tasks from the iOS application.
-7. The system shall maintain consistency of synchronized data across registered devices.
-
-## 2. Non-Functional Requirements (NFR)
-
-Non-functional requirements define how well the system shall operate.
+## 2. Non-functional requirements (NFR)
 
 ### NFR-01: Performance
 
-1. The desktop companion shall initialize within 5 seconds under the defined target test environment.
-2. The dashboard shall become interactive within 2 seconds after being opened under normal operating conditions.
-3. Local task creation and updates shall complete within 500 milliseconds under normal operating conditions.
-4. The system shall display voice interaction feedback within 500 milliseconds of shortcut activation, excluding microphone permission prompts and operating-system delays.
-5. The system shall process and return standard knowledge retrieval responses within 5 seconds under the defined test dataset and network conditions, excluding external LLM generation latency.
+These targets are proposed acceptance values, not measurements. They are measured on the reference
+environment by a benchmark script added in Phase 4.
 
-### NFR-02: Reliability and Availability
+| ID | Requirement | Phase |
+| --- | --- | --- |
+| NFR-01.01 | The frog shall be visible within 5 seconds of the desktop app starting (target, p95). | 6 |
+| NFR-01.02 | The dashboard shall accept input within 2 seconds of being opened (target, p95). | 6 |
+| NFR-01.03 | Creating or updating a task shall complete within 500 ms (target, p95, local backend). | 7 |
+| NFR-01.04 | Visible voice feedback (listening state) shall appear within 500 ms of the shortcut, excluding OS microphone permission prompts (target, p95). | 7 |
+| NFR-01.05 | Retrieval (excluding LLM generation) shall return within 5 seconds (target, p95) on the reference dataset. | 2, 4 |
 
-1. The system shall preserve locally stored tasks and reminders during temporary network failures.
-2. The system shall recover pending synchronization operations after network connectivity is restored.
-3. The system shall prevent duplicate task and calendar event creation during retry operations.
-4. The system shall recover gracefully from application crashes and unexpected service interruptions.
-5. The system shall maintain scheduled local reminders independently of cloud service availability.
+### NFR-02: Reliability and availability
+
+| ID | Requirement | Phase |
+| --- | --- | --- |
+| NFR-02.01 | Tasks and reminders stored locally shall remain available and editable when the network is down. | 7 |
+| NFR-02.03 | Retrying a request (for example after a timeout) shall never create a duplicate task, calendar event, draft or document. A fault-injection test that repeats each create request shall find zero duplicates. | 1, 7, 8 |
+| NFR-02.04 | After the backend or desktop app is killed (for example by a crash or `taskkill /F`) and restarted, no committed data shall be lost and in-progress background jobs shall be retried until they finish or reach the dead-letter state. An automated test shall check this for ingestion. | 1, 4 |
+| NFR-02.05 | Scheduled reminders shall fire on the desktop when the backend or the internet is unreachable. | 7 |
+| NFR-02.06 | Failed background jobs shall be retried with exponential backoff up to a configurable limit, then moved to a dead-letter state that records the error reason. | 1 |
+| NFR-02.07 | When an external dependency (LLM, embedding provider, reranker, Google APIs) is unavailable, the affected request shall fail with a clear error or a documented fallback within a configured timeout, and features that don't depend on it shall keep working. | 4 |
 
 ### NFR-03: Security
 
-1. The system shall use encrypted communication channels for client-server communication.
-2. The system shall implement secure authentication and authorization mechanisms.
-3. The system shall securely store OAuth tokens and other sensitive credentials.
-4. The system shall restrict access to user data based on authenticated account ownership.
-5. The system shall request only the permissions necessary for each external integration.
-6. The system shall require user confirmation before executing consequential external actions.
-7. The system shall protect indexed documents and retrieved knowledge from unauthorized access.
+| ID | Requirement | Phase |
+| --- | --- | --- |
+| NFR-03.01 | All traffic that leaves the user's machine shall use TLS 1.2 or later. A backend running locally shall listen only on `127.0.0.1`. | 0, 9 |
+| NFR-03.02 | Passwords shall be stored only as BCrypt hashes. Access tokens shall be signed JWTs (HS256 with a key of at least 256 bits) with an expiry of at most 1 hour. Login shall return the same response for an unknown email and a wrong password. | 0 |
+| NFR-03.03 | OAuth tokens and other credentials shall be encrypted at rest and shall never appear in logs, API responses or the repository. | 8 |
+| NFR-03.04 | Every request for user-owned data shall be scoped to the authenticated user. A request for another user's resource shall get the same response as a request for a resource that does not exist (404). | 1 onwards |
+| NFR-03.05 | Google scopes shall be limited to: Calendar events read/write (`calendar.events`), Gmail read-only (`gmail.readonly`) and Gmail compose for drafts (`gmail.compose`). Adding a scope requires an ADR. | 8 |
+| NFR-03.06 | Consequential actions shall run only after explicit user confirmation that shows exactly what will happen. | 7, 8 |
+| NFR-03.07 | Indexed documents, chunks and vectors shall be readable only through authenticated, user-scoped API calls. | 1, 2 |
+| NFR-03.08 | **Prompt injection, data/instruction separation:** retrieved content (documents, emails, calendar entries) shall be placed in prompts as clearly delimited data, separate from system instructions. It shall never be treated as instructions to SMOI. | 2, 5 |
+| NFR-03.09 | **Prompt injection, structured actions only:** the LLM may only propose actions as structured output. The backend shall validate every proposal against an allowlist of action types and parameter schemas, and shall reject and log anything else. | 5, 7 |
+| NFR-03.10 | **Prompt injection, no action from content:** no text inside retrieved content shall cause an action to run without the user's confirmation. An injection test corpus (documents and emails containing instructions such as "delete all tasks" or "send this email") shall produce zero executed actions. | 5 |
+| NFR-03.11 | **Prompt injection, no access widening:** query text and retrieved content shall not change which user's data is searched or which tools are available. Retrieval is always scoped to the authenticated user. | 2, 5 |
+| NFR-03.12 | **Data isolation tests:** for every endpoint that reads, changes or deletes user-owned data, an automated test shall check that user B cannot read, change or delete user A's data. The target is zero failures, and these tests run in CI. | 1 onwards |
+| NFR-03.13 | **Data isolation in storage:** every user-owned table shall have a `user_id` column. Every query on such a table shall filter by `user_id`, including in vector and keyword search. | 1 onwards |
+| NFR-03.14 | Repeated failed logins for one account or IP address shall be throttled after a configurable number of attempts (default TBD). | 5 |
+| NFR-03.15 | Secrets shall be supplied only through environment variables (`.env` locally, which is gitignored). CI shall run a secret scan on every push. | 0, 5 |
 
 ### NFR-04: Privacy
 
-1. The system shall obtain explicit user consent before accessing external data sources.
-2. The system shall provide visible microphone activation and recording indicators.
-3. The system shall not continuously record audio without explicit user activation.
-4. The system shall allow users to disconnect integrations and delete their indexed data.
-5. The system shall provide configurable controls over AI processing and data sharing.
-6. The system shall minimize the collection and retention of personal information.
+| ID | Requirement | Phase |
+| --- | --- | --- |
+| NFR-04.01 | The system shall access an external data source (Google account, local directory) only after the user explicitly connects or selects it. | 8 |
+| NFR-04.02 | Whenever the microphone is capturing, the frog shall be in the listening state and a recording indicator shall be visible. | 7 |
+| NFR-04.03 | The microphone shall capture audio only after the user activates voice (FR-03.01). No audio shall be captured in the background. | 7 |
+| NFR-04.04 | The user shall be able to disconnect any integration and delete their indexed data. Deleted data shall no longer appear in any result. | 1, 8 |
+| NFR-04.05 | The user shall be able to choose local-only LLM and embedding providers, so that no document or email content leaves their machine. The active providers shall be shown in settings. | 2 |
+| NFR-04.06 | Every category of stored personal data shall be listed in `docs/` with its purpose and retention period. No data shall be stored that is not on that list. | 5 |
 
-### NFR-05: Usability and Accessibility
+### NFR-05: Usability and accessibility
 
-1. The system shall provide an intuitive interface requiring minimal navigation for common tasks.
-2. The system shall maintain a consistent visual design across supported application modules.
-3. The system shall provide readable text, clear interaction feedback and distinguishable notification states.
-4. The system shall support keyboard navigation for dashboard interactions.
-5. The system shall allow users to customize keyboard shortcuts and notification behaviour.
-6. The system shall support adjustable animation behaviour and reduced-motion preferences.
+| ID | Requirement | Phase |
+| --- | --- | --- |
+| NFR-05.01 | The common actions (create a task, ask SMOI Brain a question, start voice) shall be reachable in at most 2 interactions from the frog. | 6, 7 |
+| NFR-05.02 | All screens shall use only the palette, fonts, speech bubble and panel styles in the character design. | 6 |
+| NFR-05.03 | Body text shall meet WCAG 2.2 AA contrast (4.5:1). Notification states shall differ by more than colour alone (for example icon or text). | 6 |
+| NFR-05.04 | Every dashboard control shall be reachable and usable with the keyboard alone, with a visible focus indicator. | 6 |
+| NFR-05.05 | The user shall be able to change keyboard shortcuts and notification behaviour in settings. | 7 |
+| NFR-05.06 | When Windows animation effects are turned off, or the user turns on reduced motion in SMOI, the frog shall use still poses in place of looping animations. | 6 |
 
 ### NFR-06: Scalability
 
-1. The backend shall support an increasing number of registered users and connected devices without requiring fundamental architectural changes.
-2. The document ingestion pipeline shall support asynchronous processing of multiple documents.
-3. The knowledge retrieval system shall support increasing document collections through indexing and retrieval optimization.
-4. The system shall support independent scaling of background processing and API workloads.
+| ID | Requirement | Phase |
+| --- | --- | --- |
+| NFR-06.01 | The API shall keep no per-user state in memory between requests, so two backend instances sharing one database pass the full integration suite. | 4 |
+| NFR-06.02 | Document ingestion shall run asynchronously. Several workers shall process documents concurrently, and no job is processed by two workers at once. | 1 |
+| NFR-06.03 | Retrieval latency shall be measured at increasing corpus sizes (for example 1k, 10k and 100k chunks). The p95 target at each size is TBD. | 4 |
+| NFR-06.04 | API handling and background workers shall be able to run as separate processes, selected by configuration. | 4 |
 
 ### NFR-07: Maintainability
 
-1. The system shall use modular components with clearly defined responsibilities.
-2. The system shall maintain documented API contracts between desktop, mobile and backend components.
-3. The system shall provide automated tests for critical business logic and integrations.
-4. The system shall maintain structured application logs and error information.
-5. The system shall support independent updates to the desktop application, backend and mobile application.
+| ID | Requirement | Phase |
+| --- | --- | --- |
+| NFR-07.01 | Each module (auth, ingestion, retrieval, tasks, integrations) shall live in its own package with a documented responsibility. | 0 onwards |
+| NFR-07.02 | The API used by the desktop app shall be documented as an OpenAPI specification generated from the code. | 2 |
+| NFR-07.03 | Every feature shall ship with automated tests. CI shall run all tests on every push and pull request. | 0 onwards |
+| NFR-07.04 | Logs shall be structured (JSON) and include a request ID. Logs shall not contain document content, email content, passwords or tokens. | 4 |
+| NFR-07.05 | The desktop app and backend shall be releasable independently. The API shall be versioned. | 9 |
 
-### NFR-08: Compatibility and Portability
+### NFR-08: Compatibility
 
-1. The desktop application shall support Windows 11.
-2. The mobile application shall support compatible iOS devices.
-3. The desktop application shall support multiple monitor configurations.
-4. The system shall handle different display resolutions and scaling configurations.
-5. The application shall support network connectivity changes without losing persisted user data.
+| ID | Requirement | Phase |
+| --- | --- | --- |
+| NFR-08.01 | The desktop app shall run on Windows 11. | 6 |
+| NFR-08.03 | The frog shall be movable between monitors. If its saved monitor is no longer connected, it shall appear on the primary monitor. | 6 |
+| NFR-08.04 | The pixel art shall stay crisp (integer scaling, no blurring) at Windows display scaling from 100% to 200%. | 6 |
+| NFR-08.05 | Losing or regaining network connectivity shall not lose any saved data. | 7 |
 
-## 3. Requirements summary
+### NFR-09: Answer and intent quality
 
-# 9
+Each metric is produced by a script in `eval/` on a versioned, labelled dataset. Reported numbers shall
+name the script, the dataset version and the commit. Targets stay `TBD` until a baseline has been measured
+(Phase 3).
 
-Functional categories
+| ID | Requirement | Measure | Target | Phase |
+| --- | --- | --- | --- | --- |
+| NFR-09.01 | Retrieval shall find the relevant chunks. | Recall@5 on the retrieval eval set, reported per retrieval mode | TBD | 3 |
+| NFR-09.02 | Retrieval shall rank relevant chunks near the top. | MRR@10 on the retrieval eval set, per mode | TBD | 3 |
+| NFR-09.03 | Citations shall support the claims they are attached to. | Citation precision: share of cited chunks labelled as supporting their claim | TBD | 3 |
+| NFR-09.04 | Citations shall refer only to retrieved chunks (enforced by FR-06.12). | Share of citations that refer to a retrieved chunk | 100% (hard rule) | 2, 3 |
+| NFR-09.05 | SMOI shall say it doesn't know when the sources don't cover a question. | Share of unanswerable eval questions answered with "don't know"; also the share of answerable questions wrongly refused | TBD | 3 |
+| NFR-09.06 | Voice and typed commands shall be classified into the right intent. | Accuracy and macro-F1 on the labelled intent set | TBD | 3, 7 |
+| NFR-09.07 | Emails shall be classified into the right category. | Macro-F1 on a labelled email set | TBD | 8 |
+| NFR-09.08 | Answer latency shall be reported alongside quality. | p50 and p95 time per stage (retrieval, rerank, generation) | TBD | 3, 4 |
 
-FR-01 to FR-09
+---
 
-# 8
+## 3. Constraints
 
-Quality categories
+- SMOI never sends or deletes email (FR-05.13).
+- Retrieved content is untrusted data and can never trigger an action (NFR-03.08 to NFR-03.11).
+- LLM and embedding providers sit behind interfaces chosen by configuration (FR-06.04, NFR-04.05).
+- The character design file is the source of truth for SMOI's appearance and personality (NFR-05.02).
 
-NFR-01 to NFR-08
+## 4. Verification
 
-Coverage
+Each requirement is verified by an automated test, an evaluation script or a documented manual check.
+A traceability matrix linking requirement IDs to tests will be added as features are built.
 
-- Desktop companion
-- Tasks and reminders
-- Voice activation
-- Google Calendar
-- Gmail intelligence
-- RAG and personal memory
-- Job discovery
-- Cloud synchronization
-- Security, privacy and performance
+## 5. Build phases
 
-## 4. Important scope distinction
+| Phase | Build | Main requirements |
+| --- | --- | --- |
+| 0 | Setup: repo, auth, CI, Docker Compose | NFR-03.01, NFR-03.02, NFR-03.15, NFR-07.03 |
+| 1 | Document ingestion | FR-06.01, FR-06.03, FR-06.04, FR-06.10, NFR-02.03, NFR-02.04, NFR-02.06, NFR-03.04, NFR-03.12, NFR-03.13, NFR-06.02 |
+| 2 | Retrieval and cited answers | FR-06.05 to FR-06.09, FR-06.12, NFR-01.05, NFR-03.08, NFR-03.11, NFR-04.05, NFR-07.02 |
+| 3 | Evaluation | NFR-09.01 to NFR-09.06, NFR-09.08 |
+| 4 | Observability and resilience | NFR-02.07, NFR-06.01, NFR-06.03, NFR-06.04, NFR-07.04, reference environment |
+| 5 | Security | NFR-03.09, NFR-03.10, NFR-03.14, NFR-04.06 |
+| 6 | Desktop frog | FR-01, FR-08.05, NFR-01.01, NFR-01.02, NFR-05, NFR-08 |
+| 7 | Tasks, reminders and voice | FR-02, FR-03, FR-08, NFR-01.03, NFR-01.04, NFR-02.01, NFR-02.05, NFR-04.02, NFR-04.03 |
+| 8 | Calendar and Gmail | FR-04, FR-05, FR-06.02, FR-06.11, NFR-03.03, NFR-03.05, NFR-04.01, NFR-09.07 |
+| 9 | Packaging | FR-01.05 (launch at sign-in, installer), NFR-07.05 |
 
-I recommend treating these as the complete product requirements, but implementing them in stages.
+If time runs short, Phases 0 to 3 plus a basic Phase 6 frog and Phase 9 form a complete project.
 
-| Release   | Requirements                                    |
-| --------- | ----------------------------------------------- |
-| MVP       | FR-01, FR-02, basic FR-03, NFR essentials       |
-| Release 2 | FR-04, FR-08                                    |
-| Release 3 | FR-05, FR-06                                    |
-| Release 4 | FR-07                                           |
-| Release 5 | FR-09 and complete cross-device synchronization |
+## 6. Future work
 
-This prevents the first release from becoming too large.
+These requirements are kept for reference and are out of scope for the current phases. Their v0.1 IDs are kept.
 
-A note on requirement verification: The numerical performance targets above are proposed acceptance targets, not measured guarantees. We'll need to define hardware, dataset size, network conditions and test procedures before treating them as verified.
+### FR-07: Job and internship radar
 
-## 5. What should we document next?
+- FR-07.01 The user shall be able to set job preferences: role, location, employment type and keywords.
+- FR-07.02 The system shall retrieve job listings from supported job sources.
+- FR-07.03 The system shall detect and remove duplicate listings.
+- FR-07.04 The system shall rank opportunities by the user's preferences.
+- FR-07.05 The system shall notify the user about new relevant opportunities.
+- FR-07.06 The user shall be able to save opportunities and track application status.
+- FR-07.07 The system shall link to the original listing and application page.
+- (From FR-02.05 in v0.1) The user shall be able to convert discovered opportunities into tasks.
 
-My recommendation is to create the next SRS sections in this order:
+### FR-09: Cloud synchronisation and iOS
 
-1. System overview and scope.
-2. User roles and use cases.
-3. External interface requirements.
-4. System constraints and assumptions.
-5. Requirement-to-verification traceability matrix.
+- FR-09.01 Authentication shall work across supported devices.
+- FR-09.02 Tasks, reminders, preferences and related data shall sync between Windows and iOS.
+- FR-09.03 Previously synced tasks shall be available offline.
+- FR-09.04 Changes made offline shall sync when connectivity returns.
+- FR-09.05 Push notifications shall be delivered through mobile notification services.
+- FR-09.06 The user shall be able to create, edit and complete tasks in the iOS app.
+- FR-09.07 Synced data shall stay consistent across registered devices.
 
-We should also give every individual requirement a unique identifier, such as `FR-03.01` and `NFR-01.02`, when preparing the formal submission document.
+### Related items
 
-That will make it possible to map each requirement directly to its verification approach without ambiguity.
+- FR-04.07 Calendar information shall sync with the desktop and iOS apps.
+- NFR-02.02 Pending sync operations shall resume after connectivity returns (depends on FR-09).
+- NFR-08.02 The mobile app shall support compatible iOS devices.
