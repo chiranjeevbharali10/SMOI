@@ -24,6 +24,8 @@ public abstract class DocumentApiTest extends IntegrationTest {
     protected static final ParameterizedTypeReference<Map<String, Object>> JSON = new ParameterizedTypeReference<>() { };
     protected static final ParameterizedTypeReference<List<Map<String, Object>>> JSON_LIST =
             new ParameterizedTypeReference<>() { };
+    /** Throwaway password for test users (Testcontainers database only). */
+    protected static final String PASSWORD = "correct-horse-battery";
     protected static final Duration INDEXING_TIMEOUT = Duration.ofSeconds(30);
 
     @Autowired
@@ -35,11 +37,15 @@ public abstract class DocumentApiTest extends IntegrationTest {
     @Autowired
     protected ScriptedLlmProvider llm;
 
+    @Autowired
+    protected com.smoi.resilience.ProviderCircuitBreakers breakers;
+
     @AfterEach
     void resetEmbeddingFaults() {
         embeddingFaults.reset();
         RERANKER.reset();
         llm.reset();
+        breakers.reset();
     }
 
     public record TestUser(UUID id, String token) {
@@ -47,7 +53,7 @@ public abstract class DocumentApiTest extends IntegrationTest {
 
     protected TestUser newUser() {
         String email = "user-" + UUID.randomUUID() + "@example.com";
-        String password = "correct-horse-battery";
+        String password = PASSWORD;
         http().post().uri("/api/auth/register").contentType(MediaType.APPLICATION_JSON)
                 .body(Map.of("email", email, "password", password)).retrieve().toBodilessEntity();
         Map<String, Object> login = http().post().uri("/api/auth/login").contentType(MediaType.APPLICATION_JSON)
@@ -143,7 +149,7 @@ public abstract class DocumentApiTest extends IntegrationTest {
                 .single();
     }
 
-    private static MultiValueMap<String, Object> multipart(String filename, byte[] content) {
+    protected static MultiValueMap<String, Object> multipart(String filename, byte[] content) {
         MultiValueMap<String, Object> parts = new LinkedMultiValueMap<>();
         parts.add("file", new ByteArrayResource(content) {
             @Override

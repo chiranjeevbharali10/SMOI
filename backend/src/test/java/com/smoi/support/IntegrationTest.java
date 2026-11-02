@@ -9,6 +9,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.web.client.RestClient;
 import org.testcontainers.postgresql.PostgreSQLContainer;
 import org.testcontainers.utility.DockerImageName;
@@ -23,6 +24,13 @@ import org.testcontainers.utility.DockerImageName;
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @Import(TestEmbeddingConfig.class)
+// Generous rate limits so ordinary tests never hit them. A subclass's own @TestPropertySource
+// overrides these (RateLimitIT sets tight ones); @DynamicPropertySource values could not be overridden.
+@TestPropertySource(properties = {
+        "smoi.rate-limit.query.capacity=10000",
+        "smoi.rate-limit.search.capacity=10000",
+        "smoi.rate-limit.upload.capacity=10000"
+})
 public abstract class IntegrationTest {
 
     static final PostgreSQLContainer POSTGRES = new PostgreSQLContainer(
@@ -63,6 +71,13 @@ public abstract class IntegrationTest {
         registry.add("smoi.chunking.overlap-tokens", () -> "20");
         registry.add("spring.servlet.multipart.max-file-size", () -> "2MB");
         registry.add("spring.servlet.multipart.max-request-size", () -> "2MB");
+        // Breakers reopen quickly, so a test that opens one doesn't slow the next.
+        registry.add("smoi.resilience.llm.wait-in-open", () -> "PT1S");
+        registry.add("smoi.resilience.embedding.wait-in-open", () -> "PT1S");
+        registry.add("smoi.resilience.reranker.wait-in-open", () -> "PT1S");
+        // Metrics on a random port of their own, as in production.
+        registry.add("management.server.port", () -> "0");
+        registry.add("logging.structured.format.console", () -> "logstash");
     }
 
     @Value("${local.server.port}")

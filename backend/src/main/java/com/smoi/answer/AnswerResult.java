@@ -16,6 +16,7 @@ import com.smoi.retrieval.RetrievalMode;
  * @param excludedDocuments  documents not searched because they aren't allowed for a hosted LLM
  * @param omittedForContext  retrieved chunks left out because the prompt budget was full
  * @param truncated          the answer hit the output token limit
+ * @param passages           only for {@link Outcome#LLM_UNAVAILABLE}: the retrieved passages
  */
 public record AnswerResult(
         Outcome outcome,
@@ -33,7 +34,8 @@ public record AnswerResult(
         int excludedDocuments,
         int omittedForContext,
         boolean truncated,
-        Timings timings) {
+        Timings timings,
+        List<Passage> passages) {
 
     public enum Outcome {
         /** An answer with valid citations. */
@@ -43,7 +45,12 @@ public record AnswerResult(
         /** The provider's safety system declined. Counted separately; it is not an answer. */
         REFUSED,
         /** The model cited something it wasn't given, or cited nothing. The answer is withheld. */
-        CITATION_REJECTED;
+        CITATION_REJECTED,
+        /**
+         * The LLM is down (or its circuit breaker is open). No answer was generated; the response
+         * carries the retrieved passages instead, so the user still gets something useful.
+         */
+        LLM_UNAVAILABLE;
 
         @com.fasterxml.jackson.annotation.JsonValue
         public String value() {
@@ -57,6 +64,19 @@ public record AnswerResult(
         static Citation of(Source s) {
             return new Citation(s.label(), s.chunkId(), s.documentId(), s.filename(), s.chunkIndex(), s.pageStart(),
                     s.pageEnd(), s.section());
+        }
+    }
+
+    /**
+     * A retrieved passage returned as-is, only when the LLM is unavailable. The text is the
+     * user's own document content, shown to its owner.
+     */
+    public record Passage(String label, UUID chunkId, UUID documentId, String filename, int chunkIndex,
+                          Integer pageStart, Integer pageEnd, String section, String content) {
+
+        static Passage of(Source s) {
+            return new Passage(s.label(), s.chunkId(), s.documentId(), s.filename(), s.chunkIndex(), s.pageStart(),
+                    s.pageEnd(), s.section(), s.content());
         }
     }
 

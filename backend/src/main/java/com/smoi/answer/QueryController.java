@@ -9,6 +9,7 @@ import java.util.concurrent.Executors;
 import com.smoi.auth.CurrentUser;
 import com.smoi.llm.ContextOverflowException;
 import com.smoi.llm.LlmUnavailableException;
+import com.smoi.observability.RequestIds;
 import com.smoi.retrieval.RetrievalMode;
 import jakarta.annotation.PreDestroy;
 import jakarta.validation.Valid;
@@ -86,9 +87,10 @@ public class QueryController {
     @PostMapping(path = "/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public SseEmitter stream(@AuthenticationPrincipal Jwt jwt, @Valid @RequestBody QueryRequest request) {
         UUID userId = CurrentUser.id(jwt); // read on the request thread; the token isn't available later
+        String requestId = RequestIds.current(); // the MDC is per thread, so carry the id across
         SseEmitter emitter = new SseEmitter(300_000L);
         streams.submit(() -> {
-            try {
+            try (var ignored = RequestIds.bind(requestId)) {
                 AnswerResult result = answers.answer(userId, request.question(), request.modeOrDefault(),
                         request.topKOrDefault(),
                         sources -> send(emitter, "sources", sources.stream().map(AnswerResult.Citation::of).toList()),

@@ -58,7 +58,7 @@ class SmoiClient:
         deadline = time.monotonic() + timeout_s
         while True:
             try:
-                urllib.request.urlopen(self.base_url + "/actuator/health", timeout=5)
+                urllib.request.urlopen(self.base_url + "/livez", timeout=5)
                 return
             except urllib.error.HTTPError:
                 return

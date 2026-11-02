@@ -6,6 +6,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import com.smoi.observability.RequestIds;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.SmartLifecycle;
@@ -56,7 +57,10 @@ public class IngestionWorkerPool implements SmartLifecycle {
             try {
                 Optional<IngestionJob> job = queue.claim();
                 if (job.isPresent()) {
-                    pipeline.run(job.get());
+                    // The job's log lines carry the id of the upload request that created it.
+                    try (var ignored = RequestIds.bind(job.get().requestId())) {
+                        pipeline.run(job.get());
+                    }
                 } else {
                     Thread.sleep(props.pollInterval());
                 }

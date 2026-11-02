@@ -1,5 +1,6 @@
 package com.smoi.retrieval.rerank;
 
+import com.smoi.resilience.ProviderTimeouts;
 import java.net.http.HttpClient;
 import java.util.List;
 
@@ -15,7 +16,7 @@ public class HttpReranker implements Reranker {
     private volatile String modelId = "cross-encoder (sidecar)";
 
     public HttpReranker(RerankProperties props) {
-        HttpClient client = HttpClient.newBuilder().connectTimeout(props.timeout()).build();
+        HttpClient client = HttpClient.newBuilder().connectTimeout(ProviderTimeouts.CONNECT).build();
         JdkClientHttpRequestFactory requestFactory = new JdkClientHttpRequestFactory(client);
         requestFactory.setReadTimeout(props.timeout());
         this.http = RestClient.builder().baseUrl(props.baseUrl()).requestFactory(requestFactory).build();

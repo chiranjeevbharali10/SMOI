@@ -1,5 +1,6 @@
 package com.smoi.ingestion;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -14,6 +15,10 @@ import com.smoi.ingestion.chunking.Chunker;
 import com.smoi.ingestion.parsing.Block;
 import com.smoi.ingestion.parsing.DocumentParseException;
 import com.smoi.ingestion.parsing.DocumentParser;
+import com.smoi.resilience.ProviderCircuitBreakers;
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Timer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -43,10 +48,15 @@ public class IngestionPipeline {
     private final IngestionProperties props;
     private final int batchSize;
     private final TransactionTemplate tx;
+    private final ProviderCircuitBreakers breakers;
+    private final MeterRegistry meters;
 
     public IngestionPipeline(JobQueue queue, DocumentRepository documents, ChunkRepository chunks, DocumentParser parser,
                              Chunker chunker, EmbeddingProvider embeddings, IngestionProperties props,
-                             EmbeddingProperties embeddingProps, TransactionTemplate tx) {
+                             EmbeddingProperties embeddingProps, TransactionTemplate tx,
+                             ProviderCircuitBreakers breakers, MeterRegistry meters) {
+        this.breakers = breakers;
+        this.meters = meters;
         this.queue = queue;
         this.documents = documents;
         this.chunks = chunks;
@@ -63,55 +73,81 @@ public class IngestionPipeline {
      * failure while recording the outcome escapes; the job's lease then expires and it is retried.
      */
     public void run(IngestionJob job) {
+        long start = System.nanoTime();
+        String outcome = "retry";
         try {
             if (job.attempts() > job.maxAttempts()) {
                 // The previous worker claimed the final attempt and then stopped renewing its
                 // lease (crash, kill, or hang). Don't start another attempt.
                 fail(job, "Gave up after " + job.maxAttempts()
                         + " attempts: the worker stopped responding during the last attempt");
+                outcome = "dead";
                 return;
             }
-            process(job);
+            outcome = process(job);
         } catch (LeaseLostException e) {
             // Another worker owns the job now. Writing anything would race with it.
             log.warn("Abandoning job {}: {}", job.id(), e.getMessage());
+            outcome = "lease_lost";
         } catch (DocumentParseException e) {
             // The file itself is the problem, so retrying can't help.
             fail(job, e.getMessage());
+            outcome = "dead";
         } catch (Exception e) {
             // Anything else (embedding provider down, database hiccup) may pass, so retry.
-            retryOrFail(job, describe(e));
+            outcome = retryOrFail(job, describe(e)) ? "retry" : "dead";
+        } finally {
+            // smoi_ingestion_job_seconds{outcome=...}: duration and count of every attempt.
+            Timer.builder("smoi.ingestion.job").tag("outcome", outcome).register(meters)
+                    .record(Duration.ofNanos(System.nanoTime() - start));
         }
     }
 
-    private void process(IngestionJob job) {
+    private void stage(String name, long startNanos) {
+        Timer.builder("smoi.ingestion.stage").tag("stage", name).register(meters)
+                .record(Duration.ofNanos(System.nanoTime() - startNanos));
+    }
+
+    /** Returns the outcome for metrics: succeeded or cancelled. */
+    private String process(IngestionJob job) {
         Optional<DocumentRepository.Content> content = tx.execute(status ->
                 documents.startProcessing(job.userId(), job.documentId(), job.documentVersion()));
         if (content.isEmpty()) {
             queue.markCancelled(job, "The document was deleted or replaced before indexing started");
-            return;
+            return "cancelled";
         }
 
         // Parse and clean, then chunk.
+        long t = System.nanoTime();
         List<Block> blocks = parser.parse(content.get().bytes(), content.get().mediaType());
+        stage("parse", t);
+        t = System.nanoTime();
         List<ChunkDraft> drafts = chunker.chunk(blocks);
+        stage("chunk", t);
         queue.renewLease(job);
 
         // Embed, in batches. Renewing the lease before each batch is the worker's heartbeat.
+        t = System.nanoTime();
         List<float[]> vectors = new ArrayList<>(drafts.size());
         for (int from = 0; from < drafts.size(); from += batchSize) {
             queue.renewLease(job);
             List<String> texts = drafts.subList(from, Math.min(drafts.size(), from + batchSize))
                     .stream().map(ChunkDraft::text).toList();
-            vectors.addAll(checked(embeddings.embedDocuments(texts), texts.size()));
+            // Through the breaker: while the embedding provider is down, jobs fail fast and back off
+            // instead of each waiting for the full timeout.
+            vectors.addAll(checked(breakers.embedding(() -> embeddings.embedDocuments(texts)), texts.size()));
         }
+        stage("embed", t);
 
         // Store: one short transaction.
+        t = System.nanoTime();
+        boolean[] cancelled = {false};
         tx.executeWithoutResult(status -> {
             // Lock order: document row, then job row. Replace and delete use the same order,
             // so they can't deadlock with this transaction.
             if (!documents.lockVersion(job.userId(), job.documentId(), job.documentVersion())) {
                 queue.markCancelled(job, "The document was deleted or replaced during indexing");
+                cancelled[0] = true;
                 return;
             }
             if (!queue.markSucceeded(job)) {
@@ -121,7 +157,13 @@ public class IngestionPipeline {
             chunks.insertAll(job.userId(), job.documentId(), drafts, vectors, embeddings.modelId());
             documents.markIndexed(job.userId(), job.documentId(), job.documentVersion(), drafts.size());
         });
+        stage("store", t);
+        if (cancelled[0]) {
+            return "cancelled";
+        }
+        Counter.builder("smoi.ingestion.chunks").register(meters).increment(drafts.size());
         log.info("Indexed document {} version {}: {} chunks", job.documentId(), job.documentVersion(), drafts.size());
+        return "succeeded";
     }
 
     private List<float[]> checked(List<float[]> vectors, int expected) {
@@ -138,10 +180,11 @@ public class IngestionPipeline {
         return vectors;
     }
 
-    private void retryOrFail(IngestionJob job, String error) {
+    /** Returns true if the job will be retried, false if it was moved to dead-letter. */
+    private boolean retryOrFail(IngestionJob job, String error) {
         if (job.attempts() >= job.maxAttempts()) {
             fail(job, "Gave up after " + job.attempts() + " attempts. Last error: " + error);
-            return;
+            return false;
         }
         tx.executeWithoutResult(status -> {
             documents.markQueued(job.userId(), job.documentId(), job.documentVersion());
@@ -150,6 +193,7 @@ public class IngestionPipeline {
             }
         });
         log.warn("Job {} attempt {} failed, will retry: {}", job.id(), job.attempts(), error);
+        return true;
     }
 
     /**

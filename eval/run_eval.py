@@ -298,6 +298,8 @@ def cmd_bootstrap_env(args):
             line = "JWT_SECRET=" + base64.b64encode(secrets.token_bytes(32)).decode()
         elif line.startswith("POSTGRES_PASSWORD="):
             line = "POSTGRES_PASSWORD=" + secrets.token_urlsafe(24)
+        elif line.startswith("GRAFANA_ADMIN_PASSWORD="):
+            line = "GRAFANA_ADMIN_PASSWORD=" + secrets.token_urlsafe(18)
         lines.append(line)
     env_file.write_text("\n".join(lines) + "\n", encoding="utf-8")
     log("Created .env with generated local secrets (never commit it)")

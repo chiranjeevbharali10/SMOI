@@ -1,5 +1,6 @@
 package com.smoi.embedding;
 
+import com.smoi.resilience.ProviderTimeouts;
 import java.net.http.HttpClient;
 import java.util.ArrayList;
 import java.util.List;
@@ -27,7 +28,7 @@ public class OllamaEmbeddingProvider implements EmbeddingProvider {
             throw new IllegalStateException("smoi.embedding.ollama.base-url and .model must be set");
         }
         this.props = props;
-        HttpClient client = HttpClient.newBuilder().connectTimeout(props.timeout()).build();
+        HttpClient client = HttpClient.newBuilder().connectTimeout(ProviderTimeouts.CONNECT).build();
         JdkClientHttpRequestFactory requestFactory = new JdkClientHttpRequestFactory(client);
         requestFactory.setReadTimeout(props.timeout());
         this.http = RestClient.builder().baseUrl(props.baseUrl()).requestFactory(requestFactory).build();

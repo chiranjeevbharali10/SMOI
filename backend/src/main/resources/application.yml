@@ -5,6 +5,13 @@ spring:
     url: ${DB_URL:jdbc:postgresql://localhost:5432/smoi}
     username: ${DB_USER:smoi}
     password: ${DB_PASSWORD:}
+    hikari:
+      # Fail fast when no connection is free or the database is unreachable (NFR-02.07).
+      connection-timeout: 5000 # milliseconds
+  jdbc:
+    template:
+      # No single SQL statement may run longer than this.
+      query-timeout: 30s
   mvc:
     problemdetails:
       enabled: true
@@ -35,6 +42,9 @@ smoi:
     # ollama (local, default) or anthropic (hosted, opt-in; needs ANTHROPIC_API_KEY). A hosted
     # provider only receives documents whose hostedLlmAllowed setting is on.
     provider: ${LLM_PROVIDER:ollama}
+    # stub: load tests only, a fake that answers after a fixed delay (StubLlmProvider).
+    stub:
+      latency: ${STUB_LLM_LATENCY:PT0.2S}
     # Includes thinking tokens on Claude models, so leave room beyond the answer itself.
     max-output-tokens: 2048
     ollama:
@@ -72,11 +82,103 @@ smoi:
       query-prefix: "search_query: "
       timeout: PT60S
 
+  resilience:
+    # Circuit breakers around the model providers (docs/adr/0011). A breaker opens when at least
+    # failure-rate-threshold % of the last sliding-window calls failed (once minimum-calls have
+    # been made), rejects calls immediately while open, and lets permitted-calls-in-half-open
+    # trial calls through after wait-in-open.
+    llm:
+      failure-rate-threshold: 50
+      sliding-window: 10
+      minimum-calls: 4
+      wait-in-open: PT30S
+      permitted-calls-in-half-open: 2
+    embedding:
+      failure-rate-threshold: 50
+      sliding-window: 10
+      minimum-calls: 4
+      wait-in-open: PT30S
+      permitted-calls-in-half-open: 2
+    reranker:
+      failure-rate-threshold: 50
+      sliding-window: 10
+      minimum-calls: 4
+      wait-in-open: PT30S
+      permitted-calls-in-half-open: 2
+  rate-limit:
+    # Per-user token buckets stored in Postgres, so every backend instance shares them.
+    # capacity = burst size; refill-per-minute = sustained rate.
+    enabled: ${RATE_LIMIT_ENABLED:true}
+    query:
+      capacity: ${RATE_LIMIT_QUERY_CAPACITY:20}
+      refill-per-minute: ${RATE_LIMIT_QUERY_PER_MINUTE:30}
+    search:
+      capacity: ${RATE_LIMIT_SEARCH_CAPACITY:60}
+      refill-per-minute: ${RATE_LIMIT_SEARCH_PER_MINUTE:120}
+    upload:
+      capacity: ${RATE_LIMIT_UPLOAD_CAPACITY:20}
+      refill-per-minute: ${RATE_LIMIT_UPLOAD_PER_MINUTE:30}
+  cost:
+    # Estimated USD per million tokens, for the smoi.llm.cost metric. Local models cost nothing.
+    # Defaults are Claude Haiku 5.5 list prices for prompts of 100K tokens or fewer (SMOI's prompt
+    # budget is 32K), as published in November 2026. Change them if ANTHROPIC_MODEL changes.
+    # The metric is an estimate, not a bill.
+    anthropic-input-per-mtok: ${ANTHROPIC_INPUT_USD_PER_MTOK:0.10}
+    anthropic-output-per-mtok: ${ANTHROPIC_OUTPUT_USD_PER_MTOK:0.50}
+
 management:
+  server:
+    # Metrics are served on their own port, which Compose doesn't publish to the host; only
+    # Prometheus (inside the Compose network) scrapes it.
+    port: ${MANAGEMENT_PORT:8081}
   endpoints:
     web:
       exposure:
-        include: health
+        include: health,prometheus
   endpoint:
     health:
       show-details: never
+      probes:
+        # /livez and /readyz on the API port, so the desktop app and Docker can check health
+        # without reaching the management port.
+        enabled: true
+        add-additional-paths: true
+  metrics:
+    distribution:
+      # Histograms let Prometheus compute p95 across instances.
+      percentiles-histogram:
+        http.server.requests: true
+        smoi.retrieval.stage: true
+        smoi.llm.generation: true
+        smoi.ingestion.job: true
+        smoi.ingestion.stage: true
+        smoi.llm.first.token: true
+  tracing:
+    sampling:
+      probability: ${TRACING_SAMPLING:1.0}
+    export:
+      enabled: ${TRACING_EXPORT_ENABLED:false}
+  opentelemetry:
+    tracing:
+      export:
+        otlp:
+          # Jaeger accepts OTLP over HTTP on 4318.
+          endpoint: ${OTLP_TRACING_ENDPOINT:http://localhost:4318/v1/traces}
+  otlp:
+    metrics:
+      export:
+        # Metrics are pulled by Prometheus instead.
+        enabled: false
+  logging:
+    export:
+      otlp:
+        enabled: false
+
+logging:
+  structured:
+    # JSON log lines (NFR-07.04). LOG_FORMAT= (empty) gives plain text for local reading.
+    format:
+      console: ${LOG_FORMAT:logstash}
+  pattern:
+    correlation: "[%X{requestId:-}] "
+

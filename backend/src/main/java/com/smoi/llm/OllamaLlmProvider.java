@@ -1,5 +1,6 @@
 package com.smoi.llm;
 
+import com.smoi.resilience.ProviderTimeouts;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -37,7 +38,7 @@ public class OllamaLlmProvider implements LlmProvider {
         }
         this.props = props;
         this.maxOutputTokens = maxOutputTokens;
-        this.http = HttpClient.newBuilder().connectTimeout(props.timeout()).build();
+        this.http = HttpClient.newBuilder().connectTimeout(ProviderTimeouts.CONNECT).build();
     }
 
     @Override

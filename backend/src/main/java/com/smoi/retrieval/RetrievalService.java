@@ -6,7 +6,9 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import com.smoi.embedding.EmbeddingException;
 import com.smoi.embedding.EmbeddingProvider;
+import com.smoi.resilience.ProviderCircuitBreakers;
 import com.smoi.retrieval.rerank.RerankProperties;
 import com.smoi.retrieval.rerank.Reranker;
 import com.smoi.retrieval.rerank.RerankerUnavailableException;
@@ -31,13 +33,17 @@ public class RetrievalService {
     private final EmbeddingProvider embeddings;
     private final Optional<Reranker> reranker;
     private final RerankProperties rerankProps;
+    private final ProviderCircuitBreakers breakers;
+    private final RetrievalMetrics metrics;
 
     public RetrievalService(RetrievalRepository repository, EmbeddingProvider embeddings, Optional<Reranker> reranker,
-                            RerankProperties rerankProps) {
+                            RerankProperties rerankProps, ProviderCircuitBreakers breakers, RetrievalMetrics metrics) {
         this.repository = repository;
         this.embeddings = embeddings;
         this.reranker = reranker;
         this.rerankProps = rerankProps;
+        this.breakers = breakers;
+        this.metrics = metrics;
     }
 
     /**
@@ -55,25 +61,38 @@ public class RetrievalService {
 
         List<RetrievedChunk> keyword = List.of();
         List<RetrievedChunk> vector = List.of();
-        if (mode != RetrievalMode.VECTOR) {
+        float[] queryVector = null;
+        String fallback = null;
+        if (mode != RetrievalMode.KEYWORD) {
+            long t = System.nanoTime();
+            try {
+                queryVector = breakers.embedding(() -> embeddings.embedQuery(query));
+            } catch (EmbeddingException e) {
+                // Without a query vector only keyword search can run. Degrade instead of failing (NFR-02.07).
+                log.warn("Embedding the query failed, falling back to keyword search: {}", e.getMessage());
+                fallback = "The embedding model is unavailable, so only keyword search was used.";
+            }
+            embedMs = millisSince(t);
+        }
+        if (mode != RetrievalMode.VECTOR || queryVector == null) {
             long t = System.nanoTime();
             keyword = repository.keyword(userId, query, firstStage, hostedOnly);
             keywordMs = millisSince(t);
         }
-        if (mode != RetrievalMode.KEYWORD) {
+        if (queryVector != null) {
             long t = System.nanoTime();
-            float[] queryVector = embeddings.embedQuery(query);
-            embedMs = millisSince(t);
-            t = System.nanoTime();
             vector = repository.vector(userId, queryVector, embeddings.modelId(), firstStage, hostedOnly);
             vectorMs = millisSince(t);
         }
 
-        List<RetrievedChunk> ranked = switch (mode) {
-            case KEYWORD -> withRanks(keyword, true);
-            case VECTOR -> withRanks(vector, false);
-            case HYBRID, HYBRID_RERANK -> ReciprocalRankFusion.fuse(keyword, vector, ReciprocalRankFusion.DEFAULT_K);
-        };
+        List<RetrievedChunk> ranked;
+        if (fallback != null || mode == RetrievalMode.KEYWORD) {
+            ranked = withRanks(keyword, true);
+        } else if (mode == RetrievalMode.VECTOR) {
+            ranked = withRanks(vector, false);
+        } else {
+            ranked = ReciprocalRankFusion.fuse(keyword, vector, ReciprocalRankFusion.DEFAULT_K);
+        }
 
         String rerankStatus = "not_requested";
         String rerankNote = null;
@@ -86,7 +105,8 @@ public class RetrievalService {
             } else if (!ranked.isEmpty()) {
                 long t = System.nanoTime();
                 try {
-                    ranked = rerank(query, ranked, reranker.get());
+                    List<RetrievedChunk> hybrid = ranked;
+                    ranked = breakers.reranker(() -> rerank(query, hybrid, reranker.get()));
                     rerankStatus = "applied";
                     rerankModel = reranker.get().modelId();
                 } catch (RerankerUnavailableException e) {
@@ -103,8 +123,9 @@ public class RetrievalService {
         }
 
         List<RetrievedChunk> top = ranked.size() > topK ? ranked.subList(0, topK) : ranked;
-        return new RetrievalResult(mode, List.copyOf(top), rerankStatus, rerankNote, rerankModel,
-                new RetrievalResult.Timings(embedMs, keywordMs, vectorMs, rerankMs, millisSince(start)));
+        RetrievalResult.Timings timings = new RetrievalResult.Timings(embedMs, keywordMs, vectorMs, rerankMs, millisSince(start));
+        metrics.record(mode, timings, fallback != null);
+        return new RetrievalResult(mode, List.copyOf(top), rerankStatus, rerankNote, rerankModel, fallback, timings);
     }
 
     /** Reorders the top candidates by cross-encoder score; anything below the candidate cut keeps its hybrid order after them. */

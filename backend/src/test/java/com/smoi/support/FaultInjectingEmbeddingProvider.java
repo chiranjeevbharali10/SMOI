@@ -22,6 +22,7 @@ public class FaultInjectingEmbeddingProvider implements EmbeddingProvider {
     private final HashingEmbeddingProvider delegate = new HashingEmbeddingProvider();
     private final Map<String, AtomicInteger> failuresLeft = new ConcurrentHashMap<>();
     private final Map<String, Hang> hangs = new ConcurrentHashMap<>();
+    private volatile boolean failQueries;
 
     /** The next {@code times} embedding calls for texts containing {@code marker} throw. */
     public void failNextCalls(String marker, int times) {
@@ -39,7 +40,13 @@ public class FaultInjectingEmbeddingProvider implements EmbeddingProvider {
         return hang;
     }
 
+    /** While true, every query embedding throws, like an embedding provider that is down. */
+    public void failQueries(boolean fail) {
+        failQueries = fail;
+    }
+
     public void reset() {
+        failQueries = false;
         failuresLeft.clear();
         hangs.values().forEach(Hang::release);
         hangs.clear();
@@ -67,6 +74,9 @@ public class FaultInjectingEmbeddingProvider implements EmbeddingProvider {
 
     @Override
     public float[] embedQuery(String text) {
+        if (failQueries) {
+            throw new EmbeddingException("Injected query embedding failure");
+        }
         return delegate.embedQuery(text);
     }
 

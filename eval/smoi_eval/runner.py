@@ -8,7 +8,7 @@ import random
 import time
 
 from . import metrics
-from .api import SmoiClient
+from .api import ApiError, SmoiClient
 from .corpus import IndexedCorpus
 from .dataset import Evidence, Question
 
@@ -116,7 +116,11 @@ def run_answers(client: SmoiClient, questions: list[Question], corpus: IndexedCo
     rows = []
     for n, q in enumerate(questions, start=1):
         started = time.perf_counter()
-        status, body = client.query(q.question, mode)
+        try:
+            status, body = client.query(q.question, mode)
+        except (OSError, ApiError) as e:
+            # One slow or failed request (for example a client timeout) is recorded, not fatal.
+            status, body = 0, {"outcome": "harness_error", "answer": None, "error": str(e)[:300]}
         wall_ms = (time.perf_counter() - started) * 1000
         citations = body.get("citations") or []
         row = {

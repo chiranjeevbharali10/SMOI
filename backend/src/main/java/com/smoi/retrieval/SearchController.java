@@ -37,7 +37,7 @@ public class SearchController {
         int topK = request.topK() == null ? 10 : request.topK();
         RetrievalResult result = retrieval.retrieve(CurrentUser.id(jwt), request.query(), mode, topK, false);
         return new SearchResponse(result.mode(), result.rerank(), result.rerankNote(), result.rerankModel(),
-                result.timings(), IntStream.range(0, result.chunks().size())
+                result.fallback(), result.timings(), IntStream.range(0, result.chunks().size())
                         .mapToObj(i -> SearchHit.from(i + 1, result.chunks().get(i))).toList());
     }
 
@@ -46,7 +46,7 @@ public class SearchController {
     }
 
     public record SearchResponse(RetrievalMode mode, String rerank, String rerankNote, String rerankModel,
-                                 RetrievalResult.Timings timings, List<SearchHit> results) {
+                                 String fallback, RetrievalResult.Timings timings, List<SearchHit> results) {
     }
 
     public record SearchHit(int rank, UUID chunkId, UUID documentId, String filename, int chunkIndex,

@@ -13,9 +13,11 @@ import com.smoi.document.ChunkRepository;
 import com.smoi.document.Document;
 import com.smoi.document.DocumentRepository;
 import com.smoi.document.DocumentService;
+import com.smoi.llm.LlmMetrics;
 import com.smoi.llm.LlmProvider;
 import com.smoi.llm.LlmRequest;
 import com.smoi.llm.LlmResult;
+import com.smoi.resilience.ProviderCircuitBreakers;
 import io.micrometer.core.instrument.MeterRegistry;
 import org.springframework.stereotype.Service;
 
@@ -34,9 +36,13 @@ public class DocumentInsightService {
     private final ChunkRepository chunks;
     private final LlmProvider llm;
     private final MeterRegistry metrics;
+    private final ProviderCircuitBreakers breakers;
+    private final LlmMetrics llmMetrics;
 
     public DocumentInsightService(DocumentRepository documents, ChunkRepository chunks, LlmProvider llm,
-                                  MeterRegistry metrics) {
+                                  MeterRegistry metrics, ProviderCircuitBreakers breakers, LlmMetrics llmMetrics) {
+        this.breakers = breakers;
+        this.llmMetrics = llmMetrics;
         this.documents = documents;
         this.chunks = chunks;
         this.llm = llm;
@@ -101,7 +107,7 @@ public class DocumentInsightService {
             StringBuilder notes = new StringBuilder();
             for (List<Source> group : groups(sources, budget)) {
                 Prompts.Built built = Prompts.withSources(Prompts.NOTES_SYSTEM, group, "Write notes on these sources.", budget);
-                LlmResult partial = llm.generate(built.request(), t -> { });
+                LlmResult partial = generate(built.request());
                 passes++;
                 InsightResult problem = problem(partial, byLabel, passes, start);
                 if (problem != null) {
@@ -116,7 +122,7 @@ public class DocumentInsightService {
             finalRequest = new LlmRequest(system, user);
         }
 
-        LlmResult result = llm.generate(finalRequest, t -> { });
+        LlmResult result = generate(finalRequest);
         passes++;
         InsightResult problem = problem(result, byLabel, passes, start);
         if (problem != null) {
@@ -188,5 +194,12 @@ public class DocumentInsightService {
         public NotIndexedException(String filename, String status) {
             super(filename + " is not indexed yet (status: " + status + ")");
         }
+    }
+
+    /** Through the LLM circuit breaker. Summaries have no passages fallback: the endpoint returns 503. */
+    private LlmResult generate(LlmRequest request) {
+        LlmResult result = breakers.llm(() -> llm.generate(request, t -> { }));
+        llmMetrics.record(llm.providerId(), llm.model(), result);
+        return result;
     }
 }

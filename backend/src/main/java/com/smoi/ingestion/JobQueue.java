@@ -4,6 +4,7 @@ import java.time.Duration;
 import java.util.Optional;
 import java.util.UUID;
 
+import com.smoi.observability.RequestIds;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.stereotype.Repository;
 
@@ -31,9 +32,10 @@ public class JobQueue {
     /** Adds a job for one version of a document. Call inside the transaction that wrote the document. */
     public void enqueue(UUID userId, UUID documentId, int documentVersion) {
         jdbc.sql("""
-                        INSERT INTO ingestion_jobs (user_id, document_id, document_version, max_attempts)
-                        VALUES (:userId, :documentId, :version, :maxAttempts)
+                        INSERT INTO ingestion_jobs (user_id, document_id, document_version, max_attempts, request_id)
+                        VALUES (:userId, :documentId, :version, :maxAttempts, :requestId)
                         """)
+                .param("requestId", RequestIds.current())
                 .param("userId", userId)
                 .param("documentId", documentId)
                 .param("version", documentVersion)
@@ -70,11 +72,38 @@ public class JobQueue {
                                   ORDER BY available_at
                                   LIMIT 1
                                     FOR UPDATE SKIP LOCKED)
-                        RETURNING id, user_id, document_id, document_version, attempts, max_attempts, lease_token
+                        RETURNING id, user_id, document_id, document_version, attempts, max_attempts, lease_token, request_id
                         """)
                 .param("leaseMillis", props.lease().toMillis())
                 .query(IngestionJob.class)
                 .optional();
+    }
+
+    /** Counts for the queue gauges; see {@link #depth()}. */
+    public record Depth(long ready, long backingOff, long running, double oldestReadySeconds) {
+    }
+
+    /**
+     * How much work is waiting, for the metrics in {@link IngestionMetrics}.
+     *
+     * <p>The second deliberate query on a user-owned table without a {@code user_id} filter
+     * (approved; see CLAUDE.md and docs/adr/0011). It is a read-only aggregate: it returns four
+     * numbers and no rows, ids or user data, so nothing about any user can leak through it.
+     */
+    public Depth depth() {
+        return jdbc.sql("""
+                        SELECT count(*) FILTER (WHERE status = 'queued' AND available_at <= now())  AS ready,
+                               count(*) FILTER (WHERE status = 'queued' AND available_at > now())   AS backing_off,
+                               count(*) FILTER (WHERE status = 'running')                          AS running,
+                               coalesce(extract(epoch FROM now() - min(available_at)
+                                        FILTER (WHERE status = 'queued' AND available_at <= now())), 0) AS oldest
+                          FROM ingestion_jobs
+                         WHERE status IN ('queued', 'running')
+                           AND deleted_at IS NULL
+                        """)
+                .query((rs, n) -> new Depth(rs.getLong("ready"), rs.getLong("backing_off"), rs.getLong("running"),
+                        rs.getDouble("oldest")))
+                .single();
     }
 
     /**

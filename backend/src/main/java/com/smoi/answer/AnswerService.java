@@ -10,11 +10,16 @@ import java.util.stream.Collectors;
 import com.smoi.answer.AnswerResult.Outcome;
 import com.smoi.document.DocumentRepository;
 import com.smoi.llm.LlmProvider;
+import com.smoi.llm.LlmMetrics;
 import com.smoi.llm.LlmResult;
+import com.smoi.llm.LlmUnavailableException;
+import com.smoi.resilience.ProviderCircuitBreakers;
 import com.smoi.retrieval.RetrievalMode;
 import com.smoi.retrieval.RetrievalResult;
 import com.smoi.retrieval.RetrievalService;
 import io.micrometer.core.instrument.MeterRegistry;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 /**
@@ -24,17 +29,25 @@ import org.springframework.stereotype.Service;
 @Service
 public class AnswerService {
 
+    private static final Logger log = LoggerFactory.getLogger(AnswerService.class);
+    static final String LLM_DOWN_MESSAGE = "Answer generation is unavailable right now, so here are the most relevant "
+            + "passages from your documents instead. They have not been summarised or checked by the LLM.";
+
     private final RetrievalService retrieval;
     private final LlmProvider llm;
     private final DocumentRepository documents;
     private final MeterRegistry metrics;
+    private final ProviderCircuitBreakers breakers;
+    private final LlmMetrics llmMetrics;
 
     public AnswerService(RetrievalService retrieval, LlmProvider llm, DocumentRepository documents,
-                         MeterRegistry metrics) {
+                         MeterRegistry metrics, ProviderCircuitBreakers breakers, LlmMetrics llmMetrics) {
         this.retrieval = retrieval;
         this.llm = llm;
         this.documents = documents;
         this.metrics = metrics;
+        this.breakers = breakers;
+        this.llmMetrics = llmMetrics;
     }
 
     /**
@@ -62,13 +75,25 @@ public class AnswerService {
                             : "No matching passages were found in your documents.",
                     List.of(), List.of(), null, llm.providerId(), llm.model(), mode, retrieved.rerank(),
                     retrieved.rerankNote(), 0, excluded, 0, false,
-                    timings(retrieved, 0, 0, start)));
+                    timings(retrieved, 0, 0, start), List.of()));
         }
 
         Prompts.Built prompt = Prompts.withSources(Prompts.ANSWER_SYSTEM, candidates, Prompts.question(question),
                 llm.maxPromptTokens());
         onSources.accept(prompt.included());
-        LlmResult result = llm.generate(prompt.request(), onText);
+        LlmResult result;
+        try {
+            result = breakers.llm(() -> llm.generate(prompt.request(), onText));
+        } catch (LlmUnavailableException e) {
+            // Fallback (NFR-02.07): retrieval worked, so return the passages rather than an error.
+            log.warn("LLM unavailable, returning passages only: {}", e.getMessage());
+            String note = retrieved.fallback() != null ? " " + retrieved.fallback() : "";
+            return record(new AnswerResult(Outcome.LLM_UNAVAILABLE, null, LLM_DOWN_MESSAGE + note, List.of(), List.of(),
+                    null, llm.providerId(), llm.model(), mode, retrieved.rerank(), retrieved.rerankNote(),
+                    prompt.included().size(), excluded, prompt.omitted(), false, timings(retrieved, 0, 0, start),
+                    prompt.included().stream().map(AnswerResult.Passage::of).toList()));
+        }
+        llmMetrics.record(llm.providerId(), llm.model(), result);
         return record(evaluate(result, prompt, retrieved, mode, excluded, start));
     }
 
@@ -81,12 +106,12 @@ public class AnswerService {
                     + ". This is a refusal by the provider's safety system, not an answer.";
             return new AnswerResult(Outcome.REFUSED, null, message, List.of(), List.of(), result.refusalCategory(),
                     llm.providerId(), llm.model(), mode, retrieved.rerank(), retrieved.rerankNote(),
-                    prompt.included().size(), excluded, prompt.omitted(), false, timings);
+                    prompt.included().size(), excluded, prompt.omitted(), false, timings, List.of());
         }
         if (Citations.isDontKnow(result.text())) {
             return new AnswerResult(Outcome.DONT_KNOW, Prompts.DONT_KNOW, "Your documents don't cover this question.",
                     List.of(), List.of(), null, llm.providerId(), llm.model(), mode, retrieved.rerank(),
-                    retrieved.rerankNote(), prompt.included().size(), excluded, prompt.omitted(), false, timings);
+                    retrieved.rerankNote(), prompt.included().size(), excluded, prompt.omitted(), false, timings, List.of());
         }
         Map<String, Source> byLabel = prompt.included().stream()
                 .collect(Collectors.toMap(Source::label, Function.identity()));
@@ -98,12 +123,12 @@ public class AnswerService {
                     : "The answer cited sources that weren't retrieved for this question: " + String.join(", ", check.invalid());
             return new AnswerResult(Outcome.CITATION_REJECTED, null, why, List.of(), check.invalid(), null,
                     llm.providerId(), llm.model(), mode, retrieved.rerank(), retrieved.rerankNote(),
-                    prompt.included().size(), excluded, prompt.omitted(), truncated, timings);
+                    prompt.included().size(), excluded, prompt.omitted(), truncated, timings, List.of());
         }
         List<AnswerResult.Citation> citations = check.cited().stream().map(byLabel::get).map(AnswerResult.Citation::of).toList();
         return new AnswerResult(Outcome.ANSWERED, result.text().strip(), null, citations, List.of(), null,
                 llm.providerId(), llm.model(), mode, retrieved.rerank(), retrieved.rerankNote(),
-                prompt.included().size(), excluded, prompt.omitted(), truncated, timings);
+                prompt.included().size(), excluded, prompt.omitted(), truncated, timings, List.of());
     }
 
     /** Counts every outcome per provider and model, so refusals and rejected citations are visible as their own rates. */
