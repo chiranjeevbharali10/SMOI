@@ -1,0 +1,40 @@
+name: backend
+
+on:
+  push:
+    branches: [main]
+    paths: ["backend/**", ".github/workflows/backend.yml"]
+  pull_request:
+    paths: ["backend/**", ".github/workflows/backend.yml"]
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
+
+      # Same command as local: unit tests (surefire) + Testcontainers integration tests (failsafe).
+      # Docker is preinstalled on GitHub's Ubuntu runners.
+      - name: Test
+        run: ./mvnw -B verify
+
+      - name: Upload test reports
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: test-reports
+          path: |
+            backend/target/surefire-reports/
+            backend/target/failsafe-reports/
