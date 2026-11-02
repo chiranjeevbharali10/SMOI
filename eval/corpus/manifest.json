@@ -1,0 +1,173 @@
+{
+  "description": "The SMOI demo corpus: Wikipedia articles pinned to a revision, in three groups of similar documents. build_corpus.py turns each into the listed format.",
+  "documents": [
+    {
+      "group": "frogs",
+      "title": "Common frog",
+      "file": "common_frog.txt",
+      "revid": 1371074037,
+      "revision_timestamp": "2026-08-24T12:23:43Z"
+    },
+    {
+      "group": "frogs",
+      "title": "Moor frog",
+      "file": "moor_frog.pdf",
+      "revid": 1360210805,
+      "revision_timestamp": "2026-06-19T23:23:23Z"
+    },
+    {
+      "group": "frogs",
+      "title": "Agile frog",
+      "file": "agile_frog.docx",
+      "revid": 1381584524,
+      "revision_timestamp": "2026-10-23T14:08:28Z"
+    },
+    {
+      "group": "frogs",
+      "title": "Pool frog",
+      "file": "pool_frog.txt",
+      "revid": 1379827847,
+      "revision_timestamp": "2026-10-12T03:54:32Z"
+    },
+    {
+      "group": "frogs",
+      "title": "Marsh frog",
+      "file": "marsh_frog.pdf",
+      "revid": 1380234512,
+      "revision_timestamp": "2026-10-14T15:53:03Z"
+    },
+    {
+      "group": "frogs",
+      "title": "Edible frog",
+      "file": "edible_frog.docx",
+      "revid": 1317904570,
+      "revision_timestamp": "2025-10-20T18:58:37Z"
+    },
+    {
+      "group": "frogs",
+      "title": "Common toad",
+      "file": "common_toad.txt",
+      "revid": 1376663905,
+      "revision_timestamp": "2026-09-25T14:55:09Z"
+    },
+    {
+      "group": "frogs",
+      "title": "Natterjack toad",
+      "file": "natterjack_toad.txt",
+      "revid": 1380825456,
+      "revision_timestamp": "2026-10-18T04:19:02Z"
+    },
+    {
+      "group": "databases",
+      "title": "PostgreSQL",
+      "file": "postgresql.txt",
+      "revid": 1383243652,
+      "revision_timestamp": "2026-11-01T18:44:32Z"
+    },
+    {
+      "group": "databases",
+      "title": "MySQL",
+      "file": "mysql.pdf",
+      "revid": 1381034636,
+      "revision_timestamp": "2026-10-19T16:07:24Z"
+    },
+    {
+      "group": "databases",
+      "title": "MariaDB",
+      "file": "mariadb.docx",
+      "revid": 1382121570,
+      "revision_timestamp": "2026-10-26T19:02:43Z"
+    },
+    {
+      "group": "databases",
+      "title": "SQLite",
+      "file": "sqlite.txt",
+      "revid": 1381276077,
+      "revision_timestamp": "2026-10-21T06:55:04Z"
+    },
+    {
+      "group": "databases",
+      "title": "Isolation (database systems)",
+      "file": "isolation_levels.txt",
+      "revid": 1380380517,
+      "revision_timestamp": "2026-10-15T11:54:28Z"
+    },
+    {
+      "group": "databases",
+      "title": "Multiversion concurrency control",
+      "file": "mvcc.pdf",
+      "revid": 1381199953,
+      "revision_timestamp": "2026-10-20T16:58:46Z"
+    },
+    {
+      "group": "databases",
+      "title": "B-tree",
+      "file": "b_tree.docx",
+      "revid": 1377462701,
+      "revision_timestamp": "2026-09-29T14:28:48Z"
+    },
+    {
+      "group": "databases",
+      "title": "Write-ahead logging",
+      "file": "write_ahead_logging.txt",
+      "revid": 1345989151,
+      "revision_timestamp": "2026-03-29T09:15:17Z"
+    },
+    {
+      "group": "planets",
+      "title": "Jupiter",
+      "file": "jupiter.txt",
+      "revid": 1383322969,
+      "revision_timestamp": "2026-11-02T02:52:35Z"
+    },
+    {
+      "group": "planets",
+      "title": "Saturn",
+      "file": "saturn.pdf",
+      "revid": 1383320434,
+      "revision_timestamp": "2026-11-02T02:36:16Z"
+    },
+    {
+      "group": "planets",
+      "title": "Uranus",
+      "file": "uranus.docx",
+      "revid": 1380352133,
+      "revision_timestamp": "2026-10-15T05:30:14Z"
+    },
+    {
+      "group": "planets",
+      "title": "Neptune",
+      "file": "neptune.txt",
+      "revid": 1383316293,
+      "revision_timestamp": "2026-11-02T02:10:47Z"
+    },
+    {
+      "group": "planets",
+      "title": "Io (moon)",
+      "file": "io.pdf",
+      "revid": 1382100850,
+      "revision_timestamp": "2026-10-26T16:30:17Z"
+    },
+    {
+      "group": "planets",
+      "title": "Europa (moon)",
+      "file": "europa.txt",
+      "revid": 1381496497,
+      "revision_timestamp": "2026-10-22T22:19:15Z"
+    },
+    {
+      "group": "planets",
+      "title": "Titan (moon)",
+      "file": "titan.docx",
+      "revid": 1383151928,
+      "revision_timestamp": "2026-11-01T06:40:34Z"
+    },
+    {
+      "group": "planets",
+      "title": "Enceladus",
+      "file": "enceladus.txt",
+      "revid": 1383236238,
+      "revision_timestamp": "2026-11-01T18:05:29Z"
+    }
+  ]
+}

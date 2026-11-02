@@ -1,0 +1,25 @@
+Write-ahead logging
+
+In computer science, write-ahead logging (WAL) is a family of techniques for providing atomicity and durability (two of the ACID properties) in database systems.
+
+A write ahead log is an append-only auxiliary disk-resident structure used for crash and transaction recovery. The changes are first recorded in the log, which must be written to stable storage, before the changes are written to the database.
+
+Functionality
+
+The main functionality of a write-ahead log can be summarized as:
+
+Allow the page cache to buffer updates to disk-resident pages while ensuring durability semantics in the larger context of a database system.
+
+Persist all operations on disk until the cached copies of pages affected by these operations are synchronized on disk. Every operation that modifies the database state has to be logged on disk before the contents on the associated pages can be modified
+
+Allow lost in-memory changes to be reconstructed from the operation log in case of a crash.
+
+In a system using WAL, all modifications are written to a log before they are applied. Usually both redo and undo information is stored in the log.
+
+The purpose of this can be illustrated by an example. Imagine a program that is in the middle of performing some operation when the machine it is running on loses power. Upon restart, that program might need to know whether the operation it was performing succeeded, succeeded partially, or failed. If a write-ahead log is used, the program can check this log and compare what it was supposed to be doing when it unexpectedly lost power to what was actually done. On the basis of this comparison, the program could decide to undo what it had started, complete what it had started, or keep things as they are.
+
+After a certain number of operations, the program should perform a checkpoint, writing all the changes specified in the WAL to the database and clearing the log.
+
+WAL allows updates of a database to be done in-place. Another way to implement atomic updates is with shadow paging, which is not in-place. The main advantage of doing updates in-place is that it reduces the need to modify indexes and block lists.
+
+Modern file systems typically use a variant of WAL for at least file system metadata; this is called journaling.

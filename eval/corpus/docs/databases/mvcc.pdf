@@ -1,0 +1,161 @@
+%PDF-1.4
+%‚„œ”
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [6 0 R 8 0 R 10 0 R 12 0 R] /Count 4 >>
+endobj
+3 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>
+endobj
+4 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>
+endobj
+5 0 obj
+<< /Length 4537 >>
+stream
+BT /F2 16.0 Tf 56 764.4 Td (Multiversion concurrency control) Tj ET
+BT /F1 10.0 Tf 56 703.4 Td (Multiversion concurrency control \(MCC or MVCC\) is a non-locking concurrency control method) Tj ET
+BT /F1 10.0 Tf 56 689.9 Td (commonly used by database management systems to provide concurrent access to the database and) Tj ET
+BT /F1 10.0 Tf 56 676.4 Td (in programming languages to implement transactional memory.) Tj ET
+BT /F2 12.5 Tf 56 629.8 Td (Description) Tj ET
+BT /F1 10.0 Tf 56 579.2 Td (Without concurrency control, if someone is reading from a database at the same time as someone) Tj ET
+BT /F1 10.0 Tf 56 565.7 Td (else is writing to it, it is possible that the reader will see a half-written or inconsistent) Tj ET
+BT /F1 10.0 Tf 56 552.2 Td (piece of data. For instance, when making a wire transfer between two bank accounts if a reader) Tj ET
+BT /F1 10.0 Tf 56 538.7 Td (reads the balance at the bank when the money has been withdrawn from the original account and) Tj ET
+BT /F1 10.0 Tf 56 525.2 Td (before it was deposited in the destination account, it would seem that money has disappeared) Tj ET
+BT /F1 10.0 Tf 56 511.7 Td (from the bank. Isolation is the property that provides guarantees in the concurrent accesses to) Tj ET
+BT /F1 10.0 Tf 56 498.2 Td (data. Isolation is implemented by means of a concurrency control protocol. The simplest way is) Tj ET
+BT /F1 10.0 Tf 56 484.7 Td (to make all readers wait until the writer is done, which is known as a read-write lock. Locks) Tj ET
+BT /F1 10.0 Tf 56 471.2 Td (are known to create contention especially between long read transactions and update) Tj ET
+BT /F1 10.0 Tf 56 457.7 Td (transactions. MVCC aims at solving the problem by keeping multiple copies of each data item. In) Tj ET
+BT /F1 10.0 Tf 56 444.2 Td (this way, each user connected to the database sees a snapshot of the database at a particular) Tj ET
+BT /F1 10.0 Tf 56 430.7 Td (instant in time. Any changes made by a writer will not be seen by other users of the database) Tj ET
+BT /F1 10.0 Tf 56 417.2 Td (until the changes have been completed \(or, in database terms: until the transaction has been) Tj ET
+BT /F1 10.0 Tf 56 403.7 Td (committed.\)) Tj ET
+BT /F1 10.0 Tf 56 360.5 Td (When an MVCC database needs to update a piece of data, it will not overwrite the original data) Tj ET
+BT /F1 10.0 Tf 56 347.0 Td (item with new data, but instead creates a newer version of the data item. Thus there are) Tj ET
+BT /F1 10.0 Tf 56 333.5 Td (multiple versions stored. The version that each transaction sees depends on the isolation level) Tj ET
+BT /F1 10.0 Tf 56 320.0 Td (implemented. The most common isolation level implemented with MVCC is snapshot isolation. With) Tj ET
+BT /F1 10.0 Tf 56 306.5 Td (snapshot isolation, a transaction observes a state of the data as of when the transaction) Tj ET
+BT /F1 10.0 Tf 56 293.0 Td (started.) Tj ET
+BT /F1 10.0 Tf 56 249.8 Td (MVCC provides point-in-time consistent views. Read transactions under MVCC typically use a) Tj ET
+BT /F1 10.0 Tf 56 236.3 Td (timestamp or transaction ID to determine what state of the DB to read, and read these versions) Tj ET
+BT /F1 10.0 Tf 56 222.8 Td (of the data. Read and write transactions are thus isolated from each other without any need for) Tj ET
+BT /F1 10.0 Tf 56 209.3 Td (locking. However, despite locks being unnecessary, they are used by some MVCC databases such as) Tj ET
+BT /F1 10.0 Tf 56 195.8 Td (Oracle. Writes create a newer version, while concurrent reads access an older version.) Tj ET
+BT /F1 10.0 Tf 56 152.6 Td (MVCC introduces the challenge of how to remove versions that become obsolete and will never be) Tj ET
+BT /F1 10.0 Tf 56 139.1 Td (read. In some cases, a process to periodically sweep through and delete the obsolete versions) Tj ET
+BT /F1 10.0 Tf 56 125.6 Td (is implemented. This is often a stop-the-world process that traverses a whole table and) Tj ET
+BT /F1 10.0 Tf 56 112.1 Td (rewrites it with the last version of each data item. PostgreSQL can use this approach with its) Tj ET
+BT /F1 10.0 Tf 56 98.6 Td (VACUUM FREEZE process. Other databases split the storage blocks into two parts: the data part) Tj ET
+BT /F1 10.0 Tf 56 85.1 Td (and an undo log. The data part always keeps the last committed version. The undo log enables) Tj ET
+BT /F1 10.0 Tf 56 71.6 Td (the recreation of older versions of data. The main inherent limitation of this latter approach) Tj ET
+BT /F1 10.0 Tf 56 58.1 Td (is that when there are update-intensive workloads, the undo log part runs out of space and then) Tj ET
+endstream
+endobj
+6 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents 5 0 R >>
+endobj
+7 0 obj
+<< /Length 3578 >>
+stream
+BT /F1 10.0 Tf 56 772.5 Td (transactions are aborted as they cannot be given their snapshot. For a document-oriented) Tj ET
+BT /F1 10.0 Tf 56 759.0 Td (database it also allows the system to optimize documents by writing entire documents onto) Tj ET
+BT /F1 10.0 Tf 56 745.5 Td (contiguous sections of diskówhen updated, the entire document can be re-written rather than) Tj ET
+BT /F1 10.0 Tf 56 732.0 Td (bits and pieces cut out or maintained in a linked, non-contiguous database structure.) Tj ET
+BT /F2 12.5 Tf 56 685.4 Td (Implementation) Tj ET
+BT /F1 10.0 Tf 56 634.8 Td (MVCC uses timestamps \(TS\), and incrementing transaction IDs, to achieve transactional) Tj ET
+BT /F1 10.0 Tf 56 621.3 Td (consistency. MVCC ensures a transaction \(T\) never has to wait to Read a database object \(P\) by) Tj ET
+BT /F1 10.0 Tf 56 607.8 Td (maintaining several versions of the object. Each version of object P has both a Read Timestamp) Tj ET
+BT /F1 10.0 Tf 56 594.3 Td (\(RTS\) and a Write Timestamp \(WTS\) which lets a particular transaction Ti read the most recent) Tj ET
+BT /F1 10.0 Tf 56 580.8 Td (version of the object which precedes the transaction's Read Timestamp RTS\(Ti\).) Tj ET
+BT /F1 10.0 Tf 56 537.6 Td (If transaction Ti wants to Write to object P, and there is also another transaction Tk) Tj ET
+BT /F1 10.0 Tf 56 524.1 Td (happening to the same object, the Read Timestamp RTS\(Ti\) must precede the Read Timestamp) Tj ET
+BT /F1 10.0 Tf 56 510.6 Td (RTS\(Tk\), i.e., RTS\(Ti\) < RTS\(Tk\), for the object Write Operation \(WTS\) to succeed. A Write) Tj ET
+BT /F1 10.0 Tf 56 497.1 Td (cannot complete if there are other outstanding transactions with an earlier Read Timestamp) Tj ET
+BT /F1 10.0 Tf 56 483.6 Td (\(RTS\) to the same object. Like people standing in line at a store, they cannot complete their) Tj ET
+BT /F1 10.0 Tf 56 470.1 Td (checkout transaction until those in front complete theirs.) Tj ET
+BT /F1 10.0 Tf 56 426.9 Td (To restate; every object \(P\) has a Timestamp \(TS\), however if transaction Ti wants to Write to) Tj ET
+BT /F1 10.0 Tf 56 413.4 Td (an object, and the transaction has a Timestamp \(TS\) that is earlier than the object's current) Tj ET
+BT /F1 10.0 Tf 56 399.9 Td (Read Timestamp, TS\(Ti\) < RTS\(P\), then the transaction is aborted and restarted. \(This is) Tj ET
+BT /F1 10.0 Tf 56 386.4 Td (because a later transaction already depends on the old value.\) Otherwise, Ti creates a new) Tj ET
+BT /F1 10.0 Tf 56 372.9 Td (version of object P and sets the read/write timestamp TS of the new version to the timestamp of) Tj ET
+BT /F1 10.0 Tf 56 359.4 Td (the transaction TS ? TS\(Ti\).) Tj ET
+BT /F1 10.0 Tf 56 316.2 Td (The drawback to this system is the cost of storing multiple versions of objects in the) Tj ET
+BT /F1 10.0 Tf 56 302.7 Td (database. On the other hand, reads are never blocked, which can be important for workloads) Tj ET
+BT /F1 10.0 Tf 56 289.2 Td (mostly involving reading values from the database. MVCC is particularly adept at implementing) Tj ET
+BT /F1 10.0 Tf 56 275.7 Td (true snapshot isolation, something which other methods of concurrency control frequently do) Tj ET
+BT /F1 10.0 Tf 56 262.2 Td (either incompletely or with high performance costs.) Tj ET
+BT /F1 10.0 Tf 56 219.0 Td (A structure to hold a record \(row\) for a database using MVCC could look like this in Rust.) Tj ET
+BT /F1 10.0 Tf 56 175.8 Td (Insert transaction identifier: 32 bits) Tj ET
+BT /F1 10.0 Tf 56 132.6 Td (The MVCC transaction identifier for insert.) Tj ET
+BT /F1 10.0 Tf 56 89.4 Td (Delete transaction identifier: 32 bits) Tj ET
+endstream
+endobj
+8 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents 7 0 R >>
+endobj
+9 0 obj
+<< /Length 2529 >>
+stream
+BT /F1 10.0 Tf 56 772.5 Td (The MVCC transaction identifier for delete.) Tj ET
+BT /F1 10.0 Tf 56 729.3 Td (Data length: 16 bits) Tj ET
+BT /F1 10.0 Tf 56 686.1 Td (The length of the data.) Tj ET
+BT /F1 10.0 Tf 56 642.9 Td (The content stored in the record.) Tj ET
+BT /F2 12.5 Tf 56 596.3 Td (Examples) Tj ET
+BT /F2 12.5 Tf 56 542.3 Td (Concurrent readñwrite) Tj ET
+BT /F1 10.0 Tf 56 491.7 Td (At Time = 1, the state of a database could be:) Tj ET
+BT /F1 10.0 Tf 56 448.5 Td (T0 wrote Object 1="Foo" and Object 2="Bar". After that T1 wrote Object 1="Hello" leaving Object) Tj ET
+BT /F1 10.0 Tf 56 435.0 Td (2 at its original value. The new value of Object 1 will supersede the value at 0 for all) Tj ET
+BT /F1 10.0 Tf 56 421.5 Td (transactions that start after T1 commits at which point version 0 of Object 1 can be garbage) Tj ET
+BT /F1 10.0 Tf 56 408.0 Td (collected.) Tj ET
+BT /F1 10.0 Tf 56 364.8 Td (If a long running transaction T2 starts a read operation of Object 2 and Object 1 after T1) Tj ET
+BT /F1 10.0 Tf 56 351.3 Td (committed and there is a concurrent update transaction T3 which deletes Object 2 and adds) Tj ET
+BT /F1 10.0 Tf 56 337.8 Td (Object 3="Foo-Bar", the database state will look like this at time 2:) Tj ET
+BT /F1 10.0 Tf 56 294.6 Td (There is a new version as of time 2 of Object 2 which is marked as deleted and a new Object 3.) Tj ET
+BT /F1 10.0 Tf 56 281.1 Td (Since T2 and T3 run concurrently T2 sees the version of the database before 2 i.e. before T3) Tj ET
+BT /F1 10.0 Tf 56 267.6 Td (committed writes, as such T2 reads Object 2="Bar" and Object 1="Hello". This is how) Tj ET
+BT /F1 10.0 Tf 56 254.1 Td (multiversion concurrency control allows snapshot isolation reads without any locks.) Tj ET
+BT /F2 12.5 Tf 56 207.5 Td (History) Tj ET
+BT /F1 10.0 Tf 56 156.9 Td (Multiversion concurrency control is described in some detail in the 1981 paper "Concurrency) Tj ET
+BT /F1 10.0 Tf 56 143.4 Td (Control in Distributed Database Systems" by Phil Bernstein and Nathan Goodman, then employed by) Tj ET
+BT /F1 10.0 Tf 56 129.9 Td (the Computer Corporation of America. Bernstein and Goodman's paper cites a 1978 dissertation by) Tj ET
+BT /F1 10.0 Tf 56 116.4 Td (David P. Reed which quite clearly describes MVCC and claims it as an original work.) Tj ET
+BT /F1 10.0 Tf 56 73.2 Td (The first shipping, commercial database software product featuring MVCC was VAX Rdb/ELN,) Tj ET
+BT /F1 10.0 Tf 56 59.7 Td (released in 1984, and created at Digital Equipment Corporation by Jim Starkey. Starkey went on) Tj ET
+endstream
+endobj
+10 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents 9 0 R >>
+endobj
+11 0 obj
+<< /Length 106 >>
+stream
+BT /F1 10.0 Tf 56 772.5 Td (to create the second commercially successful MVCC database - InterBase.) Tj ET
+endstream
+endobj
+12 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents 11 0 R >>
+endobj
+xref
+0 13
+0000000000 65535 f 
+0000000015 00000 n 
+0000000064 00000 n 
+0000000141 00000 n 
+0000000238 00000 n 
+0000000340 00000 n 
+0000004929 00000 n 
+0000005065 00000 n 
+0000008695 00000 n 
+0000008831 00000 n 
+0000011412 00000 n 
+0000011549 00000 n 
+0000011707 00000 n 
+trailer
+<< /Size 13 /Root 1 0 R >>
+startxref
+11845
+%%EOF

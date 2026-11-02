@@ -1,0 +1,464 @@
+%PDF-1.4
+%‚„œ”
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [6 0 R 8 0 R 10 0 R 12 0 R 14 0 R 16 0 R 18 0 R 20 0 R 22 0 R 24 0 R 26 0 R 28 0 R] /Count 12 >>
+endobj
+3 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>
+endobj
+4 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>
+endobj
+5 0 obj
+<< /Length 3877 >>
+stream
+BT /F2 16.0 Tf 56 764.4 Td (MySQL) Tj ET
+BT /F1 10.0 Tf 56 703.4 Td (MySQL is a free and open-source relational database management system \(RDBMS\). Its name is a) Tj ET
+BT /F1 10.0 Tf 56 689.9 Td (combination of "My", the name of co-founder Michael Widenius' daughter My, and "SQL", the) Tj ET
+BT /F1 10.0 Tf 56 676.4 Td (acronym for Structured Query Language. A relational database organizes data into one or more) Tj ET
+BT /F1 10.0 Tf 56 662.9 Td (data tables in which data may be related to each other; these relations help structure the) Tj ET
+BT /F1 10.0 Tf 56 649.4 Td (data. SQL is a language that programmers use to create, modify and extract data from the) Tj ET
+BT /F1 10.0 Tf 56 635.9 Td (relational database, as well as control user access to the database. In addition to relational) Tj ET
+BT /F1 10.0 Tf 56 622.4 Td (databases and SQL, an RDBMS like MySQL works with an operating system to implement a relational) Tj ET
+BT /F1 10.0 Tf 56 608.9 Td (database in a computer's storage system, manages users, allows for network access and) Tj ET
+BT /F1 10.0 Tf 56 595.4 Td (facilitates testing database integrity and creation of backups.) Tj ET
+BT /F1 10.0 Tf 56 552.2 Td (MySQL is free and open-source software under the terms of the GNU General Public License, and) Tj ET
+BT /F1 10.0 Tf 56 538.7 Td (is also available under a variety of proprietary licenses. MySQL was owned and sponsored by the) Tj ET
+BT /F1 10.0 Tf 56 525.2 Td (Swedish company MySQL AB, which was bought by Sun Microsystems \(now Oracle Corporation\). In) Tj ET
+BT /F1 10.0 Tf 56 511.7 Td (2010, when Oracle acquired Sun, Widenius forked the open-source MySQL project to create) Tj ET
+BT /F1 10.0 Tf 56 498.2 Td (MariaDB.) Tj ET
+BT /F1 10.0 Tf 56 455.0 Td (MySQL has stand-alone clients that allow users to interact directly with a MySQL database using) Tj ET
+BT /F1 10.0 Tf 56 441.5 Td (SQL, but more often, MySQL is used with other programs to implement applications that need) Tj ET
+BT /F1 10.0 Tf 56 428.0 Td (relational database capability. MySQL is a component of the LAMP web application software stack) Tj ET
+BT /F1 10.0 Tf 56 414.5 Td (\(and others\), which is an acronym for Linux, Apache, MySQL, Perl/PHP/Python. MySQL is used by) Tj ET
+BT /F1 10.0 Tf 56 401.0 Td (many database-driven web applications, including Drupal, Joomla, phpBB, and WordPress. MySQL is) Tj ET
+BT /F1 10.0 Tf 56 387.5 Td (also used by many popular websites, including Facebook, Flickr, MediaWiki, Twitter, and) Tj ET
+BT /F1 10.0 Tf 56 374.0 Td (YouTube.) Tj ET
+BT /F2 12.5 Tf 56 327.4 Td (Overview) Tj ET
+BT /F1 10.0 Tf 56 276.8 Td (MySQL is written in C and C++. Its SQL parser is written in yacc, but it uses a home-brewed) Tj ET
+BT /F1 10.0 Tf 56 263.3 Td (lexical analyzer. MySQL works on many system platforms, including IBM AIX, BSDi, FreeBSD,) Tj ET
+BT /F1 10.0 Tf 56 249.8 Td (HP-UX, ArcaOS, eComStation, IBM i, IRIX, Linux, macOS, Microsoft Windows, NetBSD, Novell) Tj ET
+BT /F1 10.0 Tf 56 236.3 Td (NetWare, OpenBSD, OpenSolaris, OS/2 Warp, QNX, Oracle Solaris, Symbian, SunOS, SCO OpenServer,) Tj ET
+BT /F1 10.0 Tf 56 222.8 Td (SCO UnixWare, Sanos and Tru64. A port of MySQL to OpenVMS also exists.) Tj ET
+BT /F1 10.0 Tf 56 179.6 Td (The MySQL server software itself and the client libraries use dual-licensing distribution. They) Tj ET
+BT /F1 10.0 Tf 56 166.1 Td (are offered under GPL version 2, or a proprietary license.) Tj ET
+BT /F1 10.0 Tf 56 122.9 Td (Support can be obtained from the official manual. Free support additionally is available in) Tj ET
+BT /F1 10.0 Tf 56 109.4 Td (different IRC channels and forums. Oracle offers paid support via its MySQL Enterprise) Tj ET
+BT /F1 10.0 Tf 56 95.9 Td (products. They differ in the scope of services and in price. Additionally, a number of third) Tj ET
+BT /F1 10.0 Tf 56 82.4 Td (party organisations exist to provide support and services.) Tj ET
+endstream
+endobj
+6 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents 5 0 R >>
+endobj
+7 0 obj
+<< /Length 2263 >>
+stream
+BT /F1 10.0 Tf 56 772.5 Td (MySQL has received positive reviews, and reviewers noticed it "performs extremely well in the) Tj ET
+BT /F1 10.0 Tf 56 759.0 Td (average case" and that the "developer interfaces are there, and the documentation \(not to) Tj ET
+BT /F1 10.0 Tf 56 745.5 Td (mention feedback in the real world via Web sites and the like\) is very, very good". It has also) Tj ET
+BT /F1 10.0 Tf 56 732.0 Td (been tested to be a "fast, stable and true multi-user, multi-threaded SQL database server".) Tj ET
+BT /F2 12.5 Tf 56 685.4 Td (History) Tj ET
+BT /F1 10.0 Tf 56 634.8 Td (MySQL was created by a Swedish company, MySQL AB, founded by Swedes David Axmark and Allan) Tj ET
+BT /F1 10.0 Tf 56 621.3 Td (Larsson, along with Finn Michael "Monty" Widenius. Original development of MySQL by Widenius) Tj ET
+BT /F1 10.0 Tf 56 607.8 Td (and Axmark began in 1994. The first version of MySQL appeared on 23 May 1995. It was initially) Tj ET
+BT /F1 10.0 Tf 56 594.3 Td (created for personal usage from mSQL based on the low-level language ISAM, which the creators) Tj ET
+BT /F1 10.0 Tf 56 580.8 Td (considered too slow and inflexible. They created a new SQL interface, while keeping the same) Tj ET
+BT /F1 10.0 Tf 56 567.3 Td (API as mSQL. By keeping the API consistent with the mSQL system, many developers were able to) Tj ET
+BT /F1 10.0 Tf 56 553.8 Td (use MySQL instead of the \(proprietarily licensed\) mSQL antecedent.) Tj ET
+BT /F2 12.5 Tf 56 507.2 Td (Milestones) Tj ET
+BT /F1 10.0 Tf 56 456.6 Td (Additional milestones in MySQL development included:) Tj ET
+BT /F1 10.0 Tf 56 413.4 Td (First internal release on 23 May 1995) Tj ET
+BT /F1 10.0 Tf 56 370.2 Td (Version 3.19: End of 1996, from www.tcx.se) Tj ET
+BT /F1 10.0 Tf 56 327.0 Td (Version 3.20: January 1997) Tj ET
+BT /F1 10.0 Tf 56 283.8 Td (Windows version was released on 8 January 1998 for Windows 95 and NT) Tj ET
+BT /F1 10.0 Tf 56 240.6 Td (Version 3.21: production release 1998, from www.mysql.com) Tj ET
+BT /F1 10.0 Tf 56 197.4 Td (Version 3.22: alpha, beta from 1998) Tj ET
+BT /F1 10.0 Tf 56 154.2 Td (Version 3.23: beta from June 2000, production release 22 January 2001) Tj ET
+BT /F1 10.0 Tf 56 111.0 Td (Version 4.0: beta from August 2002, production release March 2003 \(unions\).) Tj ET
+endstream
+endobj
+8 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents 7 0 R >>
+endobj
+9 0 obj
+<< /Length 2437 >>
+stream
+BT /F1 10.0 Tf 56 772.5 Td (Version 4.1: beta from June 2004, production release October 2004 \(R-trees and B-trees,) Tj ET
+BT /F1 10.0 Tf 56 759.0 Td (subqueries, prepared statements\).) Tj ET
+BT /F1 10.0 Tf 56 715.8 Td (Version 5.0: beta from March 2005, production release October 2005 \(cursors, stored procedures,) Tj ET
+BT /F1 10.0 Tf 56 702.3 Td (triggers, views, XA transactions\).) Tj ET
+BT /F1 10.0 Tf 56 659.1 Td (The developer of the Federated Storage Engine states that "The Federated Storage Engine is a) Tj ET
+BT /F1 10.0 Tf 56 645.6 Td (proof-of-concept storage engine", but the main distributions of MySQL version 5.0 included it) Tj ET
+BT /F1 10.0 Tf 56 632.1 Td (and turned it on by default. Documentation of some of the short-comings appears in "MySQL) Tj ET
+BT /F1 10.0 Tf 56 618.6 Td (Federated Tables: The Missing Manual".) Tj ET
+BT /F1 10.0 Tf 56 575.4 Td (Sun Microsystems acquired MySQL AB in 2008.) Tj ET
+BT /F1 10.0 Tf 56 532.2 Td (Version 5.1: production release 27 November 2008 \(event scheduler, partitioning, plugin API,) Tj ET
+BT /F1 10.0 Tf 56 518.7 Td (row-based replication, server log tables\)) Tj ET
+BT /F1 10.0 Tf 56 475.5 Td (Version 5.1 contained 20 known crashing and wrong result bugs in addition to the 35 present in) Tj ET
+BT /F1 10.0 Tf 56 462.0 Td (version 5.0 \(almost all fixed as of release 5.1.51\).) Tj ET
+BT /F1 10.0 Tf 56 418.8 Td (MySQL 5.1 and 6.0-alpha showed poor performance when used for data warehousing ñ partly due to) Tj ET
+BT /F1 10.0 Tf 56 405.3 Td (its inability to utilize multiple CPU cores for processing a single query.) Tj ET
+BT /F1 10.0 Tf 56 362.1 Td (Oracle acquired Sun Microsystems on 27 January 2010.) Tj ET
+BT /F1 10.0 Tf 56 318.9 Td (The day Oracle announced the purchase of Sun, Michael "Monty" Widenius forked MySQL, launching) Tj ET
+BT /F1 10.0 Tf 56 305.4 Td (MariaDB, and took a swath of MySQL developers with him.) Tj ET
+BT /F1 10.0 Tf 56 262.2 Td (MySQL Server 5.5 was generally available \(as of December 2010\). Enhancements and features) Tj ET
+BT /F1 10.0 Tf 56 248.7 Td (include:) Tj ET
+BT /F1 10.0 Tf 56 205.5 Td (The default storage engine is InnoDB, which supports transactions and referential integrity) Tj ET
+BT /F1 10.0 Tf 56 192.0 Td (constraints.) Tj ET
+BT /F1 10.0 Tf 56 148.8 Td (Improved InnoDB I/O subsystem) Tj ET
+BT /F1 10.0 Tf 56 105.6 Td (Improved SMP support) Tj ET
+BT /F1 10.0 Tf 56 62.4 Td (Semisynchronous replication.) Tj ET
+endstream
+endobj
+10 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents 9 0 R >>
+endobj
+11 0 obj
+<< /Length 3190 >>
+stream
+BT /F1 10.0 Tf 56 772.5 Td (SIGNAL and RESIGNAL statement in compliance with the SQL standard.) Tj ET
+BT /F1 10.0 Tf 56 729.3 Td (Support for supplementary Unicode character sets utf16, utf32, and utf8mb4.) Tj ET
+BT /F1 10.0 Tf 56 686.1 Td (New options for user-defined partitioning.) Tj ET
+BT /F1 10.0 Tf 56 642.9 Td (MySQL Server 6.0.11-alpha was announced on 22 May 2009 as the last release of the 6.0 line.) Tj ET
+BT /F1 10.0 Tf 56 629.4 Td (Future MySQL Server development uses a New Release Model. Features developed for 6.0 are being) Tj ET
+BT /F1 10.0 Tf 56 615.9 Td (incorporated into future releases.) Tj ET
+BT /F1 10.0 Tf 56 572.7 Td (The general availability of MySQL 5.6 was announced in February 2013. New features included) Tj ET
+BT /F1 10.0 Tf 56 559.2 Td (performance improvements to the query optimizer, higher transactional throughput in InnoDB, new) Tj ET
+BT /F1 10.0 Tf 56 545.7 Td (NoSQL-style memcached APIs, improvements to partitioning for querying and managing very large) Tj ET
+BT /F1 10.0 Tf 56 532.2 Td (tables, TIMESTAMP column type that correctly stores milliseconds, improvements to replication,) Tj ET
+BT /F1 10.0 Tf 56 518.7 Td (and better performance monitoring by expanding the data available through the) Tj ET
+BT /F1 10.0 Tf 56 505.2 Td (PERFORMANCE_SCHEMA. The InnoDB storage engine also included support for full-text search and) Tj ET
+BT /F1 10.0 Tf 56 491.7 Td (improved group commit performance.) Tj ET
+BT /F1 10.0 Tf 56 448.5 Td (The general availability of MySQL 5.7 was announced in October 2015. As of MySQL 5.7.8, August) Tj ET
+BT /F1 10.0 Tf 56 435.0 Td (2015, MySQL supports a native JSON data type defined by RFC 7159.) Tj ET
+BT /F1 10.0 Tf 56 391.8 Td (MySQL Server 8.0 was announced in April 2018, including NoSQL Document Store, atomic and crash) Tj ET
+BT /F1 10.0 Tf 56 378.3 Td (safe DDL sentences and JSON Extended syntax, new functions, such as JSON table functions,) Tj ET
+BT /F1 10.0 Tf 56 364.8 Td (improved sorting, and partial updates. Previous MySQL Server 8.0.0-dmr \(Milestone Release\) was) Tj ET
+BT /F1 10.0 Tf 56 351.3 Td (announced 12 September 2016.) Tj ET
+BT /F1 10.0 Tf 56 308.1 Td (MySQL was declared DBMS of the year 2019 from the DB-Engines ranking.) Tj ET
+BT /F2 12.5 Tf 56 261.5 Td (Release history) Tj ET
+BT /F1 10.0 Tf 56 210.9 Td (Work on version 6 stopped after the Sun Microsystems acquisition. The MySQL Cluster product) Tj ET
+BT /F1 10.0 Tf 56 197.4 Td (uses version 7. The decision was made to jump to version 8 as the next major version number.) Tj ET
+BT /F1 10.0 Tf 56 154.2 Td (From 2023 to 2026, which included versions 8.1 to 9.7, version naming changed to include) Tj ET
+BT /F1 10.0 Tf 56 140.7 Td (short-lived \(only supported for three months\) innovation releases \(IR\) and long-term support) Tj ET
+BT /F1 10.0 Tf 56 127.2 Td (\(LTS\) versions, which are typically supported for 8 years.) Tj ET
+BT /F1 10.0 Tf 56 84.0 Td (As of July, 2026 \(starting with version 26.7\), MySQL is using calendar versioning naming) Tj ET
+BT /F1 10.0 Tf 56 70.5 Td (convention, in the YY.M format, where YY represents the year and M represents the scheduled) Tj ET
+BT /F1 10.0 Tf 56 57.0 Td (release month.) Tj ET
+endstream
+endobj
+12 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents 11 0 R >>
+endobj
+13 0 obj
+<< /Length 4489 >>
+stream
+BT /F2 12.5 Tf 56 769.1 Td (Legal disputes and acquisitions) Tj ET
+BT /F1 10.0 Tf 56 718.5 Td (On 15 June 2001, NuSphere sued MySQL AB, TcX DataKonsult AB and its original authors Michael) Tj ET
+BT /F1 10.0 Tf 56 705.0 Td (\("Monty"\) Widenius and David Axmark in U.S. District Court in Boston for "breach of contract,) Tj ET
+BT /F1 10.0 Tf 56 691.5 Td (tortious interference with third party contracts and relationships and unfair competition".) Tj ET
+BT /F1 10.0 Tf 56 648.3 Td (In 2002, MySQL AB sued Progress NuSphere for copyright and trademark infringement in United) Tj ET
+BT /F1 10.0 Tf 56 634.8 Td (States district court. NuSphere had allegedly violated MySQL AB's copyright by linking MySQL's) Tj ET
+BT /F1 10.0 Tf 56 621.3 Td (GPL'ed code with NuSphere Gemini table without being in compliance with the license. After a) Tj ET
+BT /F1 10.0 Tf 56 607.8 Td (preliminary hearing before Judge Patti Saris on 27 February 2002, the parties entered) Tj ET
+BT /F1 10.0 Tf 56 594.3 Td (settlement talks and eventually settled. After the hearing, FSF commented that "Judge Saris) Tj ET
+BT /F1 10.0 Tf 56 580.8 Td (made clear that she sees the GNU GPL to be an enforceable and binding license.") Tj ET
+BT /F1 10.0 Tf 56 537.6 Td (In October 2005, Oracle Corporation acquired Innobase OY, the Finnish company that developed) Tj ET
+BT /F1 10.0 Tf 56 524.1 Td (the third-party InnoDB storage engine that allows MySQL to provide such functionality as) Tj ET
+BT /F1 10.0 Tf 56 510.6 Td (transactions and foreign keys. After the acquisition, an Oracle press release mentioned that) Tj ET
+BT /F1 10.0 Tf 56 497.1 Td (the contracts that make the company's software available to MySQL AB would be due for renewal) Tj ET
+BT /F1 10.0 Tf 56 483.6 Td (\(and presumably renegotiation\) some time in 2006. During the MySQL Users Conference in April) Tj ET
+BT /F1 10.0 Tf 56 470.1 Td (2006, MySQL AB issued a press release that confirmed that MySQL AB and Innobase OY agreed to a) Tj ET
+BT /F1 10.0 Tf 56 456.6 Td ("multi-year" extension of their licensing agreement.) Tj ET
+BT /F1 10.0 Tf 56 413.4 Td (In February 2006, Oracle Corporation acquired Sleepycat Software, makers of the Berkeley DB, a) Tj ET
+BT /F1 10.0 Tf 56 399.9 Td (database engine providing the basis for another MySQL storage engine. This had little effect,) Tj ET
+BT /F1 10.0 Tf 56 386.4 Td (as Berkeley DB was not widely used, and was dropped \(due to lack of use\) in MySQL 5.1.12, a) Tj ET
+BT /F1 10.0 Tf 56 372.9 Td (pre-GA release of MySQL 5.1 released in October 2006.) Tj ET
+BT /F1 10.0 Tf 56 329.7 Td (In January 2008, Sun Microsystems bought MySQL AB for $1 billion.) Tj ET
+BT /F1 10.0 Tf 56 286.5 Td (In April 2009, Oracle Corporation entered into an agreement to purchase Sun Microsystems, then) Tj ET
+BT /F1 10.0 Tf 56 273.0 Td (owners of MySQL copyright and trademark. Sun's board of directors unanimously approved the) Tj ET
+BT /F1 10.0 Tf 56 259.5 Td (deal. It was also approved by Sun's shareholders, and by the U.S. government on 20 August 2009.) Tj ET
+BT /F1 10.0 Tf 56 246.0 Td (On 14 December 2009, Oracle pledged to continue to enhance MySQL as it had done for the) Tj ET
+BT /F1 10.0 Tf 56 232.5 Td (previous four years.) Tj ET
+BT /F1 10.0 Tf 56 189.3 Td (A movement against Oracle's acquisition of MySQL AB, to "Save MySQL" from Oracle was started by) Tj ET
+BT /F1 10.0 Tf 56 175.8 Td (one of the MySQL AB founders, Monty Widenius. The petition of 50,000+ developers and users) Tj ET
+BT /F1 10.0 Tf 56 162.3 Td (called upon the European Commission to block approval of the acquisition. At the same time,) Tj ET
+BT /F1 10.0 Tf 56 148.8 Td (some Free Software opinion leaders \(including Pamela Jones of Groklaw, Jan Wildeboer and Carlo) Tj ET
+BT /F1 10.0 Tf 56 135.3 Td (Piana, who also acted as co-counsel in the merger regulation procedure\) advocated for the) Tj ET
+BT /F1 10.0 Tf 56 121.8 Td (unconditional approval of the merger. As part of the negotiations with the European Commission,) Tj ET
+BT /F1 10.0 Tf 56 108.3 Td (Oracle committed that MySQL server will continue until at least 2015 to use the dual-licensing) Tj ET
+BT /F1 10.0 Tf 56 94.8 Td (strategy long used by MySQL AB, with proprietary and GPL versions available. The antitrust of) Tj ET
+BT /F1 10.0 Tf 56 81.3 Td (the EU had been "pressuring it to divest MySQL as a condition for approval of the merger". But) Tj ET
+BT /F1 10.0 Tf 56 67.8 Td (the US Department of Justice, at the request of Oracle, pressured the EU to approve the merger) Tj ET
+endstream
+endobj
+14 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents 13 0 R >>
+endobj
+15 0 obj
+<< /Length 2402 >>
+stream
+BT /F1 10.0 Tf 56 772.5 Td (unconditionally. The European Commission eventually unconditionally approved Oracle's) Tj ET
+BT /F1 10.0 Tf 56 759.0 Td (acquisition of MySQL AB on 21 January 2010.) Tj ET
+BT /F1 10.0 Tf 56 715.8 Td (In 2009, following Oracle's announced acquisition of Sun Microsystems, Monty Widenius started a) Tj ET
+BT /F1 10.0 Tf 56 702.3 Td (GPL-only fork, MariaDB. MariaDB is based on the same code base as MySQL server 5.5 and aims to) Tj ET
+BT /F1 10.0 Tf 56 688.8 Td (maintain compatibility with Oracle-provided versions.) Tj ET
+BT /F2 12.5 Tf 56 642.2 Td (Features) Tj ET
+BT /F1 10.0 Tf 56 591.6 Td (MySQL is offered under two different editions: the open source MySQL Community Server and the) Tj ET
+BT /F1 10.0 Tf 56 578.1 Td (proprietary Enterprise Server. MySQL Enterprise Server is differentiated by a series of) Tj ET
+BT /F1 10.0 Tf 56 564.6 Td (proprietary extensions which install as server plugins, but otherwise shares the version) Tj ET
+BT /F1 10.0 Tf 56 551.1 Td (numbering system and is built from the same code base.) Tj ET
+BT /F1 10.0 Tf 56 507.9 Td (Major features as available in MySQL 5.6:) Tj ET
+BT /F1 10.0 Tf 56 464.7 Td (A broad subset of ANSI SQL 99, as well as extensions) Tj ET
+BT /F1 10.0 Tf 56 421.5 Td (Cross-platform support) Tj ET
+BT /F1 10.0 Tf 56 378.3 Td (Stored procedures, using a procedural language that closely adheres to SQL/PSM) Tj ET
+BT /F1 10.0 Tf 56 335.1 Td (Online Data Definition Language \(DDL\) when using the InnoDB Storage Engine.) Tj ET
+BT /F1 10.0 Tf 56 291.9 Td (Performance Schema that collects and aggregates statistics about server execution and query) Tj ET
+BT /F1 10.0 Tf 56 278.4 Td (performance for monitoring purposes.) Tj ET
+BT /F1 10.0 Tf 56 235.2 Td (A set of SQL Mode options to control runtime behavior, including a strict mode to better adhere) Tj ET
+BT /F1 10.0 Tf 56 221.7 Td (to SQL standards.) Tj ET
+BT /F1 10.0 Tf 56 178.5 Td (X/Open XA distributed transaction processing \(DTP\) support; two phase commit as part of this,) Tj ET
+BT /F1 10.0 Tf 56 165.0 Td (using the default InnoDB storage engine) Tj ET
+BT /F1 10.0 Tf 56 121.8 Td (Transactions with savepoints when using the default InnoDB Storage Engine. The NDB Cluster) Tj ET
+BT /F1 10.0 Tf 56 108.3 Td (Storage Engine also supports transactions.) Tj ET
+BT /F1 10.0 Tf 56 65.1 Td (ACID compliance when using InnoDB and NDB Cluster Storage Engines) Tj ET
+endstream
+endobj
+16 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents 15 0 R >>
+endobj
+17 0 obj
+<< /Length 2003 >>
+stream
+BT /F1 10.0 Tf 56 772.5 Td (Sub-SELECTs \(i.e. nested SELECTs\)) Tj ET
+BT /F1 10.0 Tf 56 729.3 Td (Built-in replication support) Tj ET
+BT /F1 10.0 Tf 56 686.1 Td (Asynchronous replication: master-slave from one master to many slaves or many masters to one) Tj ET
+BT /F1 10.0 Tf 56 672.6 Td (slave) Tj ET
+BT /F1 10.0 Tf 56 629.4 Td (Semi synchronous replication: Master to slave replication where the master waits on replication) Tj ET
+BT /F1 10.0 Tf 56 586.2 Td (Synchronous replication: Multi-master replication is provided in MySQL Cluster.) Tj ET
+BT /F1 10.0 Tf 56 543.0 Td (Virtual Synchronous: Self managed groups of MySQL servers with multi master support can be done) Tj ET
+BT /F1 10.0 Tf 56 529.5 Td (using: Galera Cluster or the built in Group Replication plugin) Tj ET
+BT /F1 10.0 Tf 56 486.3 Td (Full-text indexing and searching) Tj ET
+BT /F1 10.0 Tf 56 443.1 Td (Embedded database library) Tj ET
+BT /F1 10.0 Tf 56 399.9 Td (Partitioned tables with pruning of partitions in optimizer) Tj ET
+BT /F1 10.0 Tf 56 356.7 Td (Shared-nothing clustering through MySQL Cluster) Tj ET
+BT /F1 10.0 Tf 56 313.5 Td (Multiple storage engines, allowing one to choose the one that is most effective for each table) Tj ET
+BT /F1 10.0 Tf 56 300.0 Td (in the application.) Tj ET
+BT /F1 10.0 Tf 56 256.8 Td (Native storage engines InnoDB, MyISAM, Merge, Memory \(heap\), Federated, Archive, CSV,) Tj ET
+BT /F1 10.0 Tf 56 243.3 Td (Blackhole, NDB Cluster.) Tj ET
+BT /F1 10.0 Tf 56 200.1 Td (Commit grouping, gathering multiple transactions from multiple connections together to increase) Tj ET
+BT /F1 10.0 Tf 56 186.6 Td (the number of commits per second.) Tj ET
+BT /F1 10.0 Tf 56 143.4 Td (The developers release minor updates of the MySQL Server approximately every two months. The) Tj ET
+BT /F1 10.0 Tf 56 129.9 Td (sources can be obtained from MySQL's website or from MySQL's GitHub repository, both under the) Tj ET
+BT /F1 10.0 Tf 56 116.4 Td (GPL license.) Tj ET
+BT /F2 12.5 Tf 56 69.8 Td (Limitations) Tj ET
+endstream
+endobj
+18 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents 17 0 R >>
+endobj
+19 0 obj
+<< /Length 3832 >>
+stream
+BT /F1 10.0 Tf 56 772.5 Td (When using some storage engines other than the default of InnoDB, MySQL does not comply with) Tj ET
+BT /F1 10.0 Tf 56 759.0 Td (the full SQL standard for some of the implemented functionality, including foreign key) Tj ET
+BT /F1 10.0 Tf 56 745.5 Td (references. Check constraints are parsed but ignored by all storage engines before MySQL) Tj ET
+BT /F1 10.0 Tf 56 732.0 Td (version 8.0.15.) Tj ET
+BT /F1 10.0 Tf 56 688.8 Td (Up until MySQL 5.7, triggers are limited to one per action / timing, meaning that at most one) Tj ET
+BT /F1 10.0 Tf 56 675.3 Td (trigger can be defined to be executed after an INSERT operation, and one before INSERT on the) Tj ET
+BT /F1 10.0 Tf 56 661.8 Td (same table. No triggers can be defined on views.) Tj ET
+BT /F1 10.0 Tf 56 618.6 Td (Before MySQL 8.0.28, inbuilt functions like UNIX_TIMESTAMP would return 0 after 03:14:07 UTC on) Tj ET
+BT /F1 10.0 Tf 56 605.1 Td (19 January 2038. In 2017, an attempt to solve the problem was submitted, but was not used for) Tj ET
+BT /F1 10.0 Tf 56 591.6 Td (the final solution that was shipped in 2022.) Tj ET
+BT /F2 12.5 Tf 56 545.0 Td (Deployment) Tj ET
+BT /F1 10.0 Tf 56 494.4 Td (MySQL can be built and installed manually from source code, but it is more commonly installed) Tj ET
+BT /F1 10.0 Tf 56 480.9 Td (from a binary package unless special customizations are required. On most Linux distributions,) Tj ET
+BT /F1 10.0 Tf 56 467.4 Td (the package management system can download and install MySQL with minimal effort, though) Tj ET
+BT /F1 10.0 Tf 56 453.9 Td (further configuration is often required to adjust security and optimization settings.) Tj ET
+BT /F1 10.0 Tf 56 410.7 Td (Though MySQL began as a low-end alternative to more powerful proprietary databases, it has) Tj ET
+BT /F1 10.0 Tf 56 397.2 Td (gradually evolved to support higher-scale needs as well. It is still most commonly used in) Tj ET
+BT /F1 10.0 Tf 56 383.7 Td (small to medium scale single-server deployments, either as a component in a LAMP-based web) Tj ET
+BT /F1 10.0 Tf 56 370.2 Td (application or as a standalone database server. Much of MySQL's appeal originates in its) Tj ET
+BT /F1 10.0 Tf 56 356.7 Td (relative simplicity and ease of use, which is enabled by an ecosystem of open source tools such) Tj ET
+BT /F1 10.0 Tf 56 343.2 Td (as phpMyAdmin. In the medium range, MySQL can be scaled by deploying it on more powerful) Tj ET
+BT /F1 10.0 Tf 56 329.7 Td (hardware, such as a multi-processor server with gigabytes of memory.) Tj ET
+BT /F1 10.0 Tf 56 286.5 Td (There are, however, limits to how far performance can scale on a single server \('scaling up'\),) Tj ET
+BT /F1 10.0 Tf 56 273.0 Td (so on larger scales, multi-server MySQL \('scaling out'\) deployments are required to provide) Tj ET
+BT /F1 10.0 Tf 56 259.5 Td (improved performance and reliability. A typical high-end configuration can include a powerful) Tj ET
+BT /F1 10.0 Tf 56 246.0 Td (source database \(formerly known as master database\) which handles data write operations and is) Tj ET
+BT /F1 10.0 Tf 56 232.5 Td (replicated to multiple replicas \(formerly known as slaves\) that handle all read operations. The) Tj ET
+BT /F1 10.0 Tf 56 219.0 Td (source server continually pushes binlog events to connected replicas so in the event of failure) Tj ET
+BT /F1 10.0 Tf 56 205.5 Td (a replica can be promoted to become the new source, minimizing downtime. Further improvements) Tj ET
+BT /F1 10.0 Tf 56 192.0 Td (in performance can be achieved by caching the results from database queries in memory using) Tj ET
+BT /F1 10.0 Tf 56 178.5 Td (memcached, or breaking down a database into smaller chunks called shards which can be spread) Tj ET
+BT /F1 10.0 Tf 56 165.0 Td (across a number of distributed server clusters.) Tj ET
+BT /F2 12.5 Tf 56 118.4 Td (High availability software) Tj ET
+endstream
+endobj
+20 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents 19 0 R >>
+endobj
+21 0 obj
+<< /Length 2476 >>
+stream
+BT /F1 10.0 Tf 56 772.5 Td (Oracle MySQL offers a high availability solution with a mix of tools including the MySQL router) Tj ET
+BT /F1 10.0 Tf 56 759.0 Td (and the MySQL shell. They are based on Group Replication, open source tools.) Tj ET
+BT /F1 10.0 Tf 56 715.8 Td (MariaDB offers a similar offer in terms of products.) Tj ET
+BT /F2 12.5 Tf 56 669.2 Td (Cloud deployment) Tj ET
+BT /F1 10.0 Tf 56 618.6 Td (MySQL can also be run on cloud computing platforms such as Microsoft Azure, Amazon Elastic) Tj ET
+BT /F1 10.0 Tf 56 605.1 Td (Compute Cloud, and Oracle Cloud Infrastructure. Some common deployment models for MySQL on the) Tj ET
+BT /F1 10.0 Tf 56 591.6 Td (cloud are:) Tj ET
+BT /F2 12.5 Tf 56 545.0 Td (Virtual machine image) Tj ET
+BT /F1 10.0 Tf 56 494.4 Td (In this implementation, cloud users can upload a machine image of their own with MySQL) Tj ET
+BT /F1 10.0 Tf 56 480.9 Td (installed, or use a ready-made machine image with an optimized installation of MySQL on it,) Tj ET
+BT /F1 10.0 Tf 56 467.4 Td (such as the one provided by Amazon EC2.) Tj ET
+BT /F2 12.5 Tf 56 420.8 Td (MySQL as a service) Tj ET
+BT /F1 10.0 Tf 56 370.2 Td (Some cloud platforms offer MySQL "as a service". In this configuration, application owners do) Tj ET
+BT /F1 10.0 Tf 56 356.7 Td (not have to install and maintain the MySQL database on their own. Instead, the database service) Tj ET
+BT /F1 10.0 Tf 56 343.2 Td (provider takes responsibility for installing and maintaining the database, and application) Tj ET
+BT /F1 10.0 Tf 56 329.7 Td (owners pay according to their usage. Notable cloud-based MySQL services are the Amazon) Tj ET
+BT /F1 10.0 Tf 56 316.2 Td (Relational Database Service; Oracle MySQL HeatWave Database Service, Azure Database for MySQL,) Tj ET
+BT /F1 10.0 Tf 56 302.7 Td (Rackspace; HP Converged Cloud; Heroku and Jelastic. In this model the database service provider) Tj ET
+BT /F1 10.0 Tf 56 289.2 Td (takes responsibility for maintaining the host and database.) Tj ET
+BT /F2 12.5 Tf 56 242.6 Td (User interfaces) Tj ET
+BT /F2 12.5 Tf 56 188.6 Td (Graphical user interfaces) Tj ET
+BT /F1 10.0 Tf 56 138.0 Td (A graphical user interface \(GUI\) is a type of interface that allows users to interact with) Tj ET
+BT /F1 10.0 Tf 56 124.5 Td (electronic devices or programs through graphical icons and visual indicators such as secondary) Tj ET
+BT /F1 10.0 Tf 56 111.0 Td (notation, as opposed to text-based interfaces, typed command labels or text navigation.) Tj ET
+endstream
+endobj
+22 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents 21 0 R >>
+endobj
+23 0 obj
+<< /Length 3126 >>
+stream
+BT /F1 10.0 Tf 56 772.5 Td (Third-party proprietary and free graphical administration applications \(or "front ends"\) are) Tj ET
+BT /F1 10.0 Tf 56 759.0 Td (available that integrate with MySQL and enable users to work with database structure and data) Tj ET
+BT /F1 10.0 Tf 56 745.5 Td (visually.) Tj ET
+BT /F2 12.5 Tf 56 698.9 Td (MySQL Workbench) Tj ET
+BT /F1 10.0 Tf 56 648.3 Td (MySQL Workbench is the integrated environment for MySQL. It was developed by MySQL AB, and) Tj ET
+BT /F1 10.0 Tf 56 634.8 Td (enables users to graphically administer MySQL databases and visually design database) Tj ET
+BT /F1 10.0 Tf 56 621.3 Td (structures.) Tj ET
+BT /F1 10.0 Tf 56 578.1 Td (MySQL Workbench is available in three editions, the regular free and open source Community) Tj ET
+BT /F1 10.0 Tf 56 564.6 Td (Edition which may be downloaded from the MySQL website, and the proprietary Standard Edition) Tj ET
+BT /F1 10.0 Tf 56 551.1 Td (which extends and improves the feature set of the Community Edition, and the MySQL Cluster CGE.) Tj ET
+BT /F2 12.5 Tf 56 504.5 Td (Command-line interfaces) Tj ET
+BT /F1 10.0 Tf 56 453.9 Td (A command-line interface is a means of interacting with a computer program where the user) Tj ET
+BT /F1 10.0 Tf 56 440.4 Td (issues commands to the program by typing in successive lines of text \(command lines\). MySQL) Tj ET
+BT /F1 10.0 Tf 56 426.9 Td (ships with many command line tools, from which the main interface is the mysql client.) Tj ET
+BT /F1 10.0 Tf 56 383.7 Td (MySQL Utilities is a set of utilities designed to perform common maintenance and administrative) Tj ET
+BT /F1 10.0 Tf 56 370.2 Td (tasks. Originally included as part of the MySQL Workbench, the utilities are a stand-alone) Tj ET
+BT /F1 10.0 Tf 56 356.7 Td (download available from Oracle.) Tj ET
+BT /F1 10.0 Tf 56 313.5 Td (Percona Toolkit is a cross-platform toolkit for MySQL, developed in Perl. Percona Toolkit can) Tj ET
+BT /F1 10.0 Tf 56 300.0 Td (be used to prove replication is working correctly, fix corrupted data, automate repetitive) Tj ET
+BT /F1 10.0 Tf 56 286.5 Td (tasks, and speed up servers. Percona Toolkit is included with several Linux distributions such) Tj ET
+BT /F1 10.0 Tf 56 273.0 Td (as CentOS and Debian, and packages are available for Fedora and Ubuntu as well. Percona Toolkit) Tj ET
+BT /F1 10.0 Tf 56 259.5 Td (was originally developed as Maatkit, but as of late 2011, Maatkit is no longer developed.) Tj ET
+BT /F1 10.0 Tf 56 216.3 Td (MySQL shell is a tool for interactive use and administration of the MySQL database. It supports) Tj ET
+BT /F1 10.0 Tf 56 202.8 Td (JavaScript, Python or SQL modes and it can be used for administration and access purposes.) Tj ET
+BT /F2 12.5 Tf 56 156.2 Td (Application programming interfaces) Tj ET
+BT /F1 10.0 Tf 56 105.6 Td (Many programming languages with language-specific APIs include libraries for accessing MySQL) Tj ET
+BT /F1 10.0 Tf 56 92.1 Td (databases. These include MySQL Connector/Net for.NET/CLI Languages, and the JDBC driver for) Tj ET
+BT /F1 10.0 Tf 56 78.6 Td (Java. MySQL offers Connector/C++ for interfacing with C++ in namespace mysqlx.) Tj ET
+endstream
+endobj
+24 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents 23 0 R >>
+endobj
+25 0 obj
+<< /Length 2307 >>
+stream
+BT /F1 10.0 Tf 56 772.5 Td (In addition, an ODBC interface called MySQL Connector/ODBC allows additional programming) Tj ET
+BT /F1 10.0 Tf 56 759.0 Td (languages that support the ODBC interface to communicate with a MySQL database, such as ASP or) Tj ET
+BT /F1 10.0 Tf 56 745.5 Td (ColdFusion. The HTSQL ñ URL-based query method also ships with a MySQL adapter, allowing direct) Tj ET
+BT /F1 10.0 Tf 56 732.0 Td (interaction between a MySQL database and any web client via structured URLs. Other drivers) Tj ET
+BT /F1 10.0 Tf 56 718.5 Td (exists for languages like Python or Node.js.) Tj ET
+BT /F2 12.5 Tf 56 671.9 Td (Project forks) Tj ET
+BT /F1 10.0 Tf 56 621.3 Td (A variety of MySQL forks exist, including the following:) Tj ET
+BT /F2 12.5 Tf 56 574.7 Td (Current) Tj ET
+BT /F2 12.5 Tf 56 520.7 Td (MariaDB) Tj ET
+BT /F1 10.0 Tf 56 470.1 Td (MariaDB is a community-developed fork of the MySQL relational database management system) Tj ET
+BT /F1 10.0 Tf 56 456.6 Td (intended to remain free under the GNU GPL. The fork has been led by the original developers of) Tj ET
+BT /F1 10.0 Tf 56 443.1 Td (MySQL, who forked it due to concerns over its acquisition by Oracle.) Tj ET
+BT /F2 12.5 Tf 56 396.5 Td (Percona Server for MySQL) Tj ET
+BT /F1 10.0 Tf 56 345.9 Td (Percona Server for MySQL, forked by Percona, aims to retain close compatibility to the official) Tj ET
+BT /F1 10.0 Tf 56 332.4 Td (MySQL releases. Also included in Percona Server for MySQL is XtraDB, Percona's fork of the) Tj ET
+BT /F1 10.0 Tf 56 318.9 Td (InnoDB Storage Engine.) Tj ET
+BT /F2 12.5 Tf 56 272.3 Td (Abandoned) Tj ET
+BT /F2 12.5 Tf 56 218.3 Td (Drizzle) Tj ET
+BT /F1 10.0 Tf 56 167.7 Td (Drizzle was a free software/open source relational database management system \(DBMS\) that was) Tj ET
+BT /F1 10.0 Tf 56 154.2 Td (forked from the now-defunct 6.0 development branch of the MySQL DBMS. Like MySQL, Drizzle had a) Tj ET
+BT /F1 10.0 Tf 56 140.7 Td (client/server architecture and uses SQL as its primary command language. Drizzle was) Tj ET
+BT /F1 10.0 Tf 56 127.2 Td (distributed under version 2 and 3 of the GNU General Public License \(GPL\) with portions,) Tj ET
+BT /F1 10.0 Tf 56 113.7 Td (including the protocol drivers and replication messaging under the BSD license.) Tj ET
+BT /F2 12.5 Tf 56 67.1 Td (WebScaleSQL) Tj ET
+endstream
+endobj
+26 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents 25 0 R >>
+endobj
+27 0 obj
+<< /Length 1921 >>
+stream
+BT /F1 10.0 Tf 56 772.5 Td (WebScaleSQL was a software branch of MySQL 5.6, and was announced on 27 March 2014 by Facebook,) Tj ET
+BT /F1 10.0 Tf 56 759.0 Td (Google, LinkedIn and Twitter as a joint effort to provide a centralized development structure) Tj ET
+BT /F1 10.0 Tf 56 745.5 Td (for extending MySQL with new features specific to its large-scale deployments, such as building) Tj ET
+BT /F1 10.0 Tf 56 732.0 Td (large replicated databases running on server farms. Thus, WebScaleSQL opened a path toward) Tj ET
+BT /F1 10.0 Tf 56 718.5 Td (deduplicating the efforts each company had been putting into maintaining its own branch of) Tj ET
+BT /F1 10.0 Tf 56 705.0 Td (MySQL, and toward bringing together more developers. By combining the efforts of these) Tj ET
+BT /F1 10.0 Tf 56 691.5 Td (companies and incorporating various changes and new features into MySQL, WebScaleSQL aimed at) Tj ET
+BT /F1 10.0 Tf 56 678.0 Td (supporting the deployment of MySQL in large-scale environments. The project's source code is) Tj ET
+BT /F1 10.0 Tf 56 664.5 Td (licensed under version 2 of the GNU General Public License, and is hosted on GitHub.) Tj ET
+BT /F2 12.5 Tf 56 617.9 Td (OurDelta) Tj ET
+BT /F1 10.0 Tf 56 567.3 Td (The OurDelta distribution, created by the Australian company Open Query \(later acquired by) Tj ET
+BT /F1 10.0 Tf 56 553.8 Td (Catalyst IT Australia\), had two versions: 5.0, which was based on MySQL, and 5.1, which was) Tj ET
+BT /F1 10.0 Tf 56 540.3 Td (based on MariaDB. It included patches developed by Open Query and by other notable members of) Tj ET
+BT /F1 10.0 Tf 56 526.8 Td (the MySQL community including Jeremy Cole and Google. Once the patches were incorporated into) Tj ET
+BT /F1 10.0 Tf 56 513.3 Td (the MariaDB mainline, OurDelta's objectives were achieved and OurDelta passed on its build and) Tj ET
+BT /F1 10.0 Tf 56 499.8 Td (packaging toolchain to Monty Program \(now MariaDB Plc\).) Tj ET
+endstream
+endobj
+28 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents 27 0 R >>
+endobj
+xref
+0 29
+0000000000 65535 f 
+0000000015 00000 n 
+0000000064 00000 n 
+0000000198 00000 n 
+0000000295 00000 n 
+0000000397 00000 n 
+0000004326 00000 n 
+0000004462 00000 n 
+0000006777 00000 n 
+0000006913 00000 n 
+0000009402 00000 n 
+0000009539 00000 n 
+0000012782 00000 n 
+0000012920 00000 n 
+0000017462 00000 n 
+0000017600 00000 n 
+0000020055 00000 n 
+0000020193 00000 n 
+0000022249 00000 n 
+0000022387 00000 n 
+0000026272 00000 n 
+0000026410 00000 n 
+0000028939 00000 n 
+0000029077 00000 n 
+0000032256 00000 n 
+0000032394 00000 n 
+0000034754 00000 n 
+0000034892 00000 n 
+0000036866 00000 n 
+trailer
+<< /Size 29 /Root 1 0 R >>
+startxref
+37004
+%%EOF
