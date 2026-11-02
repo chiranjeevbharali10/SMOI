@@ -1,0 +1,147 @@
+/*
+ * The dashboard, login, SMOI Brain and settings screens. The design file doesn't include these
+ * screens; this is an interpretation built only from its tokens (../theme/tokens.css): the cream
+ * page, #FFFAEE cards with 2px charcoal borders (as on the concept sheet), Pixelify Sans for
+ * headings, Nunito for everything people read at length.
+ */
+html, body, #root { height: 100%; }
+body {
+  margin: 0;
+  background: var(--smoi-cream);
+  color: var(--smoi-charcoal);
+  font-family: var(--smoi-font-body);
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.5;
+}
+h1, h2, h3 { font-family: var(--smoi-font-pixel); font-weight: 600; margin: 0; line-height: 1.2; }
+h2 { font-size: 26px; }
+h3 { font-size: 20px; }
+p { margin: 0; }
+
+.app { display: flex; flex-direction: column; height: 100%; }
+
+.topbar {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 12px 24px;
+  background: var(--smoi-green);
+  border-bottom: var(--smoi-border);
+}
+.topbar h1 { font-size: 32px; font-weight: 700; }
+.topbar nav { display: flex; gap: 6px; }
+.topbar .account { margin-left: auto; display: flex; align-items: center; gap: 12px; font-size: 14px; font-weight: 700; }
+
+.main { flex: 1; overflow: auto; padding: 24px; display: flex; flex-direction: column; gap: 20px; }
+
+.card {
+  background: var(--smoi-panel);
+  border: var(--smoi-border);
+  border-radius: 20px;
+  padding: 20px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* Buttons and fields */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 0 16px;
+  border: var(--smoi-border);
+  border-radius: var(--smoi-row-radius);
+  background: var(--smoi-panel);
+  color: var(--smoi-charcoal);
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+}
+.btn:hover { background: var(--smoi-lavender); }
+.btn.primary { background: var(--smoi-green); }
+.btn.primary:hover { background: var(--smoi-lavender); }
+.btn[disabled], .btn[aria-disabled='true'] { cursor: default; border-style: dashed; }
+.btn[disabled]:hover { background: var(--smoi-panel); }
+.btn.small { min-height: 32px; padding: 0 10px; font-size: 14px; }
+.nav-btn { border: 2px solid transparent; background: none; }
+.nav-btn[aria-current='page'] { background: var(--smoi-lavender); border-color: var(--smoi-charcoal); }
+
+.field { display: flex; flex-direction: column; gap: 6px; font-weight: 800; }
+.field input, .field select, textarea {
+  font: inherit;
+  font-weight: 600;
+  color: var(--smoi-charcoal);
+  background: var(--smoi-panel);
+  border: var(--smoi-border);
+  border-radius: var(--smoi-row-radius);
+  padding: 8px 12px;
+}
+.check { display: flex; align-items: center; gap: 10px; }
+.check input { width: 20px; height: 20px; accent-color: var(--smoi-charcoal); }
+.hint { font-size: 14px; font-weight: 600; }
+
+/* Messages: always an icon or a heading word as well as the colour (NFR-05.03). */
+.banner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  border: var(--smoi-border);
+  border-radius: 14px;
+}
+.banner.error { background: var(--smoi-pink); }
+.banner.info { background: var(--smoi-blue); }
+.banner.working { background: var(--smoi-lavender); }
+.banner strong { font-weight: 800; }
+
+.face { width: 48px; height: 40px; image-rendering: pixelated; flex-shrink: 0; }
+
+/* Login */
+.login { margin: auto; width: 420px; max-width: calc(100% - 32px); }
+.login h2 { font-size: 40px; font-weight: 700; }
+
+/* Home */
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 20px; }
+.stat { font-family: var(--smoi-font-pixel); font-size: 34px; line-height: 1; }
+dl.facts { display: grid; grid-template-columns: auto 1fr; gap: 4px 16px; margin: 0; }
+dl.facts dt { font-weight: 800; }
+dl.facts dd { margin: 0; }
+
+/* SMOI Brain */
+.brain { display: grid; grid-template-columns: minmax(280px, 360px) 1fr; gap: 20px; min-height: 0; flex: 1; }
+.doc-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; overflow: auto; }
+.doc { display: flex; flex-direction: column; gap: 2px; padding: 10px 12px; border: var(--smoi-border); border-radius: 14px; }
+.doc-name { font-weight: 800; overflow-wrap: anywhere; }
+.doc-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 14px; }
+.status-tag { font-size: 13px; font-weight: 800; padding: 0 8px; border: 2px solid var(--smoi-charcoal); border-radius: 999px; }
+.status-tag.indexed { background: var(--smoi-green); }
+.status-tag.queued, .status-tag.processing { background: var(--smoi-lavender); }
+.status-tag.failed { background: var(--smoi-pink); }
+
+.chat { display: flex; flex-direction: column; min-height: 0; }
+.messages { flex: 1; overflow: auto; display: flex; flex-direction: column; gap: 16px; padding-right: 4px; }
+.question { align-self: flex-end; max-width: 80%; background: var(--smoi-blue); border: var(--smoi-border); border-radius: 16px; padding: 8px 14px; white-space: pre-wrap; overflow-wrap: anywhere; }
+.answer { display: flex; flex-direction: column; gap: 10px; }
+.answer-status { display: flex; align-items: center; gap: 10px; font-weight: 800; }
+/* Retrieved and generated text: plain text only, line breaks kept, long words wrapped. */
+.plain { white-space: pre-wrap; overflow-wrap: anywhere; font-weight: 600; }
+.incomplete-mark { font-weight: 800; }
+.sources { display: flex; flex-wrap: wrap; gap: 8px; }
+.notes { margin: 0; padding-left: 20px; font-size: 14px; }
+.passage { border: var(--smoi-border); border-radius: 14px; padding: 10px 14px; display: flex; flex-direction: column; gap: 6px; }
+.ask { display: flex; gap: 10px; align-items: flex-end; padding-top: 12px; }
+.ask textarea { flex: 1; resize: vertical; min-height: 48px; max-height: 200px; }
+
+/* Source viewer */
+.viewer-backdrop { position: fixed; inset: 0; background: rgba(81, 75, 80, 0.35); display: flex; justify-content: flex-end; }
+.viewer { width: min(640px, 100%); height: 100%; box-sizing: border-box; background: var(--smoi-panel); border-left: var(--smoi-border); padding: 20px 24px; display: flex; flex-direction: column; gap: 12px; }
+.viewer-head { display: flex; align-items: flex-start; gap: 12px; }
+.viewer-head h2 { flex: 1; font-size: 22px; overflow-wrap: anywhere; }
+.chunks { flex: 1; overflow: auto; display: flex; flex-direction: column; gap: 10px; }
+.chunk { border: 2px dashed var(--smoi-charcoal); border-radius: 14px; padding: 10px 14px; }
+.chunk.cited { border-style: solid; background: var(--smoi-lavender); }
+.chunk-meta { font-size: 13px; font-weight: 800; }

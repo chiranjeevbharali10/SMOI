@@ -1,0 +1,8 @@
+/* The bubble and panel windows are transparent; only the bubble or panel itself is drawn. */
+html, body {
+  margin: 0;
+  padding: 0;
+  background: transparent;
+  overflow: hidden;
+  user-select: none;
+}

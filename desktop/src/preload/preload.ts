@@ -12,7 +12,8 @@ contextBridge.exposeInMainWorld('smoi', {
   onState: (cb: (m: StateMessage) => void) => ipcRenderer.on('frog:state', (_e, m: StateMessage) => cb(m)),
   onSettings: (cb: (m: SettingsMessage) => void) => ipcRenderer.on('frog:settings', (_e, m: SettingsMessage) => cb(m)),
   setHit: (overFrog: boolean) => ipcRenderer.send('frog:hit', overFrog),
-  dragStart: (offset: { x: number; y: number }) => ipcRenderer.send('frog:drag-start', offset),
-  dragEnd: () => ipcRenderer.send('frog:drag-end'),
+  /** Mouse button down on the frog: a click, or a drag if the cursor then moves. */
+  press: (offset: { x: number; y: number }) => ipcRenderer.send('frog:press', offset),
+  release: () => ipcRenderer.send('frog:release'),
   animationFinished: (state: string) => ipcRenderer.send('frog:animation-finished', state),
 });

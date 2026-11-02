@@ -10,8 +10,8 @@ declare global {
       onState(cb: (m: { state: string; mirrored: boolean }) => void): void;
       onSettings(cb: (m: { reducedMotion: boolean }) => void): void;
       setHit(overFrog: boolean): void;
-      dragStart(offset: { x: number; y: number }): void;
-      dragEnd(): void;
+      press(offset: { x: number; y: number }): void;
+      release(): void;
       animationFinished(state: string): void;
     };
   }
@@ -112,10 +112,10 @@ export function Frog() {
       onMouseLeave={() => updateHit(false)}
       onMouseDown={(e) => {
         if (e.button === 0 && overFrog(e)) {
-          window.smoi.dragStart({ x: e.nativeEvent.offsetX, y: e.nativeEvent.offsetY });
+          window.smoi.press({ x: e.nativeEvent.offsetX, y: e.nativeEvent.offsetY });
         }
       }}
-      onMouseUp={() => window.smoi.dragEnd()}
+      onMouseUp={() => window.smoi.release()}
     />
   );
 }

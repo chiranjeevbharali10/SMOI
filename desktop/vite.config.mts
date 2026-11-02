@@ -15,7 +15,8 @@ const devCsp: Plugin = {
     .replace("connect-src 'self'", "connect-src 'self' ws://localhost:5173"),
 };
 
-// The renderer: the frog window (index.html) and the dev-only animation preview (preview.html).
+// The renderer pages: the frog, its speech bubble and menu panel, the dashboard, and two dev-only
+// pages (the animation preview, and the gallery used for design screenshots).
 export default defineConfig({
   root: resolve(import.meta.dirname, 'src/renderer'),
   base: './',
@@ -28,6 +29,10 @@ export default defineConfig({
       input: {
         frog: resolve(import.meta.dirname, 'src/renderer/index.html'),
         preview: resolve(import.meta.dirname, 'src/renderer/preview.html'),
+        bubble: resolve(import.meta.dirname, 'src/renderer/bubble.html'),
+        panel: resolve(import.meta.dirname, 'src/renderer/panel.html'),
+        dashboard: resolve(import.meta.dirname, 'src/renderer/dashboard.html'),
+        gallery: resolve(import.meta.dirname, 'src/renderer/gallery.html'),
       },
     },
   },

@@ -6,7 +6,8 @@ export interface BubbleViewProps {
   text: string;
   /** The tail's centre from the bubble's left edge; undefined while measuring. */
   tailX?: number;
-  tail?: 'down' | 'up';
+  /** none: no tail (only the gallery uses this, for the design's tone samples). */
+  tail?: 'down' | 'up' | 'none';
   /** Play smoi-pop. */
   pop?: boolean;
   leaving?: boolean;
@@ -29,7 +30,7 @@ export function BubbleView({ tone, text, tailX, tail = 'down', pop, leaving, onD
       {tone === 'urgent' && (
         <button type="button" className="smoi-bubble-dismiss" aria-label="Dismiss" tabIndex={-1} onClick={onDismiss}>×</button>
       )}
-      <div className="smoi-bubble-tail" aria-hidden="true" />
+      {tail !== 'none' && <div className="smoi-bubble-tail" aria-hidden="true" />}
     </div>
   );
 }
