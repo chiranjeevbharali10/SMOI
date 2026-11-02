@@ -51,3 +51,20 @@ backend process is not yet automated.
 | NFR-07.02 OpenAPI generated from code | `AnswerIT.openApiSpecIsGeneratedFromTheControllers` (`/v3/api-docs`) |
 | Claude features used (Haiku 5.5) | `llm/AnthropicLiveIT`: runs only with `ANTHROPIC_API_KEY` set; **skipped so far** |
 | NFR-01.05 retrieval latency | Not measured yet (Phase 4). Responses report per-stage timings. |
+
+## Phase 3: evaluation
+
+Every number is produced by `eval/run_eval.py` and written to `docs/benchmarks.md`, which names the
+results file it came from. The method is in `docs/adr/0010-evaluation-method.md`.
+
+| Requirement | Checked by |
+| --- | --- |
+| NFR-09.01 retrieval finds the relevant chunks | `run_eval.py run`: Recall@5 and @10 per mode, group and question type; CI regression check in `.github/workflows/eval.yml` against `eval/thresholds.json` |
+| NFR-09.02 relevant chunks ranked near the top | `run_eval.py run`: MRR@10 and nDCG@10 per mode |
+| NFR-09.03 citations support their claims | Deterministic: share of cited chunks containing labelled evidence. Estimate: LLM-judged faithfulness, with agreement against the owner's hand labels (`eval/labels/`) |
+| NFR-09.04 citations name retrieved chunks | Enforced by the backend (Phase 2 tests); the harness counts rejections and re-checks every accepted citation |
+| NFR-09.05 "don't know" when sources don't cover the question | Correct "don't know" rate on `not_answerable` questions and false "don't know" rate on answerable ones |
+| NFR-09.06 intent classification | Not measurable yet: the intent classifier arrives in Phase 7 |
+| NFR-09.08 latency reported with quality | p50 and p95 per retrieval mode and per answer stage |
+| Scoring code is correct | `eval/tests/test_metrics.py` (quote matching, recall, MRR, nDCG, percentiles, kappa, sentence splitting, evidence parsing, judge parsing) |
+| Labels match the corpus | `run_eval.py validate` (offline) and a check against the indexed chunks at the start of every run |

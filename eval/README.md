@@ -3,7 +3,41 @@
 Python evaluation scripts. Every number quoted in the docs comes from a script here, and names
 that script, its dataset version and the date it ran. Raw results are saved in `results/`.
 
-Retrieval, citation and intent evaluation is built in Phase 3.
+## Retrieval and answer evaluation (`run_eval.py`)
+
+`run_eval.py` uses only the standard library. It drives the real backend over HTTP: it indexes the
+demo corpus for a fresh user, runs the questions, deletes that user's documents, and saves every
+per-question result in `results/`. `docs/benchmarks.md` is generated from those files. The method
+and its trade-offs are in `docs/adr/0010-evaluation-method.md`.
+
+```sh
+make eval                                  # or: python eval/run_eval.py all
+python eval/run_eval.py run --retrieval-only   # quick: retrieval metrics only (stack must be running)
+python eval/run_eval.py sweep              # chunk-size experiment, retrieval only
+python eval/run_eval.py report             # regenerate docs/benchmarks.md
+python eval/run_eval.py validate           # check every evidence quote exists in its document
+python -m unittest discover -s eval/tests  # unit tests for the scoring code
+```
+
+| Path | What |
+| --- | --- |
+| `corpus/` | 24 pinned Wikipedia articles (TXT, DOCX, PDF) in three groups; `build_corpus.py` rebuilds them; `SOURCES.md` gives licences |
+| `data/questions_v1.csv` | the question set the owner reviews (status: `unreviewed`, `approve`, `fix`, `reject`) |
+| `data/split_v1.json` | fixed tuning/test split of approved questions (`run_eval.py split`) |
+| `data/ci_subset_v1.json` | the questions the CI retrieval check uses (never from the test set) |
+| `thresholds.json` | minimum CI recall, taken from a measured run |
+| `labels/` | the owner's hand labels for 30 judged answers (`run_eval.py label-sample`) |
+| `results/` | raw results; `locked_runs.jsonl` logs every run of the locked test set |
+
+**Reviewing questions.** Open `data/questions_v1.csv` in a spreadsheet. Each row has the question,
+reference answer, expected source text (`file | exact quote`, one per line; `or` marks an alternative)
+and type. Set `status` to `approve`, `fix` or `reject` and add notes in `reviewer_notes`. Only approved
+questions count. Once a batch is approved, `run_eval.py split` assigns it to tuning or test.
+
+**The faithfulness judge** defaults to the local `ollama:qwen3.5:4b`, a different model from the
+answer model. For a Claude run: `pip install -r eval/requirements-claude-judge.txt`, set
+`ANTHROPIC_API_KEY`, and pass `--judge anthropic:claude-sonnet-5-5`. Judged scores are always
+reported as estimates, next to the judge's agreement with the hand labels.
 
 ## Local chat model benchmark
 
