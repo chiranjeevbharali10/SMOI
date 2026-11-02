@@ -31,3 +31,23 @@ and then blocks, which leaves the database in exactly the state a killed process
 whose lease isn't renewed. The test checks that another worker completes the job after the lease expires,
 and that the stuck worker, when it resumes, writes nothing. A test that kills and restarts a real
 backend process is not yet automated.
+
+## Phase 2: retrieval and cited answers
+
+| Requirement | Checked by |
+| --- | --- |
+| FR-06.05 keyword, vector and hybrid retrieval, selectable per request | `retrieval/SearchIT` (`everyModeReturnsRankedResults` for all four modes, `keywordSearchFindsARareExactTerm`, `keywordSearchMatchesAnyWordNotAllWords`, `hybridRecordsWhichListsEachResultCameFrom`); `retrieval/ReciprocalRankFusionTest` |
+| Reranking with fallback | `SearchIT.rerankingReordersTheCandidates`, `whenTheRerankerIsDownResultsComeBackInHybridOrderAndSaySo`; `AnswerIT.answersStillComeBackWhenTheRerankerIsDown`; sidecar API tests in `sidecars/reranker/tests` |
+| FR-06.06 answer only from sources; "don't know" | `AnswerIT.theModelSayingItDoesNotKnowIsADontKnowOutcome`, `withNothingRetrievedTheModelIsNotAskedAtAll` (scripted LLM) |
+| FR-06.07 citations with document, location and chunk | `AnswerIT.answerCitesRetrievedChunksResolvedToTheirSource` |
+| FR-06.08 typed questions (voice in Phase 7) | `AnswerIT`, including streaming: `streamingSendsSourcesThenTextThenTheResult` |
+| FR-06.09 summarise and compare with citations | `answer/InsightIT` (single pass, multi-pass map-reduce, compare, fabricated citations, 404, hosted 403) |
+| FR-06.12 / NFR-09.04 citations must name retrieved chunks | `AnswerIT.aCitationOfASourceThatWasNotRetrievedIsRejected`, `aCitationByRawIdIsRejected`, `anAnswerWithoutAnyCitationIsRejected`, `streamingAlsoReportsARejectedAnswerInTheResult`; `answer/CitationsTest` |
+| NFR-03.08 instructions and data kept apart | `AnswerIT.sourcesArePassedAsEscapedDataSeparateFromInstructions`, `injectedMarkupInADocumentCannotBreakOutOfItsSourceElement`; `answer/PromptsTest` |
+| NFR-03.11 / NFR-03.13 retrieval scoped to the user | `SearchIT.anotherUserNeverSeesTheseChunks` (all four modes), `deletedDocumentsAreNotRetrieved`; `AnswerIT.anotherUsersDocumentsNeverReachThePrompt` |
+| NFR-04.05 local-only option; active providers shown | Ollama is the default provider; `AnswerIT.providersEndpointShowsWhatIsActive`; hosted consent: `AnswerIT.aHostedProviderOnlySeesDocumentsTheUserAllowed`, `aHostedProviderWithNoAllowedDocumentsIsNotCalled`, `SearchIT.hostedOnlyRetrievalSkipsDocumentsNotAllowedForHostedLlms`, `anotherUserCannotChangeTheHostedSetting` |
+| Prompt never silently cut off | `AnswerIT.sourcesThatDoNotFitThePromptBudgetAreLeftOutAndReported`; `llm/OllamaLlmProviderTest.aPromptThatFilledTheContextIsAnErrorNotASilentTruncation` |
+| Refusals are their own outcome and metric | `AnswerIT.aProviderRefusalIsReportedAndCountedAsItsOwnOutcome` |
+| NFR-07.02 OpenAPI generated from code | `AnswerIT.openApiSpecIsGeneratedFromTheControllers` (`/v3/api-docs`) |
+| Claude features used (Haiku 5.5) | `llm/AnthropicLiveIT`: runs only with `ANTHROPIC_API_KEY` set; **skipped so far** |
+| NFR-01.05 retrieval latency | Not measured yet (Phase 4). Responses report per-stage timings. |

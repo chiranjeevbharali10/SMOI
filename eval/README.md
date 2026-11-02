@@ -44,3 +44,28 @@ python eval/bench_local_llm.py --models qwen3.5:2b-q4_K_M qwen3.5:4b --docker-co
   container's baseline before the chat model was 1.7 to 2.3 GB.
 - **Decision:** the 2b model is the default (`OLLAMA_CHAT_MODEL`), because both passed every check
   and the 2b was about twice as fast. See `docs/adr/0009-llm-providers.md`.
+
+## Reranker latency
+
+`bench_rerank_latency.py` (standard library only) times the reranker sidecar for a given number of
+candidates, using passages of about 2,000 characters (one default 500-token chunk). It also checks
+that the one relevant passage is ranked first. That check is a sanity test, not a quality measure.
+
+```sh
+docker run -d --rm -p 127.0.0.1:8001:8001 --name smoi-reranker-bench smoi-reranker:dev
+python eval/bench_rerank_latency.py --candidates 10 30 50 --runs 20
+```
+
+### Run of 2026-11-02 (`results/rerank_latency_20261102_204423.json`)
+
+**Setup:** `cross-encoder/ms-marco-MiniLM-L6-v2` on CPU in Docker Desktop (same machine as above),
+20 requests per size after one warm-up. Container memory after the run: 469 MiB.
+
+| Candidates | p50 | p95 | Relevant passage ranked first |
+| --- | --- | --- | --- |
+| 10 | 366 ms | 437 ms | 20/20 |
+| 30 (default `RERANK_CANDIDATES`) | 1,099 ms | 1,142 ms | 20/20 |
+| 50 | 1,724 ms | 1,823 ms | 20/20 |
+
+Latency grows linearly, at about 37 ms per candidate. Whether reranking is worth this is decided in
+Phase 3 by measuring retrieval quality with and without it.

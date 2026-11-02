@@ -1,0 +1,29 @@
+{
+  "script": "eval/bench_rerank_latency.py",
+  "url": "http://127.0.0.1:8001",
+  "run_at": "2026-11-02T20:44:23",
+  "passage_chars": 2000,
+  "results": [
+    {
+      "candidates": 10,
+      "runs": 20,
+      "p50_ms": 366.0,
+      "p95_ms": 437.1,
+      "relevant_ranked_first": "20/20"
+    },
+    {
+      "candidates": 30,
+      "runs": 20,
+      "p50_ms": 1098.8,
+      "p95_ms": 1141.6,
+      "relevant_ranked_first": "20/20"
+    },
+    {
+      "candidates": 50,
+      "runs": 20,
+      "p50_ms": 1724.1,
+      "p95_ms": 1822.5,
+      "relevant_ranked_first": "20/20"
+    }
+  ]
+}

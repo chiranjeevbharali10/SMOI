@@ -19,10 +19,13 @@ services:
       timeout: 3s
       retries: 20
 
-  # Local embedding model server. Document text never leaves the machine.
-  # Not published to the host: only the backend talks to it.
+  # Local model server (embeddings, and the chat model from Phase 2). Document text never
+  # leaves the machine. Published on 127.0.0.1 only, so a backend run with ./mvnw and the
+  # eval scripts can reach it; change OLLAMA_PORT if a native Ollama already uses 11434.
   ollama:
     image: ollama/ollama:0.40.13
+    ports:
+      - "127.0.0.1:${OLLAMA_PORT:-11434}:11434"
     volumes:
       - ollama-models:/root/.ollama
     healthcheck:
@@ -31,8 +34,8 @@ services:
       timeout: 5s
       retries: 20
 
-  # One-off: downloads the embedding model into the ollama volume (about 274 MB the first
-  # time, instant afterwards), then exits.
+  # One-off: downloads the embedding model (about 274 MB) and the local chat model (about
+  # 1.9 GB for the default) into the ollama volume the first time, then exits.
   ollama-pull:
     image: ollama/ollama:0.40.13
     depends_on:
@@ -40,8 +43,18 @@ services:
         condition: service_healthy
     environment:
       OLLAMA_HOST: ollama:11434
-    entrypoint: ["ollama", "pull", "${OLLAMA_EMBEDDING_MODEL:-nomic-embed-text}"]
+      EMBED_MODEL: ${OLLAMA_EMBEDDING_MODEL:-nomic-embed-text}
+      CHAT_MODEL: ${OLLAMA_CHAT_MODEL:-qwen3.5:2b-q4_K_M}
+    entrypoint: ["sh", "-c", "ollama pull \"$$EMBED_MODEL\" && ollama pull \"$$CHAT_MODEL\""]
     restart: "no"
+
+  # Optional cross-encoder reranker (sidecars/reranker). Start it with
+  # `docker compose --profile rerank up` and set RERANK_ENABLED=true in .env.
+  reranker:
+    profiles: ["rerank"]
+    build: ./sidecars/reranker
+    ports:
+      - "127.0.0.1:${RERANKER_PORT:-8001}:8001"
 
   backend:
     build: ./backend
@@ -60,6 +73,12 @@ services:
       OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-http://ollama:11434}
       OLLAMA_EMBEDDING_MODEL: ${OLLAMA_EMBEDDING_MODEL:-nomic-embed-text}
       INGESTION_WORKERS: ${INGESTION_WORKERS:-2}
+      LLM_PROVIDER: ${LLM_PROVIDER:-ollama}
+      OLLAMA_CHAT_MODEL: ${OLLAMA_CHAT_MODEL:-qwen3.5:2b-q4_K_M}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      ANTHROPIC_MODEL: ${ANTHROPIC_MODEL:-claude-haiku-5-5}
+      RERANK_ENABLED: ${RERANK_ENABLED:-false}
+      RERANKER_URL: ${RERANKER_URL:-http://reranker:8001}
       MAX_UPLOAD_SIZE: ${MAX_UPLOAD_SIZE:-25MB}
     ports:
       - "127.0.0.1:${BACKEND_PORT:-8080}:8080"

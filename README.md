@@ -4,9 +4,8 @@ SMOI is a Windows desktop companion: a pixel-art frog that sits on your desktop 
 retrieval-augmented generation (RAG) backend. You give it your documents (**SMOI Brain**), ask it
 questions, and get answers with citations.
 
-> Status: Phase 1 (document ingestion). You can upload PDF, DOCX and TXT files, and SMOI indexes
-> them in the background into chunks with page or section locations, embeddings and a keyword
-> index. Question answering (Phase 2), the frog and integrations come later.
+> Status: Phase 2 (retrieval and cited answers). Upload PDF, DOCX and TXT files, then ask questions
+> and get answers that cite the exact passages they came from. The frog and integrations come later.
 
 ## Stack
 
@@ -46,6 +45,24 @@ All with `Authorization: Bearer <accessToken>`.
 ```sh
 curl -H "Authorization: Bearer $TOKEN" -F file=@notes.pdf http://localhost:8080/api/documents
 ```
+
+### Asking questions
+
+| Request | What it does |
+| --- | --- |
+| `POST /api/query` `{"question": "...", "mode": "hybrid", "topK": 6}` | An answer with citations (document, page or section, chunk). `outcome` is `answered`, `dont_know`, `refused` (the hosted provider declined), or `citation_rejected` (HTTP 502: the model cited something it wasn't given, so the answer is withheld). Includes provider, model and per-stage timings. |
+| `POST /api/query/stream` | The same as server-sent events: `sources`, `delta` (text), `result`. Treat streamed text as provisional until `result`. |
+| `POST /api/search` `{"query": "...", "mode": "keyword"}` | Retrieval only: ranked chunks with scores. Modes: `keyword`, `vector`, `hybrid`, `hybrid_rerank`. |
+| `POST /api/documents/{id}/summary`, `POST /api/documents/compare` `{"first", "second"}` | Summary or comparison with citations. |
+| `PATCH /api/documents/{id}` `{"hostedLlmAllowed": true}` | Allow this document to be sent to a hosted LLM. Off by default. |
+| `GET /api/settings/providers` | Active LLM, embedding and reranker providers, and whether each is hosted. |
+| `GET /v3/api-docs` | OpenAPI spec generated from the code. |
+
+The default LLM is a local model through Ollama (`qwen3.5:2b-q4_K_M`). To use Claude instead, set
+`LLM_PROVIDER=anthropic` and `ANTHROPIC_API_KEY` in `.env`; only documents you allowed are sent.
+The optional reranker runs with `docker compose --profile rerank up` and `RERANK_ENABLED=true`.
+Retrieval and answers: [ADR 0008](docs/adr/0008-retrieval-and-cited-answers.md); providers:
+[ADR 0009](docs/adr/0009-llm-providers.md).
 
 ### How ingestion works
 
