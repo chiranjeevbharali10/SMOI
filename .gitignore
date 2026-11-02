@@ -31,3 +31,6 @@ Thumbs.db
 
 # Claude Code local settings
 .claude/settings.local.json
+
+# Eval: CI check results are throwaway (uploaded as a workflow artifact instead)
+eval/results/run_ci_*.json

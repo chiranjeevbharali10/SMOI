@@ -1,0 +1,55 @@
+name: eval
+
+# Retrieval regression check: indexes the demo corpus with the real embedding model and fails if
+# recall on the CI question subset drops below eval/thresholds.json. Retrieval only, so the chat
+# model is never downloaded.
+
+on:
+  push:
+    branches: [main]
+    paths: ["backend/**", "eval/**", "docker-compose.yml", ".github/workflows/eval.yml"]
+  pull_request:
+    paths: ["backend/**", "eval/**", "docker-compose.yml", ".github/workflows/eval.yml"]
+
+permissions:
+  contents: read
+
+jobs:
+  retrieval:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.13"
+
+      - name: Unit tests for the scoring code
+        run: python -m unittest discover -s eval/tests
+
+      - name: Validate the question set
+        run: python eval/run_eval.py validate
+
+      # Generates a throwaway .env with random local secrets; nothing is read from repository secrets.
+      - name: Create .env
+        run: python eval/run_eval.py bootstrap-env
+
+      - name: Start db, Ollama (embedding model only) and the backend
+        env:
+          PULL_CHAT_MODEL: "false"
+        run: docker compose up -d --build db ollama backend
+
+      - name: Retrieval check on the CI subset
+        run: python eval/run_eval.py ci-check
+
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: eval-ci-results
+          path: eval/results/run_ci_*.json
+
+      - name: Backend logs on failure
+        if: failure()
+        run: docker compose logs backend --tail 200

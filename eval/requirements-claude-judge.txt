@@ -1,0 +1,3 @@
+# Only needed for a Claude judge run (--judge anthropic:claude-sonnet-5-5). Regular runs use the
+# standard library only.
+anthropic==2.3.0
