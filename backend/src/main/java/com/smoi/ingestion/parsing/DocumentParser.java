@@ -1,0 +1,95 @@
+package com.smoi.ingestion.parsing;
+
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.regex.Pattern;
+
+import org.apache.tika.exception.EncryptedDocumentException;
+import org.apache.tika.io.TikaInputStream;
+import org.apache.tika.metadata.HttpHeaders;
+import org.apache.tika.metadata.Metadata;
+import org.apache.tika.parser.AutoDetectParser;
+import org.apache.tika.parser.ParseContext;
+import org.springframework.stereotype.Component;
+
+/**
+ * Extracts structured text from an uploaded file with Apache Tika: the parse and clean
+ * stages of the ingestion pipeline. The result is a list of headings and paragraphs, each
+ * with its page number when the format has pages.
+ */
+@Component
+public class DocumentParser {
+
+    public static final String PDF = "application/pdf";
+    public static final String DOCX = "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+    public static final String TXT = "text/plain";
+
+    /** A blank line (possibly containing spaces) separates paragraphs in plain text. */
+    private static final Pattern BLANK_LINE = Pattern.compile("\\R[ \\t]*\\R");
+
+    private final AutoDetectParser tika = new AutoDetectParser();
+
+    /**
+     * @throws DocumentParseException if the file is corrupt, encrypted or has no text
+     */
+    public List<Block> parse(byte[] content, String mediaType) {
+        StructureHandler handler = new StructureHandler();
+        Metadata metadata = new Metadata();
+        try (TikaInputStream in = TikaInputStream.get(content)) {
+            tika.parse(in, handler, metadata, new ParseContext());
+        } catch (EncryptedDocumentException e) {
+            throw new DocumentParseException("The file is password-protected", e);
+        } catch (Exception e) {
+            throw new DocumentParseException("Could not read the file (it may be corrupt): " + rootMessage(e), e);
+        }
+
+        List<Block> blocks = TXT.equals(mediaType)
+                ? plainTextParagraphs(content, metadata)
+                : handler.blocks();
+        if (blocks.isEmpty()) {
+            throw new DocumentParseException(PDF.equals(mediaType)
+                    ? "The PDF has no extractable text. Scanned PDFs need OCR, which SMOI doesn't do yet."
+                    : "The file contains no text");
+        }
+        return blocks;
+    }
+
+    /**
+     * Tika's plain-text parser drops blank lines, but blank lines are the only paragraph
+     * markers a .txt file has. So for TXT we use Tika only to detect the character encoding,
+     * then decode the bytes and split paragraphs ourselves.
+     */
+    private static List<Block> plainTextParagraphs(byte[] content, Metadata metadata) {
+        String text = new String(content, detectedCharset(metadata));
+        if (!text.isEmpty() && text.charAt(0) == '﻿') {
+            text = text.substring(1); // byte-order mark
+        }
+        List<Block> blocks = new ArrayList<>();
+        for (String paragraph : BLANK_LINE.split(text)) {
+            String cleaned = TextCleaner.cleanParagraph(paragraph);
+            if (!cleaned.isEmpty()) {
+                blocks.add(Block.paragraph(cleaned, null));
+            }
+        }
+        return blocks;
+    }
+
+    private static Charset detectedCharset(Metadata metadata) {
+        String name = metadata.get(HttpHeaders.CONTENT_ENCODING);
+        try {
+            return name == null ? StandardCharsets.UTF_8 : Charset.forName(name);
+        } catch (IllegalArgumentException e) {
+            return StandardCharsets.UTF_8;
+        }
+    }
+
+    private static String rootMessage(Throwable e) {
+        Throwable root = e;
+        while (root.getCause() != null && root.getCause() != root) {
+            root = root.getCause();
+        }
+        return root.getMessage() == null ? root.getClass().getSimpleName() : root.getMessage();
+    }
+}

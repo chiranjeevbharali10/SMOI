@@ -8,6 +8,11 @@ spring:
   mvc:
     problemdetails:
       enabled: true
+  servlet:
+    multipart:
+      # Largest file SMOI Brain accepts. Larger uploads get 413 Payload Too Large.
+      max-file-size: ${MAX_UPLOAD_SIZE:25MB}
+      max-request-size: ${MAX_UPLOAD_SIZE:25MB}
 
 smoi:
   jwt:
@@ -15,6 +20,28 @@ smoi:
     secret: ${JWT_SECRET:}
     issuer: smoi
     ttl: ${JWT_TTL:PT1H}
+  ingestion:
+    # Background worker threads. 0 disables them (for an API-only process).
+    workers: ${INGESTION_WORKERS:2}
+    poll-interval: PT1S
+    lease: PT2M
+    max-attempts: 5
+    backoff-base: PT10S
+    backoff-max: PT10M
+  chunking:
+    max-tokens: 500
+    overlap-tokens: 75
+  embedding:
+    # ollama (local model) or hashing (deterministic, no model; for tests only)
+    provider: ${EMBEDDING_PROVIDER:ollama}
+    batch-size: 16
+    ollama:
+      base-url: ${OLLAMA_BASE_URL:http://localhost:11434}
+      model: ${OLLAMA_EMBEDDING_MODEL:nomic-embed-text}
+      # nomic-embed-text was trained with these task prefixes. Other models need different ones.
+      document-prefix: "search_document: "
+      query-prefix: "search_query: "
+      timeout: PT60S
 
 management:
   endpoints:

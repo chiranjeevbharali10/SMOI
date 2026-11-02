@@ -20,7 +20,21 @@
     <properties>
         <java.version>21</java.version>
         <pgvector.image>pgvector/pgvector:0.8.7-pg18-trixie</pgvector.image>
+        <tika.version>4.2.0</tika.version>
     </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <!-- Keeps every Tika module (and the libraries Tika itself pins) on one version. -->
+            <dependency>
+                <groupId>org.apache.tika</groupId>
+                <artifactId>tika-bom</artifactId>
+                <version>${tika.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 
     <dependencies>
         <dependency>
@@ -59,6 +73,24 @@
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
             <scope>runtime</scope>
+        </dependency>
+
+        <!-- Text extraction. Only the three formats SMOI accepts, not the full parser bundle. -->
+        <dependency>
+            <groupId>org.apache.tika</groupId>
+            <artifactId>tika-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.tika</groupId>
+            <artifactId>tika-parser-pdf-module</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.tika</groupId>
+            <artifactId>tika-parser-microsoft-module</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.tika</groupId>
+            <artifactId>tika-parser-text-module</artifactId>
         </dependency>
 
         <dependency>
