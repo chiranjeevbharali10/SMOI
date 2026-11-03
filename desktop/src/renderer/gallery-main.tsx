@@ -10,6 +10,7 @@ import { PanelView } from './components/PanelView';
 import { AVAILABLE_ROWS, PANEL_ROWS, effectOf } from '../shared/panelActions';
 import './theme/tokens.css';
 import './components/smoi.css';
+import './window.css'; // no page margin or scrollbars around the 1280x860 board
 
 const rows = PANEL_ROWS.map((r) => ({ ...r, available: AVAILABLE_ROWS.has(r.id) }));
 const hello = effectOf('hello')!;

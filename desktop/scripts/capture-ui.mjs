@@ -58,7 +58,11 @@ async function capture(load, name) {
   win.destroy();
 }
 
+// Keep running between captures (by default Electron quits when its last window closes).
+app.on('window-all-closed', () => {});
+
 app.whenReady().then(async () => {
+  process.on('unhandledRejection', (e) => { console.error(e); app.exit(1); });
   mkdirSync(out, { recursive: true });
   await capture((w) => w.loadFile(boardFile('SMOI speech bubble and panel')), 'design-board.png');
   await capture((w) => w.loadFile(join(DESKTOP, 'dist', 'gallery.html')), 'build-gallery.png');
