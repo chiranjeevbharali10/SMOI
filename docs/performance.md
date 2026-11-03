@@ -1,6 +1,8 @@
 # SMOI performance
 
-Every number here comes from `loadtest/run.py` and the result file it names, in `loadtest/results/`.
+Every number here comes from a script and the result file it names: `loadtest/run.py` (results in
+`loadtest/results/`) for the backend, and `desktop/scripts/measure-dashboard-open.ts` (results in
+`desktop/perf-results/`) for the desktop app.
 Phase 4 was cut short, so some scenarios have **not been measured yet**; they are listed at the end.
 
 **Hardware.** Intel Core i7-13650HX (20 logical CPUs), 15.6 GiB RAM, Windows 11, Docker Desktop
@@ -75,3 +77,29 @@ These scenarios exist in `loadtest/run.py` but weren't completed when Phase 4 wa
 - `llm-down` against the live stack: stop Ollama and check that the breaker opens and passages are
   returned. This behaviour is covered by `ResilienceIT`.
 - `scale`: retrieval latency at 1k, 10k and 100k chunks (NFR-06.03). Targets stay `TBD`.
+
+## Desktop: dashboard open time (NFR-01.02)
+
+Target: the dashboard accepts input within 2 seconds of being opened (p95).
+
+Script: `desktop/scripts/measure-dashboard-open.ts`. Result file:
+`desktop/perf-results/dashboard-open_20261103_000851.json`. Same machine as above, Windows 11,
+production renderer build (`npm run build`) in unpackaged Electron 45, signed in, opening on the
+Home screen.
+
+**What is timed:** from the main process's request to open the dashboard until the page reports
+that its first screen is drawn and ready for input (one animation frame after it renders). The
+dashboard window is created new for every open and closed between opens.
+
+| Open | Samples | p50 | p95 | Max |
+| --- | --- | --- | --- | --- |
+| Cold: the first dashboard after the app starts (10 launches, fresh profile each) | 10 | 149 ms | 182 ms | 182 ms |
+| Warm: later opens in the same app session | 100 | 148 ms | 169 ms | 199 ms |
+
+- Both are well inside the 2-second target.
+- With 10 cold samples, the p95 is simply the slowest one.
+- **"Cold" here is not a first start of Windows or of SMOI.** By the time the dashboard opens,
+  the frog, bubble and panel windows have already loaded the shared code and fonts, and Chromium
+  may keep a spare renderer process ready. That is why cold and warm are close.
+- **Not measured:** an opening that waits for backend data. The page counts as ready before its
+  documents and model information arrive; those load afterwards.
