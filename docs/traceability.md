@@ -86,3 +86,28 @@ Measured results are in `docs/performance.md`, produced by `loadtest/run.py`. De
 | Metrics, traces, dashboards | `ObservabilityIT.prometheusExposesSmoiMetrics`; dashboards and Jaeger checked live with the Compose stack |
 | Per-user rate limiting | `ratelimit/RateLimitIT` (burst, Retry-After, per-user buckets, concurrency, unlimited endpoints) |
 | LLM token and cost metrics | `llm/LlmMetricsTest` |
+
+## Phase 6B: speech bubbles, menu panel and dashboard
+
+Desktop tests are in `desktop/test/` and run with `cd desktop && npm test`. The real-desktop check
+(`desktop/scripts/desktop-check.ts`) drives the built app with real mouse and keyboard input;
+its latest results are in `docs/design/phase6b-comparison.md`. Decisions are in
+`docs/adr/0013-desktop-ui-windows-and-api.md`.
+
+| Requirement | Checked by |
+| --- | --- |
+| FR-01.04 clicking the frog opens the panel; the panel opens the dashboard | `panelActions.test.ts` (each row's state, line, mood and destination); `components.test.tsx` (rows, Enter, Esc); desktop check: "Clicking the frog opens the panel", "Talk to SMOI opens the chat" |
+| FR-01.06 personality and appearance settings | Settings screen (reduced motion, walking, start on login, sleep delay); personality sliders are FR-08.02, Phase 7 |
+| FR-06.07 / FR-06.12 in the UI: only verified citations are shown | `answer.test.ts` (sources event never shown as citations; a broken stream keeps its text, marked incomplete, with no citations; rejected citations drop the text) |
+| FR-08.05 notifications as speech bubbles in the design's style | `bubbles.test.ts` (fade and dismissal rules); `components.test.tsx` (only pink has x); `layout.test.ts` (on screen, tail on the frog, never over the panel) |
+| NFR-01.02 dashboard accepts input within 2 s | `desktop/scripts/measure-dashboard-open.ts`, results in `desktop/perf-results/`, summarised in `docs/performance.md` |
+| NFR-02.07 in the UI: LLM fallback is clear | `answer.test.ts` (fallback shows passages and says why); `components.test.tsx` (passages are plain text) |
+| NFR-03 renderer hardening: plain text, no navigation or new windows | `components.test.tsx` (HTML, Markdown image, link and script in an answer, a passage and a chunk render as text; no `img`, `a` or `script` elements) |
+| JWT stored only with safeStorage | `session.test.ts` (encrypted on disk, memory only without encryption, expired or rejected tokens removed) |
+| API client errors are plain and accurate | `api.test.ts` against a real local HTTP server (401, 404, 409, 413, 415, 429 with Retry-After, 500 with request id, backend down, SSE split mid-line, dropped stream) |
+| NFR-05.01 ask SMOI Brain within 2 interactions | Desktop check: click the frog, Enter on "Talk to SMOI", and the question box has focus |
+| NFR-05.03 WCAG AA contrast | `contrast.test.ts` (every text and non-text pair, read from `tokens.css`) |
+| NFR-05.04 keyboard use, visible focus | `components.test.tsx` (arrow keys, Home/End, Esc, unavailable rows stay focusable); desktop check (real arrow and Esc keys, focus returns to the previous app) |
+| NFR-05.06 reduced motion | Settings and tray toggle; bubbles and panel skip `smoi-pop` and `smoi-rise` (`tokens.css`) |
+| NFR-08.03 / NFR-08.04 monitors and crisp scaling | Desktop check: frog crisp and unmoved with the bubble and panel open, at forced 100/125/150% and at each connected display's real scaling |
+| Frog state priority: error, thinking/speaking, working, idle | `stateMachine.test.ts` ("Phase 6B state priority") |
