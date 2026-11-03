@@ -27,7 +27,9 @@ export function SourceViewer({ source, onClose }: { source: SourceRef; onClose: 
     void api().chunks(source.documentId).then((r) => (r.ok ? setChunks(r.value) : setError(r.error.message)));
   }, [source.documentId]);
 
-  useEffect(() => cited.current?.scrollIntoView({ block: 'center' }), [chunks]);
+  useEffect(() => {
+    void cited.current?.scrollIntoView({ block: 'center' }); // returns a Promise in Chromium
+  }, [chunks]);
 
   const shown = chunks?.filter((c) => Math.abs(c.index - source.chunkIndex) <= CONTEXT) ?? [];
   const found = chunks ? chunks.some((c) => c.id === source.chunkId) : true;

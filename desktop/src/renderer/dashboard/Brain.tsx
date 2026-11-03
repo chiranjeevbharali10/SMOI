@@ -40,8 +40,14 @@ export function Brain({ docs, exchanges, onAsk, focusAsk }: BrainProps) {
   const ask = useRef<HTMLTextAreaElement>(null);
   const end = useRef<HTMLDivElement>(null);
 
-  useEffect(() => ask.current?.focus(), [focusAsk]);
-  useEffect(() => end.current?.scrollIntoView({ block: 'end' }), [exchanges]);
+  // Braces matter: an effect may return only a cleanup function, and Chromium's scrollIntoView
+  // returns a Promise.
+  useEffect(() => {
+    ask.current?.focus();
+  }, [focusAsk]);
+  useEffect(() => {
+    void end.current?.scrollIntoView({ block: 'end' });
+  }, [exchanges]);
 
   const running = exchanges.some((x) => !FINAL.has(x.view.status));
 
@@ -128,10 +134,11 @@ export function Brain({ docs, exchanges, onAsk, focusAsk }: BrainProps) {
           <form className="ask" onSubmit={submit}>
             <label className="visually-hidden" htmlFor="ask">Your question</label>
             <textarea id="ask" ref={ask} rows={2} maxLength={2000} value={question}
-                      placeholder="Ask about your documents. Enter sends, Shift+Enter adds a line."
+                      aria-describedby="ask-hint"
                       onChange={(e) => setQuestion(e.target.value)} onKeyDown={onKeyDown} />
             <button className="btn primary" type="submit" disabled={running || !question.trim()}>Ask</button>
           </form>
+          <p id="ask-hint" className="hint">Enter sends. Shift+Enter starts a new line.</p>
         </section>
       </div>
       {source && <SourceViewer source={source} onClose={closeSource} />}

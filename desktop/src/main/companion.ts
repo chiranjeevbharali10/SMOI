@@ -4,9 +4,9 @@
  *
  * - The bubble window can never take focus (focusable: false), so a bubble never interrupts
  *   typing. Clicks pass through it, except over a pink bubble's x button.
- * - The panel window takes focus when it opens, so Esc and the arrow keys work. Hiding it on
- *   close lets Windows give focus back to the app that had it (the frog window can't take focus,
- *   so it is never the one that gets it).
+ * - The panel window takes focus when it opens, so Esc and the arrow keys work. On close it is
+ *   destroyed (not hidden), which makes Windows give focus back to the app that had it; a new
+ *   hidden panel is prepared at once for the next open.
  * - Placement comes from the pure functions in src/shared/layout.ts.
  */
 import { BrowserWindow, ipcMain, screen, type IpcMainEvent } from 'electron';
@@ -37,6 +37,7 @@ export class Companion {
   readonly bubbles = new BubbleController();
   private bubbleWin!: BrowserWindow;
   private panelWin!: BrowserWindow;
+  private preloadDir = '';
   private bubbleSize: Size | null = null;
   private panelSize: Size | null = null;
   private panelOpen = false;
@@ -48,12 +49,10 @@ export class Companion {
 
   create(preloadDir: string): void {
     this.bubbleWin = overlay(join(preloadDir, 'bubble.js'), false, BUBBLE_MEASURE);
-    this.panelWin = overlay(join(preloadDir, 'panel.js'), true, {
-      width: PANEL_FALLBACK.width + 2 * PANEL_INSET.x, height: PANEL_FALLBACK.height + PANEL_INSET.top + PANEL_INSET.bottom,
-    });
-    for (const w of [this.bubbleWin, this.panelWin]) this.deps.lockDown(w);
+    this.preloadDir = preloadDir;
+    this.deps.lockDown(this.bubbleWin);
     this.deps.loadPage(this.bubbleWin, 'bubble');
-    this.deps.loadPage(this.panelWin, 'panel');
+    this.panelWin = this.makePanel();
 
     this.bubbles.onChange((b) => this.bubbleChanged(b));
     this.tickTimer = setInterval(() => this.bubbles.tick(Date.now()), 250);
@@ -120,7 +119,12 @@ export class Companion {
     if (!this.panelOpen) return;
     this.panelOpen = false;
     this.panelWin.setIgnoreMouseEvents(true, { forward: true });
-    this.panelWin.hide(); // Windows returns focus to the window underneath
+    // Hiding a focused window leaves Windows' focus on it, invisible. Destroying it makes Windows
+    // reactivate the window that was active before, which is the app the user was in (the frog
+    // and bubble windows can't take focus). A fresh hidden panel is made ready for next time.
+    const old = this.panelWin;
+    this.panelWin = this.makePanel();
+    old.destroy();
     if (reason === 'user') this.apply('closed');
     this.placeBubble();
     this.deps.onChange();
@@ -138,6 +142,15 @@ export class Companion {
   }
 
   // ---------- internals ----------
+
+  private makePanel(): BrowserWindow {
+    const win = overlay(join(this.preloadDir, 'panel.js'), true, {
+      width: PANEL_FALLBACK.width + 2 * PANEL_INSET.x, height: PANEL_FALLBACK.height + PANEL_INSET.top + PANEL_INSET.bottom,
+    });
+    this.deps.lockDown(win);
+    this.deps.loadPage(win, 'panel');
+    return win;
+  }
 
   private apply(event: PanelEvent): void {
     const effect = effectOf(event);
@@ -169,7 +182,13 @@ export class Companion {
     const frog = this.deps.frog();
     if (!frog || frog.isDestroyed()) return null;
     const bounds = frog.getBounds();
-    return { frog: bounds, work: screen.getDisplayMatching(bounds).workArea };
+    const display = screen.getDisplayMatching(bounds);
+    const w = display.workArea;
+    // At fractional scaling (125%, 150%) Windows rounds window bounds to whole device pixels,
+    // which can push a window up to 1 DIP past where it was put. Keep 1 DIP clear of the edges
+    // there, so the panel and bubble never overlap the taskbar or the next monitor.
+    const m = Number.isInteger(display.scaleFactor) ? 0 : 1;
+    return { frog: bounds, work: { x: w.x + m, y: w.y + m, width: w.width - 2 * m, height: w.height - 2 * m } };
   }
 
   private panelRect(): Rect | null {
