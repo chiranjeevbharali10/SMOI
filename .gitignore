@@ -38,3 +38,6 @@ eval/results/run_ci_*.json
 # Desktop build output
 dist-electron/
 desktop/release/
+
+# Desktop check output (screenshots and results); the summary used in docs is copied by hand
+desktop/test-results/

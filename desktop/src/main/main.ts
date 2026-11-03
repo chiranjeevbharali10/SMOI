@@ -23,6 +23,9 @@ import { Dashboard, sessionFile } from './dashboard';
 import { runMeasurement } from './measure';
 
 const DEV_SERVER = process.env.SMOI_DEV_SERVER; // set by `npm run dev`
+// Checks and measurements run against a separate profile, so they never touch the user's
+// settings or saved sign-in. Development builds only.
+if (process.env.SMOI_TEST_USERDATA && !app.isPackaged) app.setPath('userData', process.env.SMOI_TEST_USERDATA);
 const RENDERER = join(__dirname, '..', '..', 'dist');
 const PRELOADS = join(__dirname, '..', 'preload');
 const ICONS = join(DEV_SERVER ? join(__dirname, '..', '..', 'assets') : RENDERER, 'icons');
@@ -430,7 +433,37 @@ function start() {
     contents.on('will-attach-webview', (e) => e.preventDefault());
   });
 
-  if (process.env.SMOI_MEASURE_DASHBOARD) runMeasurement(dashboard, process.env.SMOI_MEASURE_DASHBOARD);
+  const measure = process.env.SMOI_MEASURE_DASHBOARD;
+  if (measure && !app.isPackaged) void signInFromEnv(session, api).then(() => runMeasurement(dashboard, measure));
+  if (process.env.SMOI_E2E_OUT && !app.isPackaged) void startDesktopCheck(session, api, process.env.SMOI_E2E_OUT);
+}
+
+/** Checks and measurements: sign in with a test account from the environment, if one is given. */
+async function signInFromEnv(session: Session, api: ApiClient) {
+  const email = process.env.SMOI_E2E_EMAIL;
+  const password = process.env.SMOI_E2E_PASSWORD;
+  if (!email || !password) return;
+  const t = await api.login(email, password);
+  session.signIn(t.accessToken, email, t.expiresAt);
+}
+
+/** scripts/desktop-check.ts */
+async function startDesktopCheck(session: Session, api: ApiClient, out: string) {
+  await signInFromEnv(session, api);
+  await new Promise((r) => setTimeout(r, 3000));
+  const { runE2e } = await import('./e2e.js');
+  await runE2e({
+    frog: () => frog, companion, dashboard, machine, session, api, updateSettings,
+    spriteDir: join(DEV_SERVER ? join(__dirname, '..', '..', 'assets') : RENDERER, 'sprites'),
+    moveFrogTo: (displayId) => {
+      const d = allDisplays().find((x) => x.id === displayId);
+      if (!frog || !d) return;
+      const size = windowSize(d.scaleFactor);
+      const p = restorePosition(null, [d], d, size);
+      frog.setBounds({ x: p.x, y: p.y, width: size, height: size });
+      fitToDisplay();
+    },
+  }, out);
 }
 
 if (!app.requestSingleInstanceLock()) {
