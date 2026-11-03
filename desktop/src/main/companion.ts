@@ -32,6 +32,8 @@ export interface CompanionDeps {
 
 const BUBBLE_MEASURE: Size = { width: 300 + 2 * BUBBLE_INSET + 8, height: 260 };
 const PANEL_FALLBACK: Size = { width: 300, height: 360 };
+/** The design's hard panel shadow: box-shadow 0 6px 0 charcoal. */
+const PANEL_SHADOW = 6;
 
 export class Companion {
   readonly bubbles = new BubbleController();
@@ -194,7 +196,9 @@ export class Companion {
   private panelRect(): Rect | null {
     const a = this.anchor();
     if (!a) return null;
-    return placePanel(a.frog, this.panelSize ?? PANEL_FALLBACK, a.work);
+    // Leave room for the panel's hard 6px shadow, so it doesn't spill onto the taskbar.
+    const work = { ...a.work, height: a.work.height - PANEL_SHADOW };
+    return placePanel(a.frog, this.panelSize ?? PANEL_FALLBACK, work);
   }
 
   private placePanel(): void {
