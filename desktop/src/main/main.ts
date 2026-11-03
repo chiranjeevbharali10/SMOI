@@ -285,6 +285,8 @@ function watchBackend() {
     if (reachable !== backendReachable) {
       backendReachable = reachable;
       dashboard.backendChanged(backendStatus());
+      // Back online: send what was saved while it was away, without waiting for the next sync.
+      if (reachable) void tasks.sync();
     }
   };
   void check();

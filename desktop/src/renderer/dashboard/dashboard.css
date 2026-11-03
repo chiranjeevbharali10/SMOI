@@ -33,7 +33,7 @@ p { margin: 0; }
 .topbar nav { display: flex; gap: 6px; }
 .topbar .account { margin-left: auto; display: flex; align-items: center; gap: 12px; font-size: 14px; font-weight: 700; }
 
-.main { flex: 1; overflow: auto; padding: 24px; display: flex; flex-direction: column; gap: 20px; }
+.main { flex: 1; min-height: 0; overflow: auto; padding: 24px; display: flex; flex-direction: column; gap: 20px; }
 
 .card {
   background: var(--smoi-panel);
@@ -140,7 +140,7 @@ dl.facts dd { margin: 0; }
 .stack { display: flex; flex-direction: column; gap: 12px; }
 .row { display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap; }
 .row .field { flex: 1; min-width: 140px; }
-.list-card { overflow: auto; }
+.tasks-layout { display: grid; grid-template-columns: minmax(280px, 360px) 1fr; gap: 20px; align-items: start; }
 .done { text-decoration: line-through; }
 .days { border: 0; padding: 0; margin: 0; display: flex; flex-wrap: wrap; gap: 4px 14px; }
 .days legend { font-weight: 800; padding: 0; margin-bottom: 4px; }

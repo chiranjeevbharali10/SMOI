@@ -82,7 +82,7 @@ export function Tasks({ snapshot, backendReachable }: { snapshot: TasksSnapshot;
           </span>
         </div>
       )}
-      <div className="brain">
+      <div className="tasks-layout">
         <section className="card" aria-labelledby="h-task-form">
           <h3 id="h-task-form">{editing.id ? 'Edit task' : 'New task'}</h3>
           <form className="stack" onSubmit={saveTask}>
