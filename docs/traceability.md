@@ -111,3 +111,30 @@ its latest results are in `docs/design/phase6b-comparison.md`. Decisions are in
 | NFR-05.06 reduced motion | Settings and tray toggle; bubbles and panel skip `smoi-pop` and `smoi-rise` (`tokens.css`) |
 | NFR-08.03 / NFR-08.04 monitors and crisp scaling | Desktop check: frog crisp and unmoved with the bubble and panel open, at forced 100/125/150% and at each connected display's real scaling |
 | Frog state priority: error, thinking/speaking, working, idle | `stateMachine.test.ts` ("Phase 6B state priority") |
+
+## Phase 7: tasks, reminders and voice
+
+Backend tests run with `cd backend && ./mvnw verify`; desktop tests with `cd desktop && npm test`;
+sidecar API tests with `cd sidecars/whisper && python -m pytest`. Decisions are in
+`docs/adr/0014-tasks-reminders-and-offline-sync.md` and `docs/adr/0015-voice-commands-and-intents.md`.
+
+| Requirement | Checked by |
+| --- | --- |
+| FR-02.01 / FR-02.02 create, edit, delete, complete; priority, category, due date, description | `TaskIT` (all fields, edit, complete, delete, validation); Tasks screen |
+| FR-02.03 one-time and recurring reminders | `TaskIT` (weekday reminders, validation); `recurrence.test.ts` (daily, weekly, monthly with short months, weekdays, daylight saving, other zones) |
+| FR-02.04 reminder notification within 60 s | Scheduler every 15 s (`src/main/tasks.ts`); `taskService.test.ts` (fires once; a missed one fires once, marked missed) |
+| FR-02.06 completion time kept; overdue list | `TaskIT` ("completingATaskKeepsTheCompletionTime", "listsOverdueTasksOnly"); `taskStore.test.ts` (overdue view) |
+| FR-03.01 global shortcut, changeable, refusal reported | `src/main/voice.ts` (`apply`); Settings screen; manual check list below |
+| FR-03.02 / NFR-04.02 / NFR-04.03 listening state while the mic is on, mic only after the shortcut | `src/main/voice.ts` (permission only for the recorder's own session while starting); `panelActions.test.ts` (listening line only with voice on); manual check |
+| FR-03.03 speech-to-text behind a configured interface | `VoiceIT` (fake sidecar on a real port: text, service down, undecodable, too long, sign-in); `sidecars/whisper/tests` |
+| FR-03.04 intents from a documented list, or unknown | `CommandParserTest` (allowlist, wrong types, non-JSON, time zones, past reminders); `CommandIT` |
+| FR-03.05 routing | `commands.ts`: tasks and reminders to the local store; questions to SMOI Brain; calendar and email "not available yet" (`proposal.test.ts`) |
+| FR-03.06 show before acting, confirm consequential actions | `CommandIT` ("proposesATaskWithoutCreatingIt"); `components.test.tsx` (confirm view, heard text stays plain text); `proposal.test.ts` |
+| FR-03.07 Esc or the shortcut again cancels, mic released | `src/renderer/recorder-main.ts` (tracks stopped on cancel); manual check |
+| FR-08.01 / FR-08.02 personality presets and 0 to 4 sliders | `personality.test.ts`; Settings screen |
+| FR-08.03 lines reflect the event and settings, facts unchanged | `personality.test.ts` (every style keeps titles, counts and times; no overdue line at strictness 0 or with none overdue) |
+| FR-08.04 / FR-08.06 categories, priorities, quiet hours, cooldown | `notify.test.ts` |
+| FR-08.05 bubbles or native notifications | `src/main/notifier.ts`; Settings screen |
+| NFR-02.01 / NFR-02.05 / NFR-08.05 works offline, nothing lost | `taskService.test.ts` (changes saved with the backend down and sent when it returns; kept across a restart; reminders fire with no backend); `taskStore.test.ts` (merge and outbox rules); `TaskIT` (newest edit wins, deletes win, capped clock) |
+| NFR-03.04 isolation | `TaskIT` (Bob can't see, edit, delete or attach reminders to Alice's tasks) |
+| NFR-01.03, NFR-01.04, NFR-09.06 | Not measured in this phase (owner's choice); targets stay TBD |

@@ -54,7 +54,7 @@ real password in a file in this repo.
   - it takes keyboard focus: Up and Down move between rows, Enter chooses, Esc closes and gives
     focus back to the app you were in;
   - what each row does is in `src/shared/panelActions.ts`;
-  - tasks, calendar and inbox read "Not available yet" until those features exist.
+  - calendar and inbox read "Not available yet" until those features exist.
 - **Dashboard:** Login, Home, SMOI Brain (upload, indexing status, chat with cited answers) and
   Settings. The design file doesn't include these screens: they are an interpretation built from
   its tokens.
@@ -63,6 +63,26 @@ real password in a file in this repo.
   memory and you sign in again next time.
 - **Plain text only:** answers, passages and chunks are always plain text. Links in documents
   aren't clickable and images don't load. No window can navigate or open another window.
+
+## Tasks, reminders and voice (Phase 7)
+
+- **Tasks and reminders** (dashboard > Tasks; ADR 0014):
+  - a local copy per account, so they work with the backend down, and reminders fire from it;
+  - changes sync to the backend when it's reachable: the newest edit wins, and a delete always wins;
+  - reminders: once, daily, weekly, monthly or on chosen weekdays, at the same local time;
+  - "View tasks" in the panel shows the real number of open tasks.
+- **Talk to SMOI** (dashboard): type a command or a question. SMOI shows what it understood, and
+  creates a task or reminder only when you press the button. Questions go to SMOI Brain.
+- **Voice** (off by default; Settings > Voice; ADR 0015):
+  - needs the speech-to-text sidecar: `docker compose --profile voice up -d whisper` with
+    `STT_PROVIDER=whisper` in `.env`;
+  - press **Ctrl+Alt+J** (changeable), or choose "Talk to SMOI" in the panel. SMOI shows its
+    listening pose with the microphone chip while, and only while, the microphone is on;
+  - it stops by itself when you stop talking. Esc or the shortcut again cancels;
+  - what SMOI understood appears in the panel: Enter confirms, Esc cancels.
+- **Personality and notifications** (Settings): a style preset or four sliders from 0 to 4;
+  notification categories, priorities, quiet hours, a repeat cooldown, and bubbles or Windows
+  notifications. Facts and error messages are the same in every style.
 
 ### Known limitations
 
@@ -75,3 +95,7 @@ real password in a file in this repo.
 - **Screen readers:** bubbles are announced through live regions, and repeated in the panel while
   it is open. With the panel closed, whether a screen reader announces a bubble in the unfocused
   bubble window hasn't been verified.
+- **Voice:** English only with the default model. Speech-to-text runs on the CPU and takes a few
+  seconds. Esc is taken from other apps only while SMOI is listening or working out a command.
+- **Sync:** two devices editing the same task while both are offline: the later edit wins without
+  asking (ADR 0014).
