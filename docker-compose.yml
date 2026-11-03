@@ -63,6 +63,14 @@ services:
     ports:
       - "127.0.0.1:${RERANKER_PORT:-8001}:8001"
 
+  # Speech-to-text for voice commands (sidecars/whisper). Start it with
+  # `docker compose --profile voice up -d whisper` and set STT_PROVIDER=whisper in .env.
+  whisper:
+    profiles: ["voice"]
+    build: ./sidecars/whisper
+    ports:
+      - "127.0.0.1:${WHISPER_PORT:-8002}:8002"
+
   backend:
     build: ./backend
     depends_on:
@@ -90,6 +98,8 @@ services:
       ANTHROPIC_MODEL: ${ANTHROPIC_MODEL:-claude-haiku-5-5}
       RERANK_ENABLED: ${RERANK_ENABLED:-false}
       RERANKER_URL: ${RERANKER_URL:-http://reranker:8001}
+      STT_PROVIDER: ${STT_PROVIDER:-none}
+      WHISPER_URL: ${WHISPER_URL:-http://whisper:8002}
       MAX_UPLOAD_SIZE: ${MAX_UPLOAD_SIZE:-25MB}
       STUB_LLM_LATENCY: ${STUB_LLM_LATENCY:-PT0.2S}
       RATE_LIMIT_ENABLED: ${RATE_LIMIT_ENABLED:-true}

@@ -1,0 +1,5 @@
+# Runtime. faster-whisper brings CTranslate2 (CPU inference), PyAV (audio decoding) and
+# huggingface_hub (model download).
+fastapi==0.162.0
+uvicorn==0.54.0
+faster-whisper==1.2.1

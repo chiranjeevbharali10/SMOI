@@ -75,6 +75,12 @@ smoi:
     timeout: PT5S
     # How many hybrid results the cross-encoder reorders.
     candidates: ${RERANK_CANDIDATES:30}
+  stt:
+    # Speech-to-text for voice commands: whisper (the local sidecar in sidecars/whisper, started
+    # with `docker compose --profile voice up -d whisper`) or none (voice off; typing still works).
+    provider: ${STT_PROVIDER:none}
+    base-url: ${WHISPER_URL:http://localhost:8002}
+    timeout: PT30S
   embedding:
     # ollama (local model) or hashing (deterministic, no model; for tests only)
     provider: ${EMBEDDING_PROVIDER:ollama}
