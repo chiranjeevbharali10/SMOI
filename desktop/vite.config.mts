@@ -5,13 +5,16 @@ import { defineConfig } from 'vitest/config';
 
 /**
  * The pages ship with a strict Content-Security-Policy. The dev server needs a looser one (React
- * Fast Refresh injects an inline script and uses a websocket), so only `vite serve` relaxes it.
+ * Fast Refresh injects an inline script and uses a websocket, and Vite injects CSS as inline
+ * <style> tags), so only `vite serve` relaxes it. Without the style-src change, `npm run dev`
+ * shows every page unstyled.
  */
 const devCsp: Plugin = {
   name: 'smoi-dev-csp',
   apply: 'serve',
   transformIndexHtml: (html) => html
     .replace("script-src 'self'", "script-src 'self' 'unsafe-inline'")
+    .replace("style-src 'self'", "style-src 'self' 'unsafe-inline'")
     .replace("connect-src 'self'", "connect-src 'self' ws://localhost:5173"),
 };
 
