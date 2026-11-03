@@ -72,6 +72,15 @@ class OllamaLlmProviderTest {
     }
 
     @Test
+    void aDeterministicRequestSetsTemperatureZeroAndAFixedSeed() {
+        responseBody = stream("{}") + "{\"done\":true,\"done_reason\":\"stop\",\"prompt_eval_count\":10,\"eval_count\":1}\n";
+
+        provider(8192, 1024).generate(new LlmRequest("system", "user", true), t -> { });
+
+        assertThat(requestBody.get()).contains("\"temperature\":0").contains("\"seed\":0");
+    }
+
+    @Test
     void aPromptThatFilledTheContextIsAnErrorNotASilentTruncation() {
         responseBody = stream("Partial") + "{\"done\":true,\"done_reason\":\"stop\",\"prompt_eval_count\":7900,\"eval_count\":2}\n";
 

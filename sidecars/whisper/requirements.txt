@@ -3,3 +3,6 @@
 fastapi==0.162.0
 uvicorn==0.54.0
 faster-whisper==1.2.1
+# PyAV 19 removed av.open(metadata_errors=...), which faster-whisper 1.2.1 still passes.
+# 18.1.0 is the newest release that accepts it.
+av==18.1.0

@@ -19,8 +19,8 @@ import tools.jackson.databind.json.JsonMapper;
  * and anything unexpected is ignored. A reply that fails these checks becomes
  * {@code unknown}, never a guess.
  *
- * <p>The model writes times as local date-times ("2026-11-04T17:00"); this class attaches the
- * user's time zone. Models are bad at time-zone arithmetic, and this way they don't need any.
+ * <p>The model only copies the day and time the user said ("tomorrow", "18:00"); {@link When}
+ * works out the actual instant in the user's time zone, in code.
  */
 public final class CommandParser {
 
@@ -36,34 +36,45 @@ public final class CommandParser {
     }
 
     public static Proposal parse(String reply, ZoneId zone, Instant now) {
+        return parse(reply, null, zone, now);
+    }
+
+    /**
+     * @param command what the user said or typed. When given, day and time fields the model
+     *                filled in that aren't in the command are dropped ({@link When#ground}).
+     */
+    public static Proposal parse(String reply, String command, ZoneId zone, Instant now) {
         JsonNode json = firstObject(reply);
         if (json == null) {
             return Proposal.unknown(null);
+        }
+        if (command != null) {
+            json = When.ground(json, command);
         }
         Intent intent = Intent.of(text(json, "intent")).orElse(Intent.UNKNOWN);
         if (!intent.available) {
             return new Proposal(intent.id, false, null, null, null, null);
         }
         return switch (intent) {
-            case CREATE_TASK -> task(json, zone);
+            case CREATE_TASK -> task(json, zone, now);
             case CREATE_REMINDER -> reminder(json, zone, now);
             case ASK_BRAIN -> question(json);
             default -> Proposal.unknown(null);
         };
     }
 
-    private static Proposal task(JsonNode json, ZoneId zone) {
+    private static Proposal task(JsonNode json, ZoneId zone, Instant now) {
         String title = title(json);
         if (title == null) {
             return problem(Intent.CREATE_TASK, "I couldn't tell what the task is.");
         }
-        String when = text(json, "when");
         Instant due = null;
-        if (when != null) {
-            due = localTime(when, zone);
-            if (due == null) {
-                return problem(Intent.CREATE_TASK, "I couldn't work out the due date.");
-            }
+        When.Result when = When.resolve(json, zone, now);
+        if (when instanceof When.Invalid) {
+            return problem(Intent.CREATE_TASK, "I couldn't work out the due date.");
+        }
+        if (when instanceof When.At at) {
+            due = at.instant();
         }
         String priority = text(json, "priority");
         priority = priority != null && PRIORITIES.contains(priority) ? priority : "normal";
@@ -75,10 +86,6 @@ public final class CommandParser {
         if (title == null) {
             return problem(Intent.CREATE_REMINDER, "I couldn't tell what to remind you about.");
         }
-        Instant at = localTime(text(json, "when"), zone);
-        if (at == null) {
-            return problem(Intent.CREATE_REMINDER, "I couldn't work out when to remind you.");
-        }
         String repeat = text(json, "repeat");
         repeat = repeat != null && REPEATS.contains(repeat) ? repeat : "none";
         int weekdays = 0;
@@ -87,6 +94,20 @@ public final class CommandParser {
             if (weekdays == 0) {
                 return problem(Intent.CREATE_REMINDER, "I couldn't tell which days to repeat on.");
             }
+        }
+        Instant at;
+        if (weekdays != 0 && text(json, "day") == null && text(json, "when") == null) {
+            // "every Monday and Wednesday at 3pm": the first of those days, from now on.
+            String time = text(json, "time");
+            java.util.Optional<java.time.LocalTime> t = time == null ? java.util.Optional.of(When.DEFAULT_TIME) : When.parseTime(time);
+            if (t.isEmpty()) {
+                return problem(Intent.CREATE_REMINDER, "I couldn't work out when to remind you.");
+            }
+            at = When.firstOnDays(weekdays, t.get(), zone, now);
+        } else if (When.resolve(json, zone, now) instanceof When.At a) {
+            at = a.instant();
+        } else {
+            return problem(Intent.CREATE_REMINDER, "I couldn't work out when to remind you.");
         }
         if (repeat.equals("none") && !at.isAfter(now)) {
             return problem(Intent.CREATE_REMINDER, "That time has already passed.");
@@ -134,17 +155,6 @@ public final class CommandParser {
         }
         t = t.strip().replaceAll("\\s+", " ");
         return t.length() > MAX_TITLE ? t.substring(0, MAX_TITLE) : t;
-    }
-
-    private static Instant localTime(String value, ZoneId zone) {
-        if (value == null) {
-            return null;
-        }
-        try {
-            return ZonedDateTime.of(LocalDateTime.parse(value.strip()), zone).toInstant();
-        } catch (DateTimeException e) {
-            return null;
-        }
     }
 
     private static int weekdays(JsonNode days) {

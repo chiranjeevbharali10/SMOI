@@ -70,7 +70,9 @@ public class OllamaLlmProvider implements LlmProvider {
                 "messages", List.of(
                         Map.of("role", "system", "content", request.system()),
                         Map.of("role", "user", "content", request.user())),
-                "options", Map.of("num_ctx", props.numCtx(), "num_predict", maxOutputTokens));
+                "options", request.deterministic()
+                        ? Map.of("num_ctx", props.numCtx(), "num_predict", maxOutputTokens, "temperature", 0, "seed", 0)
+                        : Map.of("num_ctx", props.numCtx(), "num_predict", maxOutputTokens));
         HttpRequest httpRequest = HttpRequest.newBuilder(URI.create(props.baseUrl() + "/api/chat"))
                 .timeout(props.timeout())
                 .header("Content-Type", "application/json")
