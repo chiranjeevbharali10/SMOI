@@ -37,9 +37,19 @@ provider interface); the Web Speech API (sends audio to a Google service).
   `draft_email`, `unknown` (the `Intent` enum is the allowlist); every field is type-checked;
   priorities and repeats outside their lists fall back to defaults; anything else becomes
   `unknown`. No intent deletes, sends or changes existing data.
-- The model writes local times ("2026-11-04T17:00"); the parser attaches the user's time zone, so the
-  model does no time-zone arithmetic. A one-time reminder in the past becomes a plain problem
-  message, not a reminder.
+- **Dates are worked out in code, not by the model.** The model only copies what the user said into
+  `day` ("tomorrow", "friday", a date), `time` ("18:00") or `inMinutes`; `When` turns that into an
+  instant in the user's time zone. Testing with the local 2B model on 2026-11-03 showed why: asked
+  for full date-times, it turned "tomorrow at 6 p.m." into today at 19:00.
+- **Fields the user didn't say are dropped** (`When.ground`): a day is kept only if its word is in
+  the command, a time only if the command has a digit (or "noon"/"midnight"), `inMinutes` only if
+  it mentions minutes or hours. The same test showed the model adding "tomorrow" to "call mum at
+  9pm" and a due date to "renew passport".
+- **Deterministic output**: the interpreter asks Ollama for temperature 0 and a fixed seed, so a
+  command means the same thing each time (the hosted provider ignores this; Haiku 5.5 rejects
+  sampling settings).
+- A one-time reminder in the past becomes a plain problem message, not a reminder. Whatever the
+  model gets wrong, the user sees the exact date and time before anything is created.
 - Calendar and email intents are recognised but marked not available, so SMOI says "isn't available
   yet" instead of guessing (Phase 8).
 

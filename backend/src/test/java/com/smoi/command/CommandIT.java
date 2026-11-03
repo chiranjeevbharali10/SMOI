@@ -26,14 +26,19 @@ class CommandIT extends DocumentApiTest {
 
     @Test
     void proposesATaskWithoutCreatingIt() {
-        llm.replyWith("{\"intent\":\"create_task\",\"title\":\"Buy oat milk\",\"when\":\"2030-01-04T09:00\"}");
+        llm.replyWith("{\"intent\":\"create_task\",\"title\":\"Buy oat milk\",\"day\":\"friday\"}");
 
         ResponseEntity<Map<String, Object>> res = interpret("add buy oat milk to my list for friday");
 
         assertThat(res.getStatusCode().value()).isEqualTo(200);
         assertThat(res.getBody()).containsEntry("intent", "create_task").containsEntry("available", true);
-        assertThat(res.getBody().get("task")).isEqualTo(Map.of(
-                "title", "Buy oat milk", "dueAt", "2030-01-04T09:00:00Z", "priority", "normal"));
+        @SuppressWarnings("unchecked")
+        Map<String, Object> task = (Map<String, Object>) res.getBody().get("task");
+        assertThat(task).containsEntry("title", "Buy oat milk").containsEntry("priority", "normal");
+        // The date is worked out in code: the next Friday at 09:00, London time.
+        java.time.ZonedDateTime due = java.time.Instant.parse((String) task.get("dueAt")).atZone(java.time.ZoneId.of("Europe/London"));
+        assertThat(due.getDayOfWeek()).isEqualTo(java.time.DayOfWeek.FRIDAY);
+        assertThat(due.toLocalTime()).isEqualTo(java.time.LocalTime.of(9, 0));
         // Nothing was created: that happens only after the user confirms, through /api/tasks.
         assertThat(http().get().uri("/api/tasks").header("Authorization", "Bearer " + alice.token())
                 .retrieve().body(JSON_LIST)).isEmpty();
