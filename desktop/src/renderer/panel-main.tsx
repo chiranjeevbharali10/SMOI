@@ -46,7 +46,7 @@ function PanelApp() {
       const r = el.getBoundingClientRect();
       api.measured({ width: Math.ceil(r.width), height: Math.ceil(r.height) });
     });
-  }, [view !== null]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [view !== null, view?.confirm]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <div
@@ -61,6 +61,8 @@ function PanelApp() {
           ref={panel}
           mood={view.mood}
           rows={view.rows}
+          confirm={view.confirm}
+          onAnswer={(yes) => api.answer(yes)}
           rise={openCount > 0}
           announce={view.announce}
           onChoose={(row) => api.choose(row)}

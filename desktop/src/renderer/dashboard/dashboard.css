@@ -136,6 +136,23 @@ dl.facts dd { margin: 0; }
 .ask { display: flex; gap: 10px; align-items: flex-end; padding-top: 12px; }
 .ask textarea { flex: 1; resize: vertical; min-height: 48px; max-height: 200px; }
 
+/* Tasks, Talk to SMOI and Settings (Phase 7) */
+.stack { display: flex; flex-direction: column; gap: 12px; }
+.row { display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap; }
+.row .field { flex: 1; min-width: 140px; }
+.list-card { overflow: auto; }
+.done { text-decoration: line-through; }
+.days { border: 0; padding: 0; margin: 0; display: flex; flex-wrap: wrap; gap: 4px 14px; }
+.days legend { font-weight: 800; padding: 0; margin-bottom: 4px; }
+.talk { flex: 1; min-height: 0; }
+.proposal { background: var(--smoi-panel); }
+.slider input[type='range'] { accent-color: var(--smoi-charcoal); max-width: 360px; }
+.slider-ends { display: flex; justify-content: space-between; max-width: 360px; }
+.settings-table { border-collapse: collapse; max-width: 560px; }
+.settings-table th, .settings-table td { text-align: left; padding: 6px 12px 6px 0; }
+.settings-table th[scope='row'] { font-weight: 700; }
+details summary { cursor: pointer; font-weight: 800; }
+
 /* Source viewer */
 .viewer-backdrop { position: fixed; inset: 0; background: rgba(81, 75, 80, 0.35); display: flex; justify-content: flex-end; }
 .viewer { width: min(640px, 100%); height: 100%; box-sizing: border-box; background: var(--smoi-panel); border-left: var(--smoi-border); padding: 20px 24px; display: flex; flex-direction: column; gap: 12px; }

@@ -11,7 +11,7 @@ public interface SpeechToText {
     String providerId();
 
     /**
-     * @param audio a complete audio file, for example a 16 kHz mono WAV
+     * @param audio a complete audio file (WebM/Opus or WAV); the engine detects the format
      * @throws SpeechToTextUnavailableException if the engine can't be reached or fails
      * @throws IllegalArgumentException         if the audio can't be decoded
      */

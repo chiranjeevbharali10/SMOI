@@ -20,12 +20,18 @@ describe('panel mapping', () => {
     });
   });
 
-  it('Talk to SMOI: idle (not listening, no mic in this phase), opens text chat', () => {
+  it("Talk to SMOI with voice off: idle (SMOI can't hear), opens text chat", () => {
     const e = effectOf('talk')!;
     expect(e.frog).toBe('idle');
     expect(e.bubble).toEqual({ tone: 'nudge', text: 'Go on, type it. I have no ears.' });
     expect(e.mood).toBe('ready to chat');
     expect(e.opens).toBe('chat');
+  });
+
+  it("Talk to SMOI with voice on: the design's listening line and mood; the mic sets the listening frog", () => {
+    expect(effectOf('talk', AVAILABLE_ROWS, { voice: true })).toEqual({
+      frog: 'idle', bubble: { tone: 'nudge', text: "Go on, I'm all ears. Figuratively. I have no ears." }, mood: 'listening', opens: null,
+    });
   });
 
   it('Open SMOI Brain: a brief thinking reaction, no line until something is actually found', () => {
@@ -39,25 +45,26 @@ describe('panel mapping', () => {
     });
   });
 
-  it.each(['tasks', 'calendar', 'inbox'] as PanelRowId[])('%s is not available yet: no effect, no line', (row) => {
+  it.each(['calendar', 'inbox'] as PanelRowId[])('%s is not available yet: no effect, no line', (row) => {
     expect(AVAILABLE_ROWS.has(row)).toBe(false);
     expect(effectOf(row)).toBeNull();
   });
 
-  describe('once tasks, calendar and inbox exist', () => {
+  it('View tasks is available, uses the real count and opens the tasks screen', () => {
+    expect(AVAILABLE_ROWS.has('tasks')).toBe(true);
+    expect(effectOf('tasks', AVAILABLE_ROWS, { openTasks: 3 })).toEqual({
+      frog: 'working', bubble: { tone: 'nudge', text: "Hey, you've got 3 things to do!" }, mood: 'locked in', opens: 'tasks',
+    });
+    expect(effectOf('tasks', AVAILABLE_ROWS, { openTasks: 1 })!.bubble!.text).toBe("Hey, you've got 1 thing to do!");
+  });
+
+  it('View tasks shows no line without a real count, or with nothing to do', () => {
+    expect(effectOf('tasks')!.bubble).toBeNull();
+    expect(effectOf('tasks', AVAILABLE_ROWS, { openTasks: 0 })!.bubble).toBeNull();
+  });
+
+  describe('once calendar and inbox exist', () => {
     const all = new Set<PanelRowId>(PANEL_ROWS.map((r) => r.id));
-
-    it('View tasks uses the real count', () => {
-      expect(effectOf('tasks', all, { openTasks: 3 })).toEqual({
-        frog: 'working', bubble: { tone: 'nudge', text: "Hey, you've got 3 things to do!" }, mood: 'locked in', opens: null,
-      });
-      expect(effectOf('tasks', all, { openTasks: 1 })!.bubble!.text).toBe("Hey, you've got 1 thing to do!");
-    });
-
-    it('View tasks shows no line without a real count, or with nothing to do', () => {
-      expect(effectOf('tasks', all)!.bubble).toBeNull();
-      expect(effectOf('tasks', all, { openTasks: 0 })!.bubble).toBeNull();
-    });
 
     it('calendar and inbox are pink, annoyed and surprised', () => {
       expect(effectOf('calendar', all)).toEqual({

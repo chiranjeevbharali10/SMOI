@@ -36,6 +36,7 @@ export default defineConfig({
         panel: resolve(import.meta.dirname, 'src/renderer/panel.html'),
         dashboard: resolve(import.meta.dirname, 'src/renderer/dashboard.html'),
         gallery: resolve(import.meta.dirname, 'src/renderer/gallery.html'),
+        recorder: resolve(import.meta.dirname, 'src/renderer/recorder.html'),
       },
     },
   },

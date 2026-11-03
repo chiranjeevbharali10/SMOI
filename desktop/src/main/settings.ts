@@ -1,6 +1,8 @@
 import { app } from 'electron';
 import { existsSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { DEFAULT_NOTIFICATIONS, mergeNotificationSettings, type NotificationSettings } from '../shared/notify';
+import { clampPersonality, DEFAULT_PERSONALITY, type Personality } from '../shared/personality';
 
 /** User settings, kept as JSON in the app's user-data folder. */
 export interface Settings {
@@ -13,8 +15,14 @@ export interface Settings {
   startOnLogin: boolean;
   /** Minutes without keyboard or mouse input before SMOI falls asleep. */
   sleepAfterMinutes: number;
-  /** Where the SMOI backend runs; used only for a health check in this phase. */
+  /** Where the SMOI backend runs. */
   backendUrl: string;
+  /** Voice commands. Off until the user turns them on (and the backend has speech-to-text). */
+  voiceEnabled: boolean;
+  /** The global voice shortcut (FR-03.01), as an Electron accelerator. */
+  shortcut: string;
+  personality: Personality;
+  notifications: NotificationSettings;
 }
 
 const DEFAULTS: Settings = {
@@ -24,6 +32,10 @@ const DEFAULTS: Settings = {
   startOnLogin: false,
   sleepAfterMinutes: 5,
   backendUrl: 'http://127.0.0.1:8080',
+  voiceEnabled: false,
+  shortcut: 'Control+Alt+J',
+  personality: DEFAULT_PERSONALITY,
+  notifications: DEFAULT_NOTIFICATIONS,
 };
 
 function file(): string {
@@ -33,12 +45,18 @@ function file(): string {
 export function loadSettings(): Settings {
   try {
     if (existsSync(file())) {
-      return { ...DEFAULTS, ...JSON.parse(readFileSync(file(), 'utf8')) };
+      const saved = JSON.parse(readFileSync(file(), 'utf8'));
+      return {
+        ...DEFAULTS, ...saved,
+        // Nested settings are checked field by field, so an older or hand-edited file still works.
+        personality: clampPersonality(saved.personality) ?? DEFAULT_PERSONALITY,
+        notifications: mergeNotificationSettings(DEFAULT_NOTIFICATIONS, saved.notifications),
+      };
     }
   } catch {
     // A corrupt file falls back to defaults rather than stopping the frog from appearing.
   }
-  return { ...DEFAULTS };
+  return structuredClone(DEFAULTS);
 }
 
 /** Writes to a temporary file first, so a crash mid-write can't leave a half-written file. */

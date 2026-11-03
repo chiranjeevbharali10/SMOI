@@ -1,25 +1,30 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { initialAnswer, reduceAnswer } from '../../shared/answer';
 import type { DocumentInfo, StreamEvent } from '../../shared/apiTypes';
-import type { BackendStatus, DashboardView, SessionStatus, UserSettings } from '../../shared/bridge';
+import type { BackendStatus, DashboardView, SessionStatus, TasksSnapshot, UserSettings } from '../../shared/bridge';
 import { Brain, type Exchange } from './Brain';
 import { Face } from './Face';
 import { Home } from './Home';
 import { Login } from './Login';
 import { Settings } from './Settings';
+import { Talk } from './Talk';
+import { Tasks } from './Tasks';
 
 const api = () => window.smoiDashboard;
 
-const NAV: { view: Exclude<DashboardView, 'chat'>; label: string }[] = [
+const NAV: { view: DashboardView; label: string }[] = [
   { view: 'home', label: 'Home' },
+  { view: 'chat', label: 'Talk to SMOI' },
+  { view: 'tasks', label: 'Tasks' },
   { view: 'brain', label: 'SMOI Brain' },
   { view: 'settings', label: 'Settings' },
 ];
 
-/** The dashboard window: login, then Home, SMOI Brain and Settings. */
+/** The dashboard window: login, then Home, Talk to SMOI, Tasks, SMOI Brain and Settings. */
 export function App() {
   const [session, setSession] = useState<SessionStatus | null>(null);
-  const [view, setView] = useState<Exclude<DashboardView, 'chat'>>('home');
+  const [view, setView] = useState<DashboardView>('home');
+  const [tasks, setTasks] = useState<TasksSnapshot | null>(null);
   const [focusAsk, setFocusAsk] = useState(0);
   const [docs, setDocs] = useState<DocumentInfo[]>([]);
   const [backend, setBackend] = useState<BackendStatus | null>(null);
@@ -30,10 +35,8 @@ export function App() {
   const known = useRef(new Set<string>());
 
   const navigate = useCallback((v: DashboardView) => {
-    if (v === 'chat') {
-      setView('brain');
-      setFocusAsk((n) => n + 1);
-    } else setView(v);
+    setView(v);
+    if (v === 'chat') setFocusAsk((n) => n + 1);
   }, []);
 
   useEffect(() => {
@@ -45,6 +48,8 @@ export function App() {
     api().onSettings(setSettings);
     api().onDocuments(setDocs);
     api().onNavigate(navigate);
+    void api().tasks().then(setTasks);
+    api().onTasks(setTasks);
     api().onAnswer(({ requestId, event }) => {
       if (!known.current.has(requestId)) {
         early.current.set(requestId, [...(early.current.get(requestId) ?? []), event]);
@@ -66,16 +71,28 @@ export function App() {
     if (session?.signedIn) void api().documents().then((r) => r.ok && setDocs(r.value));
   }, [session?.signedIn]);
 
-  const onAsk = async (question: string): Promise<string | null> => {
+  const ask = useCallback(async (question: string): Promise<{ key: string } | { error: string }> => {
     const r = await api().ask(question);
-    if (!r.ok) return r.error.message;
+    if (!r.ok) return { error: r.error.message };
     const id = r.value.requestId;
     known.current.add(id);
     const waiting = early.current.get(id) ?? [];
     early.current.delete(id);
     setExchanges((xs) => [...xs, { key: id, question, view: waiting.reduce(reduceAnswer, initialAnswer) }]);
-    return null;
+    return { key: id };
+  }, []);
+  const onAsk = async (question: string): Promise<string | null> => {
+    const r = await ask(question);
+    return 'error' in r ? r.error : null;
   };
+
+  // A question asked by voice: asked and shown in SMOI Brain like a typed one.
+  useEffect(() => {
+    api().onVoiceQuestion((q) => {
+      setView('brain');
+      void ask(q);
+    });
+  }, [ask]);
 
   if (!session) return null;
 
@@ -130,6 +147,8 @@ export function App() {
           </div>
         )}
         {view === 'home' && backend && <Home docs={docs} backend={backend} go={navigate} />}
+        {view === 'chat' && <Talk exchanges={exchanges} onAsk={ask} focusAsk={focusAsk} />}
+        {view === 'tasks' && tasks && <Tasks snapshot={tasks} backendReachable={backend?.reachable ?? true} />}
         {view === 'brain' && <Brain docs={docs} exchanges={exchanges} onAsk={onAsk} focusAsk={focusAsk} />}
         {view === 'settings' && settings && <Settings settings={settings} />}
       </main>

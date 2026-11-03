@@ -6,6 +6,7 @@ const api: PanelBridge = {
   onOpen: (cb) => ipcRenderer.on('panel:open', (_e, v: PanelView) => cb(v)),
   onUpdate: (cb) => ipcRenderer.on('panel:update', (_e, v: PanelView) => cb(v)),
   choose: (row) => ipcRenderer.send('panel:choose', row),
+  answer: (yes) => ipcRenderer.send('panel:answer', yes),
   close: () => ipcRenderer.send('panel:close'),
   measured: (size) => ipcRenderer.send('panel:measured', size),
   setHit: (over) => ipcRenderer.send('panel:hit', over),

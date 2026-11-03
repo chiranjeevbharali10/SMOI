@@ -4,7 +4,7 @@
  * answers, occasional walks). It never looks at other windows or apps.
  */
 import {
-  app, BrowserWindow, ipcMain, Menu, nativeImage, net, powerMonitor, safeStorage, screen, Tray,
+  app, BrowserWindow, ipcMain, Menu, nativeImage, net, powerMonitor, safeStorage, screen, session as electronSession, Tray,
 } from 'electron';
 import { existsSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -12,8 +12,11 @@ import { FrogStateMachine, type Reaction } from '../shared/stateMachine';
 import type { FrogState } from '../shared/animations';
 import { windowSize } from '../shared/scaling';
 import { movedFar } from '../shared/pointer';
-import { FINDING } from '../shared/panelActions';
+import { FINDING, LISTENING } from '../shared/panelActions';
 import type { BackendStatus, UserSettings } from '../shared/bridge';
+import { mergeNotificationSettings } from '../shared/notify';
+import { clampPersonality, react as personalityLine } from '../shared/personality';
+import { describeProposal } from '../shared/proposal';
 import { clampToWorkArea, restorePosition, walkStep, type DisplayInfo } from './placement';
 import { loadSettings, saveSettings, type Settings } from './settings';
 import { ApiClient } from './api';
@@ -21,6 +24,10 @@ import { Session } from './session';
 import { Companion } from './companion';
 import { Dashboard, sessionFile } from './dashboard';
 import { runMeasurement } from './measure';
+import { TaskService } from './tasks';
+import { Notifier } from './notifier';
+import { Commands } from './commands';
+import { isAccelerator, Voice } from './voice';
 
 const DEV_SERVER = process.env.SMOI_DEV_SERVER; // set by `npm run dev`
 // Checks and measurements run against a separate profile, so they never touch the user's
@@ -36,6 +43,11 @@ let preview: BrowserWindow | null = null;
 let tray: Tray | null = null;
 let companion: Companion;
 let dashboard: Dashboard;
+let tasks: TaskService;
+let notifier: Notifier;
+let voice: Voice;
+/** Why the voice shortcut couldn't be registered, or null. */
+let shortcutError: string | null = null;
 const machine = new FrogStateMachine();
 let backendReachable = true;
 let walkDirection: 1 | -1 = 1;
@@ -84,7 +96,7 @@ function fitToDisplay() {
   companion.follow();
 }
 
-type Page = 'index' | 'preview' | 'bubble' | 'panel' | 'dashboard';
+type Page = 'index' | 'preview' | 'bubble' | 'panel' | 'dashboard' | 'recorder';
 const loadPage = (win: BrowserWindow, page: Page) =>
   void (DEV_SERVER ? win.loadURL(`${DEV_SERVER}/${page}.html`) : win.loadFile(join(RENDERER, `${page}.html`)));
 
@@ -104,9 +116,14 @@ function lockDown(win: BrowserWindow) {
 }
 
 function userSettings(): UserSettings {
-  const { reducedMotion, walking, startOnLogin, sleepAfterMinutes, backendUrl } = settings;
-  return { reducedMotion, walking, startOnLogin, sleepAfterMinutes, backendUrl };
+  const { reducedMotion, walking, startOnLogin, sleepAfterMinutes, backendUrl, voiceEnabled, shortcut, personality, notifications } = settings;
+  return {
+    reducedMotion, walking, startOnLogin, sleepAfterMinutes, backendUrl, voiceEnabled, shortcut, shortcutError,
+    personality, notifications,
+  };
 }
+
+const timeZone = () => Intl.DateTimeFormat().resolvedOptions().timeZone;
 
 /** Applies a settings change from the tray or the dashboard. Unknown keys and bad values are ignored. */
 function updateSettings(patch: Record<string, unknown>): UserSettings {
@@ -115,7 +132,14 @@ function updateSettings(patch: Record<string, unknown>): UserSettings {
   }
   const sleep = patch.sleepAfterMinutes;
   if (typeof sleep === 'number' && Number.isInteger(sleep) && sleep >= 1 && sleep <= 120) settings.sleepAfterMinutes = sleep;
+  const voiceBefore = `${settings.voiceEnabled}|${settings.shortcut}`;
+  if (typeof patch.voiceEnabled === 'boolean') settings.voiceEnabled = patch.voiceEnabled;
+  if (isAccelerator(patch.shortcut)) settings.shortcut = patch.shortcut;
+  const personality = clampPersonality(patch.personality);
+  if (personality) settings.personality = personality;
+  if (patch.notifications) settings.notifications = mergeNotificationSettings(settings.notifications, patch.notifications);
   saveSettings(settings);
+  if (`${settings.voiceEnabled}|${settings.shortcut}` !== voiceBefore) voice.apply();
   app.setLoginItemSettings({ openAtLogin: settings.startOnLogin });
   if (settings.reducedMotion || !settings.walking) stopWalk();
   send('frog:settings', { reducedMotion: settings.reducedMotion });
@@ -202,6 +226,12 @@ function refreshTrayMenu() {
     },
     // Keyboard users reach the panel from here (the frog itself never takes focus).
     { label: companion.isPanelOpen ? 'Close SMOI menu' : 'Open SMOI menu', click: () => companion.togglePanel() },
+    ...(settings.voiceEnabled ? [{
+      label: voice?.busy ? 'Stop listening' : 'Talk to SMOI',
+      accelerator: shortcutError ? undefined : settings.shortcut,
+      registerAccelerator: false,
+      click: () => voice.toggle(),
+    }] : []),
     { label: 'Open dashboard', click: () => dashboard.open('home') },
     { label: "Dismiss SMOI's message", enabled: companion.hasUrgentBubble, click: () => companion.dismissUrgent() },
     { type: 'separator' },
@@ -383,6 +413,79 @@ function start() {
       if (effect.opens) dashboard.open(effect.opens === 'dashboard' ? 'home' : effect.opens);
     },
     onChange: () => refreshTrayMenu(),
+    facts: () => ({ openTasks: tasks.openCount ?? undefined, voice: settings.voiceEnabled }),
+    startVoice: () => voice.start(),
+  });
+
+  // Tasks and reminders: the local copy, its sync, and the reminder scheduler.
+  tasks = new TaskService({
+    api,
+    dataDir: app.getPath('userData'),
+    onReminder: (r, missed) => notifier.notify('reminders', `${r.id}@${r.lastFiredAt ?? r.firstAt}`,
+      { type: 'reminder', title: r.title, missed }),
+    onOverdue: (count) => {
+      if (count > 0) notifier.notify('overdue', 'overdue', { type: 'overdue', count });
+    },
+    onChange: (s) => dashboard?.tasksChanged(s, session.status().signedIn),
+  });
+  notifier = new Notifier({
+    settings: () => settings.notifications,
+    personality: () => settings.personality,
+    say: (line) => companion.say(line),
+    react: (frog) => machine.react(frog as Reaction, Date.now()),
+    icon: join(ICONS, 'tray-256.png'),
+  });
+  const commands = new Commands({
+    api, tasks, timeZone,
+    // The user just asked for this, so it isn't a notification: SMOI simply says it's done.
+    onSaved: (event) => {
+      const r = personalityLine(event, settings.personality);
+      if (r.line) companion.say(r.line);
+      machine.react('happy', Date.now());
+    },
+  });
+  voice = new Voice({
+    api,
+    preload: join(PRELOADS, 'recorder.js'),
+    loadPage: (win) => loadPage(win, 'recorder'),
+    lockDown,
+    enabled: () => settings.voiceEnabled,
+    shortcut: () => settings.shortcut,
+    signedIn: () => session.status().signedIn,
+    timeZone,
+    setListening: (on) => {
+      // The listening frog (with its mic chip) shows exactly while the microphone is in use (NFR-04.02).
+      machine.set('listening', on, Date.now());
+      if (on && companion.bubbles.current?.text !== LISTENING.line) companion.say({ tone: 'nudge', text: LISTENING.line });
+      refreshTrayMenu();
+    },
+    setThinking: (on) => machine.set('thinking', on, Date.now()),
+    tell: (text, important) => {
+      companion.say({ tone: important ? 'urgent' : 'nudge', text });
+      if (important) machine.react('error', Date.now());
+    },
+    onCommand: (heard, proposal) => {
+      // A question for SMOI Brain is read-only: ask it, showing the question as understood.
+      if (proposal.intent === 'ask_brain' && proposal.question && !proposal.problem) {
+        dashboard.askFromVoice(proposal.question);
+        return;
+      }
+      // Everything else is shown first; only a confirmed task or reminder is created (FR-03.06).
+      companion.confirm({ heard, view: describeProposal(proposal, timeZone()) }, (yes) => {
+        if (!yes) return;
+        try {
+          commands.run(proposal);
+        } catch (e) {
+          companion.say({ tone: 'urgent', text: e instanceof Error ? e.message : 'That command could not be run.' });
+        }
+      });
+    },
+    onShortcutStatus: (error) => {
+      shortcutError = error;
+      dashboard?.settingsChanged(userSettings());
+      refreshTrayMenu();
+      if (error) companion.say({ tone: 'urgent', text: error });
+    },
   });
 
   dashboard = new Dashboard({
@@ -398,6 +501,10 @@ function start() {
     setCondition: (c, on) => {
       if (machine.isActive(c) !== on) machine.set(c, on, Date.now());
     },
+    tasks,
+    commands,
+    timeZone,
+    onIndexed: (count) => notifier.notify('indexing', `indexed:${Date.now()}`, { type: 'indexed', count }),
     onAnswerFinished: (event) => {
       if (event.type !== 'result') return;
       const r = event.result;
@@ -408,11 +515,26 @@ function start() {
     },
   });
 
+  // Signing in loads that account's tasks; signing out puts them away.
+  const followSession = () => {
+    const s = session.status();
+    if (s.signedIn && s.email) tasks.start(s.email);
+    else tasks.stop();
+  };
+  session.onChange(() => followSession());
+  followSession();
+
+  // No page may use the camera, microphone, location or notifications through the browser APIs.
+  // The hidden recorder has its own session with its own rule (src/main/voice.ts).
+  electronSession.defaultSession.setPermissionRequestHandler((_wc, _permission, callback) => callback(false));
+  electronSession.defaultSession.setPermissionCheckHandler(() => false);
+
   machine.onChange((state) => pushState(state));
   wireFrogIpc();
   createFrog();
   companion.create(PRELOADS);
   buildTray();
+  voice.apply();
   watchInactivity();
   watchBackend();
   scheduleWalk();
@@ -477,6 +599,8 @@ if (!app.requestSingleInstanceLock()) {
     timers.forEach((t) => clearInterval(t));
     stopWalk();
     if (frog) rememberPosition();
+    voice?.destroy();
+    notifier?.destroy();
     companion?.destroy();
     tray?.destroy();
   });

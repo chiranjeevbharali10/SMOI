@@ -10,8 +10,10 @@
  * (test/api.test.ts).
  */
 import type {
-  AnswerResult, ApiErrorKind, ApiFailure, ChunkInfo, DocumentInfo, LoginResult, Me, Providers, StreamEvent,
+  AnswerResult, ApiErrorKind, ApiFailure, ChunkInfo, DocumentInfo, LoginResult, Me, Proposal, Providers, StreamEvent,
+  SyncResult,
 } from '../shared/apiTypes';
+import type { ReminderItem, TaskItem } from '../shared/taskStore';
 import { SseParser } from '../shared/sse';
 
 export class ApiError extends Error implements ApiFailure {
@@ -93,6 +95,47 @@ export class ApiClient {
     return this.get<Providers>('/api/settings/providers');
   }
 
+  // ---------- tasks and reminders ----------
+
+  /** Active tasks and reminders, plus recent deletions (with deletedAt set). */
+  sync(): Promise<SyncResult> {
+    return this.get<SyncResult>('/api/sync');
+  }
+
+  /** Creates or updates; answers with the row as stored (a newer one if this change lost). 410: deleted. */
+  async putTask(t: TaskItem): Promise<TaskItem> {
+    const { id, syncError: _e, ...body } = t;
+    return this.json<TaskItem>(await this.send('PUT', `/api/tasks/${encodeURIComponent(id)}`, { json: body }));
+  }
+
+  async deleteTask(id: string): Promise<void> {
+    await this.json(await this.send('DELETE', `/api/tasks/${encodeURIComponent(id)}`));
+  }
+
+  async putReminder(r: ReminderItem): Promise<ReminderItem> {
+    const { id, syncError: _e, ...body } = r;
+    return this.json<ReminderItem>(await this.send('PUT', `/api/reminders/${encodeURIComponent(id)}`, { json: body }));
+  }
+
+  async deleteReminder(id: string): Promise<void> {
+    await this.json(await this.send('DELETE', `/api/reminders/${encodeURIComponent(id)}`));
+  }
+
+  // ---------- commands and voice ----------
+
+  /** What a typed or spoken command means. Never acts. */
+  async interpret(text: string, timeZone: string): Promise<Proposal> {
+    return this.json<Proposal>(await this.send('POST', '/api/commands/interpret', { json: { text, timeZone }, timeoutMs: 120_000 }));
+  }
+
+  /** Turns a recording into text. The audio is sent once and not kept anywhere. */
+  async transcribe(audio: Uint8Array, mediaType: string): Promise<string> {
+    const res = await this.send('POST', '/api/voice/transcribe', {
+      raw: { bytes: audio, type: mediaType }, timeoutMs: 60_000,
+    });
+    return (await this.json<{ text: string }>(res)).text;
+  }
+
   // ---------- answers ----------
 
   /**
@@ -155,7 +198,8 @@ export class ApiClient {
   }
 
   private async send(method: string, path: string, opts: {
-    json?: unknown; body?: FormData; auth?: boolean; timeoutMs?: number; signal?: AbortSignal; accept?: string;
+    json?: unknown; body?: FormData; raw?: { bytes: Uint8Array; type: string }; auth?: boolean; timeoutMs?: number;
+    signal?: AbortSignal; accept?: string;
   } = {}): Promise<Response> {
     const headers: Record<string, string> = { Accept: opts.accept ?? 'application/json' };
     if (opts.auth !== false) {
@@ -163,7 +207,11 @@ export class ApiClient {
       if (!token) throw new ApiError('session_expired', 'Please sign in first.');
       headers.Authorization = `Bearer ${token}`;
     }
-    let body: string | FormData | undefined = opts.body;
+    let body: string | FormData | Uint8Array<ArrayBuffer> | undefined = opts.body;
+    if (opts.raw) {
+      headers['Content-Type'] = opts.raw.type;
+      body = opts.raw.bytes as Uint8Array<ArrayBuffer>;
+    }
     if (opts.json !== undefined) {
       headers['Content-Type'] = 'application/json';
       body = JSON.stringify(opts.json);
@@ -195,6 +243,7 @@ export class ApiClient {
       this.session.expired();
       throw new ApiError('session_expired', 'Your session has expired. Please sign in again.', s, requestId);
     }
+    if (s === 410) throw new ApiError('gone', 'That was deleted.', s, requestId);
     if (s === 404) throw new ApiError('not_found', "That item doesn't exist any more. It may have been deleted.", s, requestId);
     if (s === 429) {
       const wait = Number(res.headers.get('Retry-After'));

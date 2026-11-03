@@ -4,8 +4,8 @@
  * with the changes the owner approved for Phase 6B (see "Talk to SMOI" and "Open SMOI Brain").
  *
  * Lines must be true. A line that states a fact (a number of tasks, a busy calendar, an email) is
- * only shown when that fact comes from real data. Until tasks, calendar and inbox exist, their
- * rows are unavailable: they read "Not available yet" and show no line at all.
+ * only shown when that fact comes from real data. Until calendar and inbox exist, their rows are
+ * unavailable: they read "Not available yet" and show no line at all.
  *
  * Pure data and functions, so the mapping is unit-tested (test/panelActions.test.ts).
  */
@@ -24,7 +24,7 @@ export type PanelRowId = 'talk' | 'tasks' | 'calendar' | 'inbox' | 'brain' | 'da
 export type PanelEvent = 'hello' | 'closed' | PanelRowId;
 
 /** Where an action takes the user, if anywhere. */
-export type Destination = 'chat' | 'brain' | 'dashboard';
+export type Destination = 'chat' | 'tasks' | 'brain' | 'dashboard';
 
 /**
  * How the frog reacts:
@@ -58,14 +58,19 @@ export const PANEL_ROWS: readonly PanelRow[] = [
 /** Shown in place of a line for rows whose feature doesn't exist yet. No phase numbers in the UI. */
 export const NOT_AVAILABLE = 'Not available yet';
 
-/** Rows that work today. Tasks, calendar and inbox are added as their features are built. */
-export const AVAILABLE_ROWS: ReadonlySet<PanelRowId> = new Set<PanelRowId>(['talk', 'brain', 'dashboard']);
+/** Rows that work today. Calendar and inbox are added as their features are built. */
+export const AVAILABLE_ROWS: ReadonlySet<PanelRowId> = new Set<PanelRowId>(['talk', 'tasks', 'brain', 'dashboard']);
 
 /** Real data some lines depend on. Absent means "not known", and the line is not shown. */
 export interface PanelFacts {
-  /** Open tasks (from the tasks feature). */
+  /** Open tasks, from the local copy of the user's tasks. */
   openTasks?: number;
+  /** Voice is on: "Talk to SMOI" turns the microphone on instead of opening the typed chat. */
+  voice?: boolean;
 }
+
+/** The design's listening line and mood, used only while the microphone really is on. */
+export const LISTENING = { line: "Go on, I'm all ears. Figuratively. I have no ears.", mood: 'listening' };
 
 /** The lavender line, shown only when an answer with valid citations has actually arrived. */
 export const FINDING: BubbleLine = { tone: 'finding', text: 'I found something interesting for you.' };
@@ -88,16 +93,17 @@ export function effectOf(
     case 'closed':
       return { frog: 'idle', bubble: nudge('Fine. I will just sit here. Cutely.'), mood: 'feeling ignored', opens: null };
     case 'talk':
-      // Phase 6B has text chat only. The design's listening state shows a pulsing microphone chip,
-      // which would claim the mic is on (NFR-04.02), so SMOI stays idle here. Phase 7 switches this
-      // to the design's version when the microphone really is on:
-      //   listening, "Go on, I'm all ears. Figuratively. I have no ears.", mood "listening".
+      // With voice on, the microphone turns on and the design's listening line and mood show. The
+      // listening frog (with its mic chip) is set by the voice controller itself, only while the
+      // microphone is on (NFR-04.02), so the reaction here is idle. With voice off, SMOI can't
+      // hear, so it says so and opens the typed chat.
+      if (facts.voice) return { frog: 'idle', bubble: nudge(LISTENING.line), mood: LISTENING.mood, opens: null };
       return { frog: 'idle', bubble: nudge('Go on, type it. I have no ears.'), mood: 'ready to chat', opens: 'chat' };
     case 'tasks': {
       // The count must come from real data; with no count, or nothing to do, there is no line.
       const n = facts.openTasks;
       const bubble = n && n > 0 ? nudge(`Hey, you've got ${n} ${n === 1 ? 'thing' : 'things'} to do!`) : null;
-      return { frog: 'working', bubble, mood: 'locked in', opens: null };
+      return { frog: 'working', bubble, mood: 'locked in', opens: 'tasks' };
     }
     case 'calendar':
       // When the calendar exists, show this line only if today really is busy.

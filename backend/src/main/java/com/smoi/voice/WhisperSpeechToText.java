@@ -34,7 +34,7 @@ public class WhisperSpeechToText implements SpeechToText {
         Transcript t;
         try {
             t = http.post().uri("/transcribe")
-                    .contentType(MediaType.parseMediaType("audio/wav"))
+                    .contentType(MediaType.APPLICATION_OCTET_STREAM)
                     .body(audio)
                     .retrieve()
                     .onStatus(s -> s.value() == 400, (req, res) -> {

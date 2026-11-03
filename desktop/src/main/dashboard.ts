@@ -16,8 +16,15 @@ import { basename, join } from 'node:path';
 import { performance } from 'node:perf_hooks';
 import { ApiClient, ApiError } from './api';
 import type { Session } from './session';
+import type { Commands } from './commands';
+import type { TaskService } from './tasks';
 import type { DocumentInfo, StreamEvent } from '../shared/apiTypes';
-import type { BackendStatus, DashboardView, Result, SessionStatus, UserSettings } from '../shared/bridge';
+import type {
+  BackendStatus, DashboardView, ReminderInput, Result, SessionStatus, TaskInput, TasksSnapshot, UserSettings,
+} from '../shared/bridge';
+import { newReminder } from '../shared/proposal';
+import { isTimeZone } from '../shared/recurrence';
+import { sortedTasks, type Priority, type ReminderItem, type StoreState, type TaskItem } from '../shared/taskStore';
 
 export interface DashboardDeps {
   api: ApiClient;
@@ -33,6 +40,11 @@ export interface DashboardDeps {
   setCondition: (c: 'thinking' | 'speaking' | 'working', on: boolean) => void;
   /** An answer finished; SMOI reacts (a finding bubble, or a brief error for the fallback). */
   onAnswerFinished: (e: StreamEvent) => void;
+  tasks: TaskService;
+  commands: Commands;
+  timeZone: () => string;
+  /** Documents finished indexing since the last check. */
+  onIndexed: (count: number) => void;
 }
 
 export interface OpenTiming {
@@ -113,6 +125,26 @@ export class Dashboard {
     this.send('settings:changed', s);
   }
 
+  tasksChanged(s: StoreState, ready: boolean): void {
+    if (this.window) this.send('tasks:changed', snapshot(s, ready));
+  }
+
+  /** Asks SMOI Brain from outside the page (a spoken question); the page shows it like a typed one. */
+  askFromVoice(question: string): void {
+    this.open('brain');
+    this.send('brain:voice-question', question);
+  }
+
+  private async confirmDelete(what: string, name: string): Promise<boolean> {
+    const options: Electron.MessageBoxOptions = {
+      type: 'warning', buttons: ['Delete', 'Cancel'], defaultId: 1, cancelId: 1, noLink: true,
+      title: `Delete ${what}`, message: `Delete the ${what} "${name}"?`, detail: "This can't be undone.",
+    };
+    const w = this.window;
+    const choice = w ? await dialog.showMessageBox(w, options) : await dialog.showMessageBox(options);
+    return choice.response === 0;
+  }
+
   /** Fetches the document list, and keeps polling only while something is queued or processing. */
   async refreshDocuments(): Promise<Result<DocumentInfo[]>> {
     this.stopPolling();
@@ -121,7 +153,10 @@ export class Dashboard {
       this.deps.setCondition('working', false);
       return r;
     }
+    const wasIndexing = new Set(this.docs.filter((d) => d.status === 'queued' || d.status === 'processing').map((d) => d.id));
     this.docs = r.value;
+    const finished = this.docs.filter((d) => d.status === 'indexed' && wasIndexing.has(d.id)).length;
+    if (finished > 0) this.deps.onIndexed(finished);
     this.send('docs:changed', this.docs);
     const indexing = this.docs.some((d) => d.status === 'queued' || d.status === 'processing');
     this.deps.setCondition('working', indexing);
@@ -240,6 +275,33 @@ export class Dashboard {
     handle('docs:delete', (id) => wrap(() => this.delete(str(id, 64))));
     handle('docs:chunks', (id) => wrap(() => this.deps.api.chunks(str(id, 64))));
     handle('brain:ask', (q) => wrap(() => this.ask(str(typeof q === 'string' ? q.trim() : q, MAX_QUESTION))));
+    handle('tasks:get', () => snapshot(this.deps.tasks.store, this.deps.session.status().signedIn));
+    handle('tasks:save', (input) => wrap(async () => {
+      const t = taskInput(input, this.deps.tasks.store.tasks);
+      this.deps.tasks.saveTask(t);
+      return t;
+    }));
+    handle('tasks:delete', (id) => wrap(async () => {
+      const t = this.deps.tasks.store.tasks[str(id, 64)];
+      if (!t) return { deleted: false };
+      if (!(await this.confirmDelete('task', t.title))) return { deleted: false };
+      this.deps.tasks.removeTask(t.id);
+      return { deleted: true };
+    }));
+    handle('reminders:save', (input) => wrap(async () => {
+      const r = reminderInput(input, this.deps.timeZone(), this.deps.tasks.store.tasks);
+      this.deps.tasks.saveReminder(r);
+      return r;
+    }));
+    handle('reminders:delete', (id) => wrap(async () => {
+      const r = this.deps.tasks.store.reminders[str(id, 64)];
+      if (!r) return { deleted: false };
+      if (!(await this.confirmDelete('reminder', r.title))) return { deleted: false };
+      this.deps.tasks.removeReminder(r.id);
+      return { deleted: true };
+    }));
+    handle('command:interpret', (t) => wrap(() => this.deps.commands.interpret(str(typeof t === 'string' ? t.trim() : t, 1000))));
+    handle('command:confirm', (id) => wrap(async () => ({ saved: this.deps.commands.confirm(str(id, 64)) })));
     handle('backend:status', () => this.deps.backend());
     handle('settings:get', () => this.deps.settings());
     handle('settings:update', (patch) => {
@@ -269,3 +331,67 @@ async function wrap<T>(fn: () => Promise<T>): Promise<Result<T>> {
 }
 
 export const sessionFile = (userData: string) => join(userData, 'session.bin');
+
+function snapshot(s: StoreState, ready: boolean): TasksSnapshot {
+  return {
+    ready, tasks: sortedTasks(s),
+    reminders: Object.values(s.reminders).sort((a, b) => a.firstAt.localeCompare(b.firstAt)),
+    pending: s.outbox.length, syncedAt: s.syncedAt,
+  };
+}
+
+const PRIORITIES: Priority[] = ['low', 'normal', 'high'];
+const REPEATS = ['none', 'daily', 'weekly', 'monthly', 'weekdays'];
+
+function isoOrNull(v: unknown): string | null {
+  if (v === null || v === undefined || v === '') return null;
+  if (typeof v !== 'string' || !Number.isFinite(Date.parse(v))) throw new Error('Invalid date');
+  return new Date(v).toISOString();
+}
+
+function text(v: unknown, max: number, required: boolean): string {
+  if (typeof v !== 'string') throw new Error('Invalid input');
+  const t = v.trim();
+  if (required && !t) throw new Error('A title is needed.');
+  if (t.length > max) throw new Error('That text is too long.');
+  return t;
+}
+
+/** A task from the page, checked field by field. The page never sets edit times or completion times. */
+export function taskInput(v: unknown, existing: Record<string, TaskItem>): TaskItem {
+  const i = v as TaskInput;
+  if (!i || typeof i !== 'object') throw new Error('Invalid input');
+  if (i.id !== undefined && (typeof i.id !== 'string' || !existing[i.id])) throw new Error('That task no longer exists.');
+  if (!PRIORITIES.includes(i.priority)) throw new Error('Invalid priority');
+  const before = i.id ? existing[i.id] : undefined;
+  const now = new Date().toISOString();
+  return {
+    id: before?.id ?? randomUUID(),
+    title: text(i.title, 300, true),
+    description: text(i.description ?? '', 5000, false),
+    priority: i.priority,
+    category: text(i.category ?? '', 50, false),
+    dueAt: isoOrNull(i.dueAt),
+    // Keep the original completion time when a completed task is edited (FR-02.06).
+    completedAt: i.completed ? (before?.completedAt ?? now) : null,
+    editedAt: now,
+  };
+}
+
+export function reminderInput(v: unknown, timeZone: string, tasks: Record<string, TaskItem>): ReminderItem {
+  const i = v as ReminderInput;
+  if (!i || typeof i !== 'object') throw new Error('Invalid input');
+  if (!REPEATS.includes(i.repeat)) throw new Error('Invalid repeat');
+  const weekdays = i.repeat === 'weekdays' ? i.weekdays : 0;
+  if (!Number.isInteger(weekdays) || weekdays < 0 || weekdays > 127 || (i.repeat === 'weekdays' && weekdays === 0)) {
+    throw new Error('Choose at least one day.');
+  }
+  const firstAt = isoOrNull(i.firstAt);
+  if (!firstAt) throw new Error('Choose when to be reminded.');
+  if (i.repeat === 'none' && Date.parse(firstAt) <= Date.now()) throw new Error('That time has already passed.');
+  if (i.taskId !== null && (typeof i.taskId !== 'string' || !tasks[i.taskId])) throw new Error('That task no longer exists.');
+  if (!isTimeZone(timeZone)) throw new Error('Unknown time zone.');
+  return newReminder({
+    id: randomUUID(), taskId: i.taskId, title: text(i.title, 300, true), firstAt, repeat: i.repeat, weekdays, timeZone,
+  }, new Date());
+}

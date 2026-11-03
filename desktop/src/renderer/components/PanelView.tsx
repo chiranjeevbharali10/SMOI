@@ -1,11 +1,14 @@
 import { forwardRef, useImperativeHandle, useRef, type KeyboardEvent } from 'react';
-import type { PanelRowView } from '../../shared/bridge';
+import type { PanelConfirm, PanelRowView } from '../../shared/bridge';
 import { NOT_AVAILABLE, type PanelRowId } from '../../shared/panelActions';
 import { RowIcon } from './icons';
 
 export interface PanelViewProps {
   mood: string;
   rows: PanelRowView[];
+  /** A voice command to confirm, shown instead of the rows. */
+  confirm?: PanelConfirm | null;
+  onAnswer?: (yes: boolean) => void;
   /** Play smoi-rise. */
   rise?: boolean;
   /** Repeated to screen readers while the panel has focus. */
@@ -25,7 +28,7 @@ export interface PanelHandle {
  * aren't available yet.
  */
 export const PanelView = forwardRef<PanelHandle, PanelViewProps>(function PanelView(
-  { mood, rows, rise, announce, onChoose, onClose }, ref,
+  { mood, rows, confirm, onAnswer, rise, announce, onChoose, onClose }, ref,
 ) {
   const list = useRef<HTMLDivElement>(null);
   const buttons = () => Array.from(list.current?.querySelectorAll<HTMLButtonElement>('button') ?? []);
@@ -54,6 +57,25 @@ export const PanelView = forwardRef<PanelHandle, PanelViewProps>(function PanelV
         <h1 className="smoi-panel-title">SMOI</h1>
         <div className="smoi-panel-mood">{mood}</div>
       </div>
+      {confirm ? (
+        <div className="smoi-confirm" ref={list}>
+          <p className="smoi-confirm-heard">I heard: “{confirm.heard}”</p>
+          <p className="smoi-confirm-heading" id="confirm-heading">{confirm.view.heading}</p>
+          {confirm.view.details.length > 0 && (
+            <ul className="smoi-confirm-details" aria-labelledby="confirm-heading">
+              {confirm.view.details.map((d) => <li key={d}>{d}</li>)}
+            </ul>
+          )}
+          <div className="smoi-confirm-actions">
+            {confirm.view.actionable && confirm.view.confirmLabel && (
+              <button type="button" className="smoi-row primary" onClick={() => onAnswer?.(true)}>{confirm.view.confirmLabel}</button>
+            )}
+            <button type="button" className="smoi-row" onClick={() => onAnswer?.(false)}>
+              {confirm.view.actionable ? 'Cancel' : 'OK'}
+            </button>
+          </div>
+        </div>
+      ) : (
       <div className="smoi-panel-rows" ref={list}>
         {rows.map((row) => (
           <button
@@ -75,6 +97,7 @@ export const PanelView = forwardRef<PanelHandle, PanelViewProps>(function PanelV
           </button>
         ))}
       </div>
+      )}
       <div role="status" className="visually-hidden">{announce ?? ''}</div>
     </section>
   );

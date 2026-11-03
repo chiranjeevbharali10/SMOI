@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * {@code POST /api/voice/transcribe}: the recording as the request body ({@code audio/wav}),
+ * {@code POST /api/voice/transcribe}: the recording as the request body (WebM/Opus from the desktop recorder, or WAV),
  * answered with {@code {"text": "..."}}. The audio is neither stored nor logged (NFR-04); only
  * its size is logged. Rate-limited with the query bucket.
  */
@@ -30,7 +30,7 @@ public class VoiceController {
     public record TranscribeResponse(String text) {
     }
 
-    @PostMapping(path = "/api/voice/transcribe", consumes = {"audio/wav", "audio/x-wav", "application/octet-stream"})
+    @PostMapping(path = "/api/voice/transcribe", consumes = {"audio/webm", "audio/ogg", "audio/wav", "audio/x-wav", "application/octet-stream"})
     public TranscribeResponse transcribe(@RequestBody byte[] audio) {
         if (audio.length == 0) {
             throw new IllegalArgumentException("No audio was sent.");

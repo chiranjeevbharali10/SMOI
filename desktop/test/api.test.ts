@@ -204,3 +204,46 @@ describe('streaming answers', () => {
     expect(events).toEqual([]);
   });
 });
+
+describe('tasks, commands and voice', () => {
+  const t = {
+    id: 't1', title: 'Feed the frog', description: '', priority: 'normal' as const, category: '', dueAt: null,
+    completedAt: null, editedAt: '2026-11-03T10:00:00.000Z', syncError: 'old',
+  };
+
+  it('saves a task with PUT to its own id, without the local-only fields', async () => {
+    handler = (_q, body, res) => json(res, 200, { ...JSON.parse(body.toString()), id: 't1' });
+    const saved = await client().putTask(t);
+    expect(seen[0]).toMatchObject({ method: 'PUT', url: '/api/tasks/t1' });
+    const sent = JSON.parse(seen[0].body.toString());
+    expect(sent).not.toHaveProperty('id');
+    expect(sent).not.toHaveProperty('syncError');
+    expect(saved.title).toBe('Feed the frog');
+  });
+
+  it('reports a deleted task as gone (410)', async () => {
+    handler = (_q, _b, res) => problem(res, 410, 'This was deleted.');
+    await expect(client().putTask(t)).rejects.toMatchObject({ kind: 'gone' });
+  });
+
+  it('sends the command with the time zone', async () => {
+    handler = (_q, _b, res) => json(res, 200, { intent: 'unknown', available: true, task: null, reminder: null, question: null, problem: null });
+    await client().interpret('sing', 'Europe/London');
+    expect(JSON.parse(seen[0].body.toString())).toEqual({ text: 'sing', timeZone: 'Europe/London' });
+  });
+
+  it('sends the recording as the raw body with its media type', async () => {
+    handler = (_q, _b, res) => json(res, 200, { text: 'remind me' });
+    const text = await client().transcribe(new Uint8Array([1, 2, 3]), 'audio/webm');
+    expect(text).toBe('remind me');
+    expect(seen[0].headers['content-type']).toBe('audio/webm');
+    expect([...seen[0].body]).toEqual([1, 2, 3]);
+  });
+
+  it('says plainly when speech-to-text is down', async () => {
+    handler = (_q, _b, res) => problem(res, 503, "Speech-to-text isn't available, so SMOI can't hear you right now. You can type instead.");
+    await expect(client().transcribe(new Uint8Array([1]), 'audio/webm')).rejects.toMatchObject({
+      kind: 'unavailable', message: expect.stringContaining('You can type instead'),
+    });
+  });
+});

@@ -30,6 +30,15 @@ const api: DashboardBridge = {
   updateSettings: (patch) => ipcRenderer.invoke('settings:update', patch),
   onSettings: on('settings:changed'),
   onNavigate: on('dashboard:navigate'),
+  tasks: () => ipcRenderer.invoke('tasks:get'),
+  onTasks: on('tasks:changed'),
+  saveTask: (input) => ipcRenderer.invoke('tasks:save', input),
+  deleteTask: (id) => ipcRenderer.invoke('tasks:delete', id),
+  saveReminder: (input) => ipcRenderer.invoke('reminders:save', input),
+  deleteReminder: (id) => ipcRenderer.invoke('reminders:delete', id),
+  command: (text) => ipcRenderer.invoke('command:interpret', text),
+  confirmCommand: (id) => ipcRenderer.invoke('command:confirm', id),
+  onVoiceQuestion: on('brain:voice-question'),
   ready: () => ipcRenderer.send('dashboard:ready'),
 };
 contextBridge.exposeInMainWorld('smoiDashboard', api);

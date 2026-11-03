@@ -97,11 +97,31 @@ export type StreamEvent =
 /** Why a request failed, in words the user can act on. Never hidden behind personality. */
 export type ApiErrorKind =
   | 'unreachable' | 'timeout' | 'bad_credentials' | 'session_expired' | 'rate_limited'
-  | 'not_found' | 'invalid' | 'conflict' | 'too_large' | 'unsupported' | 'unavailable' | 'server';
+  | 'not_found' | 'gone' | 'invalid' | 'conflict' | 'too_large' | 'unsupported' | 'unavailable' | 'server';
 
 export interface ApiFailure {
   kind: ApiErrorKind;
   message: string;
   status?: number;
   requestId?: string;
+}
+
+// ---------- tasks, reminders, commands (Phase 7) ----------
+
+export interface SyncResult {
+  tasks: import('./taskStore').ServerTask[];
+  reminders: import('./taskStore').ServerReminder[];
+  serverTime: string;
+}
+
+/** What SMOI understood a command to mean (backend com.smoi.command.Proposal). Nothing done yet. */
+export interface Proposal {
+  intent: 'create_task' | 'create_reminder' | 'ask_brain' | 'list_events' | 'create_event' | 'draft_email' | 'unknown';
+  /** False for intents whose feature isn't built yet. */
+  available: boolean;
+  task: { title: string; dueAt: string | null; priority: 'low' | 'normal' | 'high' } | null;
+  reminder: { title: string; firstAt: string; repeat: import('./recurrence').Repeat; weekdays: number } | null;
+  question: string | null;
+  /** A plain sentence explaining why the command can't be used as it stands. */
+  problem: string | null;
 }

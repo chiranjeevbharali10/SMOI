@@ -89,7 +89,7 @@ describe('menu panel', () => {
     expect(screen.getByText('feeling chatty')).toBeTruthy();
     const buttons = screen.getAllByRole('button');
     expect(buttons).toHaveLength(6);
-    for (const name of ['View tasks', 'Open calendar', 'Check inbox']) {
+    for (const name of ['Open calendar', 'Check inbox']) {
       const b = screen.getByRole('button', { name: new RegExp(name) });
       expect(b.getAttribute('aria-disabled')).toBe('true');
       expect(b.textContent).toContain('Not available yet');
@@ -116,7 +116,7 @@ describe('menu panel', () => {
     const onChoose = vi.fn();
     const onClose = vi.fn();
     render(<PanelView mood="m" rows={rows} onChoose={onChoose} onClose={onClose} />);
-    act(() => screen.getByRole('button', { name: /View tasks/ }).focus());
+    act(() => screen.getByRole('button', { name: /Open calendar/ }).focus());
     await userEvent.keyboard('{Enter}');
     expect(onChoose).not.toHaveBeenCalled();
     act(() => screen.getByRole('button', { name: 'Open SMOI Brain' }).focus());
@@ -148,5 +148,32 @@ describe('speech bubble', () => {
     render(<BubbleView tone="nudge" text={'<b>bold?</b>'} />);
     expect(screen.getByTestId('bubble').querySelector('b')).toBeNull();
     expect(screen.getByText('<b>bold?</b>')).toBeTruthy();
+  });
+});
+
+describe('panel confirm view (voice commands)', () => {
+  const rows = PANEL_ROWS.map((r) => ({ ...r, available: AVAILABLE_ROWS.has(r.id) }));
+  const confirm = {
+    heard: 'remind me to call mum <img src=x onerror=alert(1)> at 6',
+    view: { actionable: true, heading: 'Set this reminder?', details: ['“Call mum”', 'Tue 4 Nov, 18:00'], confirmLabel: 'Set reminder' },
+  };
+
+  it('shows what was heard as plain text, what will happen, and Confirm and Cancel', async () => {
+    const onAnswer = vi.fn();
+    render(<PanelView mood="m" rows={rows} confirm={confirm} onAnswer={onAnswer} onChoose={() => {}} onClose={() => {}} />);
+    expect(screen.getByText(/I heard:/).textContent).toContain('<img src=x onerror=alert(1)>');
+    expect(document.querySelector('img')).toBeNull();
+    expect(screen.getByText('Set this reminder?')).toBeTruthy();
+    expect(screen.queryByRole('button', { name: /Talk to SMOI/ })).toBeNull();
+    await userEvent.click(screen.getByRole('button', { name: 'Set reminder' }));
+    expect(onAnswer).toHaveBeenCalledWith(true);
+    await userEvent.click(screen.getByRole('button', { name: 'Cancel' }));
+    expect(onAnswer).toHaveBeenLastCalledWith(false);
+  });
+
+  it('nothing to confirm: only OK', () => {
+    const v = { ...confirm, view: { actionable: false, heading: "Drafting emails isn't available yet.", details: [], confirmLabel: null } };
+    render(<PanelView mood="m" rows={rows} confirm={v} onAnswer={() => {}} onChoose={() => {}} onClose={() => {}} />);
+    expect(screen.getAllByRole('button').map((b) => b.textContent)).toEqual(['OK']);
   });
 });

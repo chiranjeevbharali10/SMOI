@@ -12,10 +12,11 @@
 import { BrowserWindow, ipcMain, screen, type IpcMainEvent } from 'electron';
 import { join } from 'node:path';
 import { BubbleController, type Bubble } from '../shared/bubbles';
-import type { PanelView } from '../shared/bridge';
+import type { PanelConfirm, PanelView } from '../shared/bridge';
 import { BUBBLE_INSET, PANEL_INSET, placeBubble, placePanel, type Rect, type Size } from '../shared/layout';
 import {
-  AVAILABLE_ROWS, HELLO_MOOD, PANEL_ROWS, effectOf, type BubbleLine, type PanelEffect, type PanelEvent, type PanelRowId,
+  AVAILABLE_ROWS, HELLO_MOOD, PANEL_ROWS, effectOf, type BubbleLine, type PanelEffect, type PanelEvent, type PanelFacts,
+  type PanelRowId,
 } from '../shared/panelActions';
 
 export interface CompanionDeps {
@@ -28,6 +29,10 @@ export interface CompanionDeps {
   onEffect: (effect: PanelEffect) => void;
   /** Called when the panel opens or closes, or a pink bubble appears or goes (tray menu). */
   onChange: () => void;
+  /** Real data the panel's lines depend on (open tasks, whether voice is on). */
+  facts: () => PanelFacts;
+  /** "Talk to SMOI" with voice on: turn the microphone on. */
+  startVoice: () => void;
 }
 
 const BUBBLE_MEASURE: Size = { width: 300 + 2 * BUBBLE_INSET + 8, height: 260 };
@@ -45,6 +50,8 @@ export class Companion {
   private panelOpen = false;
   private mood = HELLO_MOOD;
   private hideTimer: NodeJS.Timeout | null = null;
+  /** A voice command waiting for an answer, shown in the panel instead of its rows. */
+  private pending: { confirm: PanelConfirm; answer: (yes: boolean) => void } | null = null;
   private tickTimer: NodeJS.Timeout | null = null;
 
   constructor(private readonly deps: CompanionDeps) {}
@@ -100,12 +107,29 @@ export class Companion {
     else this.openPanel();
   }
 
-  openPanel(): void {
+  /**
+   * Shows what SMOI understood from a voice command, with buttons to go ahead or not
+   * (FR-03.06). The panel takes focus, so Enter confirms and Esc cancels. Closing the panel any
+   * other way counts as no.
+   */
+  confirm(confirm: PanelConfirm, answer: (yes: boolean) => void): void {
+    this.pending?.answer(false);
+    this.pending = { confirm, answer };
+    if (this.panelOpen) {
+      this.refresh();
+      this.panelWin.webContents.send('panel:open', this.view());
+      this.panelWin.focus();
+      return;
+    }
+    this.openPanel(false);
+  }
+
+  openPanel(greet = true): void {
     const frog = this.deps.frog();
     if (!frog || this.panelOpen) return;
     this.panelOpen = true;
     this.placePanel();
-    this.apply('hello');
+    if (greet) this.apply('hello');
     this.panelWin.webContents.send('panel:open', this.view());
     this.panelWin.show(); // shown active: the panel takes keyboard focus
     this.panelWin.focus();
@@ -120,6 +144,9 @@ export class Companion {
   closePanel(reason: 'user' | 'navigate' | 'silent'): void {
     if (!this.panelOpen) return;
     this.panelOpen = false;
+    const pending = this.pending;
+    this.pending = null;
+    pending?.answer(false);
     this.panelWin.setIgnoreMouseEvents(true, { forward: true });
     // Hiding a focused window leaves Windows' focus on it, invisible. Destroying it makes Windows
     // reactivate the window that was active before, which is the app the user was in (the frog
@@ -155,7 +182,7 @@ export class Companion {
   }
 
   private apply(event: PanelEvent): void {
-    const effect = effectOf(event);
+    const effect = effectOf(event, AVAILABLE_ROWS, this.deps.facts());
     if (!effect) return; // unavailable row: nothing happens, no line
     this.mood = effect.mood;
     this.deps.onEffect(effect);
@@ -164,10 +191,22 @@ export class Companion {
   }
 
   private choose(row: PanelRowId): void {
-    const effect = effectOf(row);
+    const facts = this.deps.facts();
+    const effect = effectOf(row, AVAILABLE_ROWS, facts);
     if (!effect) return;
     this.apply(row);
-    if (effect.opens) this.closePanel('navigate');
+    if (row === 'talk' && facts.voice) {
+      this.closePanel('navigate');
+      this.deps.startVoice();
+    } else if (effect.opens) this.closePanel('navigate');
+  }
+
+  private answer(yes: boolean): void {
+    const pending = this.pending;
+    if (!pending) return;
+    this.pending = null;
+    this.closePanel('navigate');
+    pending.answer(yes);
   }
 
   private view(): PanelView {
@@ -175,6 +214,7 @@ export class Companion {
     return {
       mood: this.mood,
       rows: PANEL_ROWS.map((r) => ({ ...r, available: AVAILABLE_ROWS.has(r.id) })),
+      confirm: this.pending?.confirm ?? null,
       reducedMotion: this.deps.reducedMotion(),
       announce: this.panelOpen && b ? b.text : null,
     };
@@ -273,6 +313,9 @@ export class Companion {
     });
     ipcMain.on('panel:choose', (e, row: unknown) => {
       if (isPanel(e) && this.panelOpen && PANEL_ROWS.some((r) => r.id === row)) this.choose(row as PanelRowId);
+    });
+    ipcMain.on('panel:answer', (e, yes: unknown) => {
+      if (isPanel(e) && this.panelOpen && typeof yes === 'boolean') this.answer(yes);
     });
     ipcMain.on('panel:close', (e) => {
       if (isPanel(e)) this.closePanel('user');
