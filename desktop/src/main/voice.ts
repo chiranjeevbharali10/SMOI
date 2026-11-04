@@ -68,9 +68,15 @@ export class Voice {
     const isRecorder = (wc: Electron.WebContents | null) => !!wc && wc === this.win?.webContents;
     voice.setPermissionRequestHandler((wc, permission, callback, details) => {
       const audioOnly = 'mediaTypes' in details && (details.mediaTypes ?? []).every((t) => t === 'audio');
-      callback(permission === 'media' && audioOnly && isRecorder(wc) && this.phase === 'starting');
+      const ok = permission === 'media' && audioOnly && isRecorder(wc) && this.phase === 'starting';
+      if (!ok) console.warn('[voice] denied permission request', JSON.stringify({ permission, details, recorder: isRecorder(wc), phase: this.phase }));
+      callback(ok);
     });
-    voice.setPermissionCheckHandler((wc, permission) => permission === 'media' && isRecorder(wc));
+    voice.setPermissionCheckHandler((wc, permission, origin, details) => {
+      const ok = permission === 'media' && isRecorder(wc);
+      if (!ok) console.warn('[voice] denied permission check', JSON.stringify({ permission, origin, details, recorder: isRecorder(wc) }));
+      return ok;
+    });
     this.wireIpc();
   }
 
