@@ -119,9 +119,12 @@ export interface UserSettings {
   shortcutError: string | null;
   personality: Personality;
   notifications: NotificationSettings;
+  claudeCode: { enabled: boolean; celebrateAfterMinutes: number };
+  /** Read-only: whether the Claude Code hook listener is running, and if not, why. */
+  claudeHooks: { listening: boolean; port: number; problem: string | null };
 }
 
-export type SettingsPatch = Partial<Omit<UserSettings, 'backendUrl' | 'shortcutError'>>;
+export type SettingsPatch = Partial<Omit<UserSettings, 'backendUrl' | 'shortcutError' | 'claudeHooks'>>;
 
 export interface TasksSnapshot {
   /** False while signed out: there is no copy to show. */

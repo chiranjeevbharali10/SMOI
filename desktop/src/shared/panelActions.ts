@@ -31,7 +31,7 @@ export type Destination = 'chat' | 'tasks' | 'brain' | 'dashboard';
  * - `idle`: no reaction; SMOI shows whatever is still going on (an error, indexing) or idle;
  * - otherwise a brief reaction in that state, after which SMOI returns to what's going on.
  */
-export type FrogReaction = 'idle' | 'happy' | 'thinking' | 'working' | 'annoyed' | 'surprised';
+export type FrogReaction = 'idle' | 'happy' | 'thinking' | 'working' | 'annoyed' | 'surprised' | 'celebrating' | 'attention';
 
 export interface PanelEffect {
   frog: FrogReaction;

@@ -23,6 +23,26 @@ export interface Settings {
   shortcut: string;
   personality: Personality;
   notifications: NotificationSettings;
+  /** Claude Code notifications (FR-10.06). */
+  claudeCode: ClaudeCodeSettings;
+}
+
+export interface ClaudeCodeSettings {
+  enabled: boolean;
+  /** Only runs at least this long earn a celebration (FR-10.03). */
+  celebrateAfterMinutes: number;
+}
+
+export const DEFAULT_CLAUDE_CODE: ClaudeCodeSettings = { enabled: true, celebrateAfterMinutes: 3 };
+
+/** Validates a change; anything malformed keeps the current value. */
+export function mergeClaudeCode(current: ClaudeCodeSettings, patch: unknown): ClaudeCodeSettings {
+  const p = (patch && typeof patch === 'object' ? patch : {}) as Partial<ClaudeCodeSettings>;
+  const m = p.celebrateAfterMinutes;
+  return {
+    enabled: typeof p.enabled === 'boolean' ? p.enabled : current.enabled,
+    celebrateAfterMinutes: typeof m === 'number' && Number.isInteger(m) && m >= 0 && m <= 240 ? m : current.celebrateAfterMinutes,
+  };
 }
 
 const DEFAULTS: Settings = {
@@ -36,6 +56,7 @@ const DEFAULTS: Settings = {
   shortcut: 'Control+Alt+J',
   personality: DEFAULT_PERSONALITY,
   notifications: DEFAULT_NOTIFICATIONS,
+  claudeCode: DEFAULT_CLAUDE_CODE,
 };
 
 function file(): string {
@@ -51,6 +72,7 @@ export function loadSettings(): Settings {
         // Nested settings are checked field by field, so an older or hand-edited file still works.
         personality: clampPersonality(saved.personality) ?? DEFAULT_PERSONALITY,
         notifications: mergeNotificationSettings(DEFAULT_NOTIFICATIONS, saved.notifications),
+        claudeCode: mergeClaudeCode(DEFAULT_CLAUDE_CODE, saved.claudeCode),
       };
     }
   } catch {

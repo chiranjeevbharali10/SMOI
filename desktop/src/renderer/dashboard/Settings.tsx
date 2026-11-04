@@ -111,6 +111,31 @@ export function Settings({ settings }: { settings: UserSettings }) {
         </p>
       </section>
 
+      <section className="card" aria-labelledby="h-claude">
+        <h3 id="h-claude">Claude Code</h3>
+        <label className="check">
+          <input type="checkbox" checked={settings.claudeCode.enabled}
+                 onChange={(e) => update({ claudeCode: { ...settings.claudeCode, enabled: e.target.checked } })} />
+          Tell me when Claude Code finishes a long run or needs my permission
+        </label>
+        <label className="field" style={{ maxWidth: 360 }}>
+          Celebrate runs of at least (minutes)
+          <input type="number" min={0} max={240} step={1} value={settings.claudeCode.celebrateAfterMinutes}
+                 disabled={!settings.claudeCode.enabled}
+                 onChange={(e) => {
+                   const m = Number(e.target.value);
+                   if (Number.isInteger(m)) update({ claudeCode: { ...settings.claudeCode, celebrateAfterMinutes: m } });
+                 }} />
+        </label>
+        <p className="hint" role="status">
+          {settings.claudeHooks.listening
+            ? `Listening for Claude Code hooks on 127.0.0.1:${settings.claudeHooks.port}.`
+            : `Not listening: ${settings.claudeHooks.problem ?? 'unknown reason.'}`}
+          {' '}SMOI only learns that a run started, finished or is waiting. It never sees your prompts or files.
+          Quiet hours and the categories below apply.
+        </p>
+      </section>
+
       <section className="card" aria-labelledby="h-notifications">
         <h3 id="h-notifications">Notifications</h3>
         <fieldset className="days">

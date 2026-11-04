@@ -19,6 +19,7 @@ import type { FrogState } from './animations';
  */
 export const PRIORITY: Record<FrogState, number> = {
   error: 100,
+  attention: 95,
   surprised: 90,
   listening: 80,
   speaking: 70,
@@ -38,7 +39,7 @@ export type Condition = 'error' | 'listening' | 'speaking' | 'thinking' | 'worki
  * moment, and an answer that fell back to passages shows error for a moment, without either being
  * a lasting condition.
  */
-export type Reaction = 'surprised' | 'happy' | 'celebrating' | 'annoyed' | 'thinking' | 'working' | 'error';
+export type Reaction = 'surprised' | 'happy' | 'celebrating' | 'annoyed' | 'thinking' | 'working' | 'error' | 'attention';
 
 /** How long a timed reaction shows by default. Surprised instead ends when its animation finishes. */
 export const REACTION_MS: Record<Exclude<Reaction, 'surprised'>, number> = {
@@ -48,6 +49,7 @@ export const REACTION_MS: Record<Exclude<Reaction, 'surprised'>, number> = {
   thinking: 2000,
   working: 2500,
   error: 4000,
+  attention: 10000,
 };
 
 interface ActiveReaction {

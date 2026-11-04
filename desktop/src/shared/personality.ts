@@ -59,7 +59,10 @@ export type CompanionEvent =
   | { type: 'overdue'; count: number }
   | { type: 'indexed'; count: number }
   | { type: 'task_saved'; title: string }
-  | { type: 'reminder_saved'; title: string; when: string };
+  | { type: 'reminder_saved'; title: string; when: string }
+  /** No prompt text or project names: only how long the run took (FR-10, NFR-03.16). */
+  | { type: 'claude_done'; minutes: number }
+  | { type: 'claude_waiting' };
 
 export interface Reaction {
   /** Null when the event shouldn't produce a bubble at these settings. */
@@ -132,6 +135,27 @@ export function react(event: CompanionEvent, p: Personality): Reaction {
         cheeky: `Fine, I'll remind you ${event.when}: ${t}. Try to act surprised.`,
       };
       return { line: { tone: 'nudge', text: lines[style] }, frog: 'happy' };
+    }
+    case 'claude_done': {
+      const d = event.minutes >= 60
+        ? `${Math.floor(event.minutes / 60)} h ${event.minutes % 60} min`
+        : `${event.minutes} min`;
+      const lines: Lines = {
+        plain: `Claude Code finished (${d}).`,
+        warm: `Claude Code is done after ${d}. Nice work, both of you.`,
+        playful: `Ribbit! Claude Code finished after ${d}.`,
+        cheeky: `Claude Code finished. ${d}. You can stop pretending to wait now.`,
+      };
+      return { line: { tone: 'finding', text: lines[style] }, frog: 'celebrating' };
+    }
+    case 'claude_waiting': {
+      const lines: Lines = {
+        plain: 'Claude Code is waiting for your permission.',
+        warm: 'Claude Code needs your OK to keep going.',
+        playful: 'Psst! Claude Code is stuck until you say yes or no.',
+        cheeky: "Claude Code is just sitting there. It needs you. Shocking, I know.",
+      };
+      return { line: { tone: 'urgent', text: lines[style] }, frog: 'attention' };
     }
   }
 }

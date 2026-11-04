@@ -6,7 +6,9 @@ export const CELL = 64;
 
 export type FrogState =
   | 'idle' | 'happy' | 'sleeping' | 'working' | 'thinking' | 'surprised'
-  | 'annoyed' | 'celebrating' | 'listening' | 'speaking' | 'walking' | 'error';
+  | 'annoyed' | 'celebrating' | 'listening' | 'speaking' | 'walking' | 'error'
+  /** DRAFT, not yet in the design board: Claude Code is blocked waiting for permission (FR-10.04). */
+  | 'attention';
 
 export interface Animation {
   /** Milliseconds each frame is shown, in strip order. */
@@ -30,9 +32,13 @@ export const ANIMATIONS: Record<FrogState, Animation> = {
   speaking: { frames: repeat(120, 6), loop: true },
   walking: { frames: [100, 90, 90, 100, 90, 90], loop: true },
   error: { frames: repeat(170, 6), loop: true },
+  attention: { frames: [220, 140, 220, 140, 220, 500], loop: true },
 };
 
 export const STATES = Object.keys(ANIMATIONS) as FrogState[];
+
+/** States whose art was drawn for SMOI rather than extracted from the design board. */
+export const DRAFT_STATES: readonly FrogState[] = ['attention'];
 
 export function totalDuration(state: FrogState): number {
   return ANIMATIONS[state].frames.reduce((a, b) => a + b, 0);

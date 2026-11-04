@@ -3,7 +3,9 @@ import { join } from 'node:path';
 import { GifReader } from 'omggif';
 import { PNG } from 'pngjs';
 import { describe, expect, it } from 'vitest';
-import { ANIMATIONS, CELL, STATES, totalDuration, type FrogState } from '../src/shared/animations';
+import { ANIMATIONS, CELL, DRAFT_STATES, STATES, totalDuration, type FrogState } from '../src/shared/animations';
+
+const DESIGN_STATES = STATES.filter((s) => !DRAFT_STATES.includes(s));
 
 const ROOT = join(__dirname, '..');
 
@@ -55,12 +57,31 @@ function samePicture(a: Buffer, b: Buffer): boolean {
 }
 
 describe('sprite strips', () => {
-  it('has 82 frames across the 12 states', () => {
-    expect(STATES).toHaveLength(12);
-    expect(STATES.reduce((n, s) => n + ANIMATIONS[s].frames.length, 0)).toBe(82);
+  it('has 82 frames across the 12 design states', () => {
+    expect(DESIGN_STATES).toHaveLength(12);
+    expect(DESIGN_STATES.reduce((n, s) => n + ANIMATIONS[s].frames.length, 0)).toBe(82);
   });
 
-  for (const state of STATES) {
+  it('draft states are one row of 64x64 cells using only colours already in the design sprites', () => {
+    const palette = new Set<string>();
+    for (const s of DESIGN_STATES) {
+      const png = strip(s);
+      for (let i = 0; i < png.data.length; i += 4) if (png.data[i + 3]) palette.add(png.data.subarray(i, i + 3).join(','));
+    }
+    for (const s of DRAFT_STATES) {
+      const png = strip(s);
+      expect(png.height).toBe(CELL);
+      expect(png.width / CELL).toBe(ANIMATIONS[s].frames.length);
+      const foreign = new Set<string>();
+      for (let i = 0; i < png.data.length; i += 4) {
+        const rgb = png.data.subarray(i, i + 3).join(',');
+        if (png.data[i + 3] && !palette.has(rgb)) foreign.add(rgb);
+      }
+      expect([...foreign], s).toEqual([]);
+    }
+  });
+
+  for (const state of DESIGN_STATES) {
     it(`${state}: one row of 64x64 cells, the expected frame count, only fully transparent or opaque pixels`, () => {
       const png = strip(state);
       expect(png.height).toBe(CELL);

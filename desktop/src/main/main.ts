@@ -18,7 +18,7 @@ import { mergeNotificationSettings } from '../shared/notify';
 import { clampPersonality, react as personalityLine } from '../shared/personality';
 import { describeProposal } from '../shared/proposal';
 import { clampToWorkArea, restorePosition, walkStep, type DisplayInfo } from './placement';
-import { loadSettings, saveSettings, type Settings } from './settings';
+import { loadSettings, mergeClaudeCode, saveSettings, type Settings } from './settings';
 import { ApiClient } from './api';
 import { Session } from './session';
 import { Companion } from './companion';
@@ -26,6 +26,7 @@ import { Dashboard, sessionFile } from './dashboard';
 import { runMeasurement } from './measure';
 import { TaskService } from './tasks';
 import { Notifier } from './notifier';
+import { ClaudeCode } from './claudeCode';
 import { Commands } from './commands';
 import { isAccelerator, Voice } from './voice';
 
@@ -45,6 +46,7 @@ let companion: Companion;
 let dashboard: Dashboard;
 let tasks: TaskService;
 let notifier: Notifier;
+const claude = new ClaudeCode();
 let voice: Voice;
 /** Why the voice shortcut couldn't be registered, or null. */
 let shortcutError: string | null = null;
@@ -73,6 +75,7 @@ function send(channel: string, payload: unknown) {
 
 function pushState(state: FrogState = machine.state) {
   send('frog:state', { state, mirrored: state === 'walking' && walkDirection === -1 });
+  if (!app.isPackaged && process.env.SMOI_LOG_STATES) console.log(`[frog] state ${state}`);
 }
 
 function rememberPosition() {
@@ -116,10 +119,10 @@ function lockDown(win: BrowserWindow) {
 }
 
 function userSettings(): UserSettings {
-  const { reducedMotion, walking, startOnLogin, sleepAfterMinutes, backendUrl, voiceEnabled, shortcut, personality, notifications } = settings;
+  const { reducedMotion, walking, startOnLogin, sleepAfterMinutes, backendUrl, voiceEnabled, shortcut, personality, notifications, claudeCode } = settings;
   return {
     reducedMotion, walking, startOnLogin, sleepAfterMinutes, backendUrl, voiceEnabled, shortcut, shortcutError,
-    personality, notifications,
+    personality, notifications, claudeCode, claudeHooks: claude.status,
   };
 }
 
@@ -138,6 +141,7 @@ function updateSettings(patch: Record<string, unknown>): UserSettings {
   const personality = clampPersonality(patch.personality);
   if (personality) settings.personality = personality;
   if (patch.notifications) settings.notifications = mergeNotificationSettings(settings.notifications, patch.notifications);
+  if (patch.claudeCode) settings.claudeCode = mergeClaudeCode(settings.claudeCode, patch.claudeCode);
   saveSettings(settings);
   if (`${settings.voiceEnabled}|${settings.shortcut}` !== voiceBefore) voice.apply();
   app.setLoginItemSettings({ openAtLogin: settings.startOnLogin });
@@ -531,6 +535,13 @@ function start() {
   electronSession.defaultSession.setPermissionRequestHandler((_wc, _permission, callback) => callback(false));
   electronSession.defaultSession.setPermissionCheckHandler(() => false);
 
+  claude.start({
+    enabled: () => settings.claudeCode.enabled,
+    celebrateAfterMinutes: () => settings.claudeCode.celebrateAfterMinutes,
+    notify: (category, source, event) => notifier.notify(category, source, event),
+    onStatus: () => dashboard.settingsChanged(userSettings()),
+  });
+
   machine.onChange((state) => pushState(state));
   wireFrogIpc();
   createFrog();
@@ -603,6 +614,7 @@ if (!app.requestSingleInstanceLock()) {
     if (frog) rememberPosition();
     voice?.destroy();
     notifier?.destroy();
+    void claude.stop();
     companion?.destroy();
     tray?.destroy();
   });
