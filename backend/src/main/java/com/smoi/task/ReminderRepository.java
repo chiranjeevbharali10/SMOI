@@ -15,7 +15,7 @@ import static com.smoi.task.TaskRepository.ts;
 public class ReminderRepository {
 
     private static final String COLUMNS = """
-            id, user_id, task_id, title, first_at, repeat, weekdays, time_zone, last_fired_at, edited_at,
+            id, user_id, task_id, title, first_at, repeat, weekdays, time_zone, last_fired_at, draft_id, cancelled_reason, edited_at,
             created_at, updated_at, deleted_at""";
 
     private final JdbcClient jdbc;
@@ -24,8 +24,14 @@ public class ReminderRepository {
         this.jdbc = jdbc;
     }
 
+    /** @param draftId a Gmail draft SMOI created that this reminder is about (FR-05.10), or null */
     public record Fields(UUID taskId, String title, Instant firstAt, String repeat, int weekdays, String timeZone,
-                         Instant lastFiredAt, Instant editedAt) {
+                         Instant lastFiredAt, Instant editedAt, UUID draftId) {
+
+        public Fields(UUID taskId, String title, Instant firstAt, String repeat, int weekdays, String timeZone,
+                      Instant lastFiredAt, Instant editedAt) {
+            this(taskId, title, firstAt, repeat, weekdays, timeZone, lastFiredAt, editedAt, null);
+        }
     }
 
     /**
@@ -35,14 +41,14 @@ public class ReminderRepository {
     public Optional<Reminder> upsert(UUID userId, UUID id, Fields f) {
         return jdbc.sql("""
                         INSERT INTO reminders (id, user_id, task_id, title, first_at, repeat, weekdays, time_zone,
-                                               last_fired_at, edited_at)
+                                               last_fired_at, draft_id, edited_at)
                         VALUES (:id, :userId, :taskId, :title, :firstAt, :repeat, :weekdays, :timeZone,
-                                :lastFiredAt, LEAST(CAST(:editedAt AS timestamptz), now()))
+                                :lastFiredAt, :draftId, LEAST(CAST(:editedAt AS timestamptz), now()))
                         ON CONFLICT (id) DO UPDATE
                            SET task_id = EXCLUDED.task_id, title = EXCLUDED.title, first_at = EXCLUDED.first_at,
                                repeat = EXCLUDED.repeat, weekdays = EXCLUDED.weekdays, time_zone = EXCLUDED.time_zone,
                                last_fired_at = GREATEST(reminders.last_fired_at, EXCLUDED.last_fired_at),
-                               edited_at = EXCLUDED.edited_at
+                               draft_id = EXCLUDED.draft_id, edited_at = EXCLUDED.edited_at
                          WHERE reminders.user_id = EXCLUDED.user_id
                            AND reminders.deleted_at IS NULL
                            AND reminders.edited_at <= EXCLUDED.edited_at
@@ -57,9 +63,17 @@ public class ReminderRepository {
                 .param("weekdays", f.weekdays())
                 .param("timeZone", f.timeZone())
                 .param("lastFiredAt", ts(f.lastFiredAt()))
+                .param("draftId", f.draftId())
                 .param("editedAt", ts(f.editedAt()))
                 .query(Reminder.class)
                 .optional();
+    }
+
+    /** Whether the user has this draft (one SMOI created, not deleted). */
+    public boolean draftOwned(UUID userId, UUID draftId) {
+        return jdbc.sql("SELECT count(*) FROM gmail_drafts WHERE id = :id AND user_id = :userId AND deleted_at IS NULL")
+                .param("id", draftId).param("userId", userId)
+                .query(Long.class).single() == 1;
     }
 
     public Optional<Reminder> findIncludingDeleted(UUID userId, UUID id) {
@@ -89,6 +103,19 @@ public class ReminderRepository {
                 .param("userId", userId)
                 .query(Reminder.class)
                 .list();
+    }
+
+    /**
+     * Cancels a reminder because its draft is gone (FR-05.11). It is deleted (so the desktop's next
+     * sync removes it) with the reason recorded, and edited_at moves on so this wins over older edits.
+     */
+    public boolean cancel(UUID userId, UUID id, String reason) {
+        return jdbc.sql("""
+                        UPDATE reminders SET deleted_at = now(), cancelled_reason = :reason, edited_at = now()
+                         WHERE id = :id AND user_id = :userId AND deleted_at IS NULL
+                        """)
+                .param("reason", reason).param("id", id).param("userId", userId)
+                .update() == 1;
     }
 
     public boolean softDelete(UUID userId, UUID id) {

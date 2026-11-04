@@ -26,6 +26,7 @@ public class TaskService {
         this.reminders = reminders;
     }
 
+
     @Transactional
     public Task saveTask(UUID userId, UUID id, TaskRepository.Fields fields) {
         return tasks.upsert(userId, id, fields).orElseGet(() -> {
@@ -48,6 +49,11 @@ public class TaskService {
         }
     }
 
+    /** An active task, or empty. */
+    public java.util.Optional<Task> findTask(UUID userId, UUID id) {
+        return tasks.findIncludingDeleted(userId, id).filter(t -> t.deletedAt() == null);
+    }
+
     public List<Task> listTasks(UUID userId, boolean overdueOnly) {
         return overdueOnly ? tasks.listOverdue(userId) : tasks.listActive(userId);
     }
@@ -57,6 +63,9 @@ public class TaskService {
         validate(fields);
         if (fields.taskId() != null && !tasks.existsActive(userId, fields.taskId())) {
             throw new IllegalArgumentException("The reminder's task doesn't exist.");
+        }
+        if (fields.draftId() != null && !reminders.draftOwned(userId, fields.draftId())) {
+            throw new IllegalArgumentException("The reminder's draft doesn't exist.");
         }
         return reminders.upsert(userId, id, fields).orElseGet(() -> {
             Reminder current = reminders.findIncludingDeleted(userId, id).orElseThrow(NotFoundException::new);
@@ -100,7 +109,7 @@ public class TaskService {
 
     /** The row doesn't exist for this user (or belongs to someone else: same answer, NFR-03.04). */
     public static class NotFoundException extends RuntimeException {
-        NotFoundException() {
+        public NotFoundException() {
             super("Not found.");
         }
     }

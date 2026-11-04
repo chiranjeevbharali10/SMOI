@@ -42,6 +42,9 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/actuator/health", "/actuator/health/**", "/livez", "/readyz").permitAll()
                         // Served only on the management port, which Compose does not publish (docs/adr/0011).
                         .requestMatchers(HttpMethod.GET, "/actuator/prometheus").permitAll()
+                        // Google's redirect after consent. The browser has no SMOI token; the single-use,
+                        // unguessable state parameter identifies the user (GoogleOAuthService).
+                        .requestMatchers(HttpMethod.GET, "/api/google/callback").permitAll()
                         .requestMatchers("/error").permitAll()
                         .anyRequest().authenticated())
                 .oauth2ResourceServer(rs -> rs.jwt(Customizer.withDefaults()))

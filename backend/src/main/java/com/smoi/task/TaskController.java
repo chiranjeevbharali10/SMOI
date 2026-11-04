@@ -80,7 +80,7 @@ public class TaskController {
                                          @Valid @RequestBody ReminderRequest r) {
         return ReminderResponse.from(service.saveReminder(CurrentUser.id(jwt), id, new ReminderRepository.Fields(
                 r.taskId(), r.title().strip(), r.firstAt(), r.repeat() == null ? "none" : r.repeat(),
-                r.weekdays() == null ? 0 : r.weekdays(), r.timeZone(), r.lastFiredAt(), r.editedAt())));
+                r.weekdays() == null ? 0 : r.weekdays(), r.timeZone(), r.lastFiredAt(), r.editedAt(), r.draftId())));
     }
 
     @DeleteMapping("/api/reminders/{id}")
@@ -143,23 +143,26 @@ public class TaskController {
             @Min(0) @Max(127) Integer weekdays,
             @NotBlank @Size(max = 64) String timeZone,
             Instant lastFiredAt,
-            @NotNull Instant editedAt) {
+            @NotNull Instant editedAt,
+            UUID draftId) {
     }
 
     public record TaskResponse(UUID id, String title, String description, String priority, String category,
                                Instant dueAt, Instant completedAt, Instant editedAt, Instant createdAt,
                                Instant deletedAt) {
-        static TaskResponse from(Task t) {
+        public static TaskResponse from(Task t) {
             return new TaskResponse(t.id(), t.title(), t.description(), t.priority(), t.category(), t.dueAt(),
                     t.completedAt(), t.editedAt(), t.createdAt(), t.deletedAt());
         }
     }
 
+    /** @param cancelledReason "draft_gone" when SMOI cancelled it because its draft was sent or deleted (FR-05.11) */
     public record ReminderResponse(UUID id, UUID taskId, String title, Instant firstAt, String repeat, int weekdays,
-                                   String timeZone, Instant lastFiredAt, Instant editedAt, Instant deletedAt) {
-        static ReminderResponse from(Reminder r) {
+                                   String timeZone, Instant lastFiredAt, Instant editedAt, Instant deletedAt,
+                                   UUID draftId, String cancelledReason) {
+        public static ReminderResponse from(Reminder r) {
             return new ReminderResponse(r.id(), r.taskId(), r.title(), r.firstAt(), r.repeat(), r.weekdays(),
-                    r.timeZone(), r.lastFiredAt(), r.editedAt(), r.deletedAt());
+                    r.timeZone(), r.lastFiredAt(), r.editedAt(), r.deletedAt(), r.draftId(), r.cancelledReason());
         }
     }
 

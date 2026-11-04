@@ -116,6 +116,41 @@ smoi:
       minimum-calls: 4
       wait-in-open: PT30S
       permitted-calls-in-half-open: 2
+    google:
+      failure-rate-threshold: 50
+      sliding-window: 10
+      minimum-calls: 4
+      wait-in-open: PT30S
+      permitted-calls-in-half-open: 2
+  google:
+    # Google Calendar and Gmail (Phase 8, docs/adr/0017 and 0018). Optional: without these,
+    # Google features answer "not configured" and everything else works.
+    client-id: ${GOOGLE_CLIENT_ID:}
+    client-secret: ${GOOGLE_CLIENT_SECRET:}
+    # Base64 AES-256 key (32 bytes) that encrypts refresh tokens at rest.
+    token-key: ${GOOGLE_TOKEN_KEY:}
+    # Must be registered as an authorised redirect URI in the Google Cloud console.
+    redirect-uri: ${GOOGLE_REDIRECT_URI:http://localhost:8080/api/google/callback}
+    auth-url: https://accounts.google.com/o/oauth2/v2/auth
+    token-url: https://oauth2.googleapis.com/token
+    revoke-url: https://oauth2.googleapis.com/revoke
+    gmail-url: https://gmail.googleapis.com
+    calendar-url: https://www.googleapis.com/calendar/v3
+    timeout: PT10S
+    max-retries: 3
+    backoff-base: PT1S
+    # How long a proposed event or draft change waits for the user's confirmation.
+    action-ttl: PT30M
+    gmail:
+      # The bounded first sync, also used when the saved historyId has expired.
+      first-sync-query: "is:unread category:primary newer_than:1d"
+      max-results: 50
+    busy:
+      # "Suspiciously busy": 6 or more hours of events in a day, or 3 or more back to back
+      # (under 10 minutes apart).
+      meeting-hours: 6
+      back-to-back: 3
+      gap-minutes: 10
   rate-limit:
     # Per-user token buckets stored in Postgres, so every backend instance shares them.
     # capacity = burst size; refill-per-minute = sustained rate.

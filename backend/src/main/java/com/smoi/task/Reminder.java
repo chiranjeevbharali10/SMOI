@@ -17,6 +17,8 @@ public record Reminder(
         int weekdays,
         String timeZone,
         Instant lastFiredAt,
+        UUID draftId,
+        String cancelledReason,
         Instant editedAt,
         Instant createdAt,
         Instant updatedAt,

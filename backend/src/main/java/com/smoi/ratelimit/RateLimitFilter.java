@@ -57,7 +57,8 @@ public class RateLimitFilter extends OncePerRequestFilter {
         String path = request.getRequestURI();
         if (path.equals("/api/query") || path.equals("/api/query/stream")
                 || path.equals("/api/documents/compare") || path.matches("/api/documents/[^/]+/summary")
-                || path.equals("/api/commands/interpret") || path.equals("/api/voice/transcribe")) {
+                || path.equals("/api/commands/interpret") || path.equals("/api/voice/transcribe")
+                || path.equals("/api/email/sync") || path.equals("/api/email/classify")) {
             return RateLimitProperties.QUERY;
         }
         if (path.equals("/api/search")) {

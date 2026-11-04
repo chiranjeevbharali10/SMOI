@@ -3,6 +3,7 @@ package com.smoi.resilience;
 import java.util.function.Supplier;
 
 import com.smoi.embedding.EmbeddingException;
+import com.smoi.google.GoogleExceptions;
 import com.smoi.llm.LlmUnavailableException;
 import com.smoi.retrieval.rerank.RerankerUnavailableException;
 import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
@@ -41,11 +42,13 @@ public class ProviderCircuitBreakers {
     private final CircuitBreaker llm;
     private final CircuitBreaker embedding;
     private final CircuitBreaker reranker;
+    private final CircuitBreaker google;
 
     public ProviderCircuitBreakers(ResilienceProperties props, MeterRegistry meters) {
         this.llm = create("llm", props.llm(), LlmUnavailableException.class);
         this.embedding = create("embedding", props.embedding(), EmbeddingException.class);
         this.reranker = create("reranker", props.reranker(), RerankerUnavailableException.class);
+        this.google = create("google", props.google(), GoogleExceptions.Unavailable.class);
         // Publishes resilience4j_circuitbreaker_state and call counts to Prometheus.
         TaggedCircuitBreakerMetrics.ofCircuitBreakerRegistry(registry).bindTo(meters);
     }
@@ -91,6 +94,15 @@ public class ProviderCircuitBreakers {
         }
     }
 
+    /** Google Calendar and Gmail (Phase 8). Only outages count; a 404 or a reconnect doesn't. */
+    public <T> T google(Supplier<T> call) {
+        try {
+            return google.executeSupplier(call);
+        } catch (CallNotPermittedException e) {
+            throw new GoogleExceptions.Unavailable("Google is failing, so SMOI is pausing calls to it for a while.", e);
+        }
+    }
+
     public CircuitBreaker.State llmState() {
         return llm.getState();
     }
@@ -104,5 +116,6 @@ public class ProviderCircuitBreakers {
         llm.reset();
         embedding.reset();
         reranker.reset();
+        google.reset();
     }
 }

@@ -6,7 +6,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /** Circuit breaker settings per provider ({@code smoi.resilience.*}). */
 @ConfigurationProperties("smoi.resilience")
-public record ResilienceProperties(Breaker llm, Breaker embedding, Breaker reranker) {
+public record ResilienceProperties(Breaker llm, Breaker embedding, Breaker reranker, Breaker google) {
 
     /**
      * @param failureRateThreshold       percentage of failed calls in the window that opens the breaker
