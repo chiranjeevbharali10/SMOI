@@ -41,3 +41,6 @@ desktop/release/
 
 # Desktop check output (screenshots and results); the summary used in docs is copied by hand
 desktop/test-results/
+
+# Google OAuth client downloads hold a client secret
+client_secret*.json
