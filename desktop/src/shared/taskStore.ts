@@ -39,6 +39,8 @@ export interface ReminderItem {
   timeZone: string;
   lastFiredAt: string | null;
   editedAt: string;
+  /** A Gmail draft SMOI created that this reminder is about (FR-05.10). */
+  draftId?: string | null;
   syncError?: string;
 }
 
@@ -179,7 +181,7 @@ function toTask(r: ServerTask): TaskItem {
 function toReminder(r: ServerReminder): ReminderItem {
   return {
     id: r.id, taskId: r.taskId ?? null, title: r.title, firstAt: r.firstAt, repeat: r.repeat ?? 'none', weekdays: r.weekdays ?? 0,
-    timeZone: r.timeZone, lastFiredAt: r.lastFiredAt ?? null, editedAt: r.editedAt,
+    timeZone: r.timeZone, lastFiredAt: r.lastFiredAt ?? null, editedAt: r.editedAt, draftId: r.draftId ?? null,
   };
 }
 

@@ -3,7 +3,9 @@
  * API: no Node, no ipcRenderer, no file paths, no network. The main process validates every
  * message (src/main/ipc.ts).
  */
-import type { ApiFailure, ChunkInfo, DocumentInfo, Me, Proposal, Providers, StreamEvent } from './apiTypes';
+import type {
+  ApiFailure, ChunkInfo, DocumentInfo, DraftItem, EmailItem, GooglePreview, GoogleStatus, Me, Proposal, Providers, StreamEvent, Upcoming,
+} from './apiTypes';
 import type { NotificationSettings } from './notify';
 import type { BubbleTone, PanelRowId } from './panelActions';
 import type { Personality } from './personality';
@@ -103,7 +105,7 @@ export interface RecorderBridge {
 
 // ---------- dashboard window ----------
 
-export type DashboardView = 'home' | 'tasks' | 'brain' | 'chat' | 'settings';
+export type DashboardView = 'home' | 'tasks' | 'calendar' | 'inbox' | 'brain' | 'chat' | 'settings';
 
 export interface UserSettings {
   reducedMotion: boolean;
@@ -154,6 +156,8 @@ export interface ReminderInput {
   repeat: Repeat;
   weekdays: number;
   taskId: string | null;
+  /** A draft SMOI created ("remind me to send this"). */
+  draftId?: string | null;
 }
 
 /** A typed command, interpreted: what it means, and an id to confirm it with. */
@@ -209,6 +213,55 @@ export interface DashboardBridge {
   onVoiceQuestion(cb: (question: string) => void): void;
   onSettings(cb: (s: UserSettings) => void): void;
   onNavigate(cb: (view: DashboardView) => void): void;
+  // Google Calendar and Gmail (Phase 8)
+  google(): Promise<GoogleView>;
+  onGoogle(cb: (g: GoogleView) => void): void;
+  /** Opens Google's consent page in the browser. */
+  connectGoogle(): Promise<Result<void>>;
+  /** The main process asks whether to delete email data too, in a native dialog. */
+  disconnectGoogle(): Promise<Result<{ disconnected: boolean; revoked: boolean }>>;
+  /** Opens a Gmail or Google Calendar link in the browser (Google's own sites only). */
+  openGoogleLink(url: string): Promise<Result<void>>;
+  upcoming(): Promise<Result<Upcoming>>;
+  proposeEvent(input: EventInput): Promise<Result<PreviewOutcome>>;
+  proposeEventChange(eventId: string, input: Partial<EventInput>): Promise<Result<PreviewOutcome>>;
+  proposeEventDelete(eventId: string): Promise<Result<PreviewOutcome>>;
+  /** Applies a proposal the user confirmed. Only ids from a propose call are accepted. */
+  confirmGoogle(previewId: string): Promise<Result<{ saved: string }>>;
+  emails(): Promise<Result<EmailItem[]>>;
+  syncEmail(): Promise<Result<EmailItem[]>>;
+  emailToTask(emailId: string): Promise<Result<{ title: string }>>;
+  indexEmail(emailId: string, on: boolean): Promise<Result<EmailItem>>;
+  drafts(): Promise<Result<DraftItem[]>>;
+  proposeDraft(input: DraftInput, draftId?: string): Promise<Result<PreviewOutcome>>;
   /** The page is ready for input (for the NFR-01.02 measurement). */
   ready(): void;
+}
+
+export interface GoogleView {
+  signedIn: boolean;
+  status: GoogleStatus | null;
+  syncing: boolean;
+  unseen: number;
+  lastError: string | null;
+}
+
+export interface EventInput {
+  title: string;
+  start: string;
+  end: string;
+  reminderMinutes: number[] | null;
+}
+
+export interface DraftInput {
+  to: string;
+  subject: string;
+  body: string;
+}
+
+/** A Google proposal and how to show it. Nothing has changed in Google yet. */
+export interface PreviewOutcome {
+  id: string;
+  preview: GooglePreview;
+  view: ProposalView;
 }

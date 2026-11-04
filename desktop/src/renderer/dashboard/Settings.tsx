@@ -1,5 +1,6 @@
 import { useState, type KeyboardEvent } from 'react';
-import type { SettingsPatch, UserSettings } from '../../shared/bridge';
+import type { GoogleView, SettingsPatch, UserSettings } from '../../shared/bridge';
+import { GoogleSettings } from './GoogleSettings';
 import { CATEGORIES, type Level, type NotificationSettings } from '../../shared/notify';
 import { PRESETS, type Personality, type PresetId } from '../../shared/personality';
 
@@ -27,7 +28,7 @@ function accelerator(e: KeyboardEvent): string | null {
 }
 
 /** The same settings as the tray menu, plus voice, personality and notifications. */
-export function Settings({ settings }: { settings: UserSettings }) {
+export function Settings({ settings, google }: { settings: UserSettings; google: GoogleView | null }) {
   const update = (patch: SettingsPatch) => void api().updateSettings(patch);
   const [recording, setRecording] = useState(false);
   const [keyHint, setKeyHint] = useState<string | null>(null);
@@ -110,6 +111,8 @@ export function Settings({ settings }: { settings: UserSettings }) {
           Strictness 2 or more keeps reminders on screen until you dismiss them; at 0, SMOI doesn't mention overdue tasks.
         </p>
       </section>
+
+      <GoogleSettings google={google} />
 
       <section className="card" aria-labelledby="h-claude">
         <h3 id="h-claude">Claude Code</h3>

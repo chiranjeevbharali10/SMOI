@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { initialAnswer, reduceAnswer } from '../../shared/answer';
 import type { DocumentInfo, StreamEvent } from '../../shared/apiTypes';
-import type { BackendStatus, DashboardView, SessionStatus, TasksSnapshot, UserSettings } from '../../shared/bridge';
+import type { BackendStatus, DashboardView, GoogleView, SessionStatus, TasksSnapshot, UserSettings } from '../../shared/bridge';
+import { Calendar } from './Calendar';
+import { Inbox } from './Inbox';
 import { Brain, type Exchange } from './Brain';
 import { Face } from './Face';
 import { Home } from './Home';
@@ -16,6 +18,8 @@ const NAV: { view: DashboardView; label: string }[] = [
   { view: 'home', label: 'Home' },
   { view: 'chat', label: 'Talk to SMOI' },
   { view: 'tasks', label: 'Tasks' },
+  { view: 'calendar', label: 'Calendar' },
+  { view: 'inbox', label: 'Inbox' },
   { view: 'brain', label: 'SMOI Brain' },
   { view: 'settings', label: 'Settings' },
 ];
@@ -29,6 +33,7 @@ export function App() {
   const [docs, setDocs] = useState<DocumentInfo[]>([]);
   const [backend, setBackend] = useState<BackendStatus | null>(null);
   const [settings, setSettings] = useState<UserSettings | null>(null);
+  const [google, setGoogle] = useState<GoogleView | null>(null);
   const [exchanges, setExchanges] = useState<Exchange[]>([]);
   /** Events can arrive before ask() has returned the request id; they wait here. */
   const early = useRef(new Map<string, StreamEvent[]>());
@@ -43,6 +48,8 @@ export function App() {
     void api().session().then(setSession);
     void api().backend().then(setBackend);
     void api().settings().then(setSettings);
+    void api().google().then(setGoogle);
+    api().onGoogle(setGoogle);
     api().onSession(setSession);
     api().onBackend(setBackend);
     api().onSettings(setSettings);
@@ -124,7 +131,9 @@ export function App() {
         <nav aria-label="Dashboard">
           {NAV.map((n) => (
             <button key={n.view} type="button" className="btn nav-btn" aria-current={view === n.view ? 'page' : undefined}
-                    onClick={() => setView(n.view)}>{n.label}</button>
+                    onClick={() => setView(n.view)}>
+              {n.label}{n.view === 'inbox' && google?.unseen ? ` (${google.unseen})` : ''}
+            </button>
           ))}
         </nav>
         <div className="account">
@@ -149,8 +158,10 @@ export function App() {
         {view === 'home' && backend && <Home docs={docs} backend={backend} go={navigate} />}
         {view === 'chat' && <Talk exchanges={exchanges} onAsk={ask} focusAsk={focusAsk} />}
         {view === 'tasks' && tasks && <Tasks snapshot={tasks} backendReachable={backend?.reachable ?? true} />}
+        {view === 'calendar' && <Calendar google={google} />}
+        {view === 'inbox' && <Inbox google={google} />}
         {view === 'brain' && <Brain docs={docs} exchanges={exchanges} onAsk={onAsk} focusAsk={focusAsk} />}
-        {view === 'settings' && settings && <Settings settings={settings} />}
+        {view === 'settings' && settings && <Settings settings={settings} google={google} />}
       </main>
     </div>
   );

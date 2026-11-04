@@ -29,6 +29,13 @@ export interface TaskServiceDeps {
   onOverdue: (count: number) => void;
   /** The store changed (dashboard list, panel count). */
   onChange: (s: StoreState) => void;
+  /**
+   * For a reminder linked to a Gmail draft: asks the backend whether the draft still exists
+   * (FR-05.11). Null when it couldn't be asked; the reminder then fires as normal.
+   */
+  checkDraft?: (reminderId: string) => Promise<{ fire: boolean; message: string | null } | null>;
+  /** The draft was gone, so the backend cancelled the reminder; SMOI says why. */
+  onDraftGone?: (r: ReminderItem, message: string) => void;
 }
 
 const SCHEDULER_MS = 15_000;
@@ -164,8 +171,22 @@ export class TaskService {
       if (due === null) continue;
       // Record it first, so a crash while showing it can't make it fire twice.
       this.saveReminder({ ...r, lastFiredAt: new Date(due).toISOString(), editedAt: new Date(now).toISOString() });
-      this.deps.onReminder(r, now - due > MISSED_AFTER_MS);
+      const missed = now - due > MISSED_AFTER_MS;
+      if (r.draftId && this.deps.checkDraft) void this.fireDraftReminder(r, missed);
+      else this.deps.onReminder(r, missed);
     }
+  }
+
+  /** Fires a draft-linked reminder only if its draft still exists; otherwise drops it and says why. */
+  private async fireDraftReminder(r: ReminderItem, missed: boolean): Promise<void> {
+    const check = await this.deps.checkDraft!(r.id).catch(() => null);
+    if (check && !check.fire) {
+      // The backend already cancelled it; drop the local copy without sending a delete.
+      this.update({ ...this.state, reminders: Object.fromEntries(Object.entries(this.state.reminders).filter(([id]) => id !== r.id)) }, false);
+      this.deps.onDraftGone?.(r, check.message ?? 'The draft for this reminder is gone, so I cancelled the reminder.');
+      return;
+    }
+    this.deps.onReminder(r, missed);
   }
 
   // ---------- plumbing ----------

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { Proposal } from '../src/shared/apiTypes';
-import { describeProposal, formatWhen, reminderFrom, taskFrom } from '../src/shared/proposal';
+import { describeGooglePreview, describeProposal, formatWhen, reminderFrom, taskFrom } from '../src/shared/proposal';
 
 const base: Proposal = { intent: 'unknown', available: true, task: null, reminder: null, question: null, problem: null };
 const TZ = 'Europe/London';
@@ -23,8 +23,37 @@ describe('describing a proposal before acting', () => {
     expect(v).toEqual({ actionable: false, heading: 'That time has already passed.', details: [], confirmLabel: null });
   });
 
-  it('calendar and email say they aren’t available yet', () => {
-    expect(describeProposal({ ...base, intent: 'draft_email', available: false }, TZ).heading).toBe("Drafting emails isn't available yet.");
+  it('an intent the backend marks unavailable says so', () => {
+    expect(describeProposal({ ...base, intent: 'draft_email', available: false }, TZ).heading).toBe("That isn't available yet.");
+  });
+
+  it('describes a new event with its conflicts before anything changes', () => {
+    const v = describeGooglePreview({
+      id: 'a1', kind: 'create_event', expiresAt: '2026-11-04T10:00:00Z', before: null,
+      after: { title: 'Lunch', start: '2026-11-06T12:30:00Z', end: '2026-11-06T13:30:00Z', reminderMinutes: [10] },
+      conflicts: [{ id: 'e1', title: 'Standup', start: '2026-11-06T13:00:00Z', end: '2026-11-06T13:15:00Z', startDate: null, endDate: null,
+        link: '', reminderMinutes: null }],
+    }, 'UTC');
+    expect(v.actionable).toBe(true);
+    expect(v.heading).toContain('overlaps');
+    expect(v.details).toEqual(['“Lunch”, Fri 6 Nov, 12:30 to 13:30', 'Reminders: 10 min before', 'Overlaps “Standup”, Fri 6 Nov, 13:00 to 13:15']);
+    expect(v.confirmLabel).toBe('Add event');
+  });
+
+  it('shows before and after for a change, and says drafts are sent by the user', () => {
+    const change = describeGooglePreview({
+      id: 'a2', kind: 'update_event', expiresAt: '', conflicts: [],
+      before: { title: 'Dentist', start: '2026-11-04T09:00:00Z', end: '2026-11-04T10:00:00Z' },
+      after: { title: 'Dentist', start: '2026-11-04T16:00:00Z', end: '2026-11-04T17:00:00Z' },
+    }, 'UTC');
+    expect(change.details[0]).toBe('Now: “Dentist”, Wed 4 Nov, 09:00 to 10:00');
+    expect(change.details[1]).toBe('New: “Dentist”, Wed 4 Nov, 16:00 to 17:00');
+    const draft = describeGooglePreview({
+      id: 'a3', kind: 'create_draft', expiresAt: '', conflicts: [], before: null,
+      after: { to: 'sam@example.com', subject: 'Late', body: 'Ten minutes.' },
+    }, 'UTC');
+    expect(draft.heading).toContain('You send it yourself');
+    expect(draft.details).toEqual(['To: sam@example.com', 'Subject: Late', 'Ten minutes.']);
   });
 
   it('anything else says SMOI can’t do it', () => {

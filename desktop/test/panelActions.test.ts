@@ -45,11 +45,6 @@ describe('panel mapping', () => {
     });
   });
 
-  it.each(['calendar', 'inbox'] as PanelRowId[])('%s is not available yet: no effect, no line', (row) => {
-    expect(AVAILABLE_ROWS.has(row)).toBe(false);
-    expect(effectOf(row)).toBeNull();
-  });
-
   it('View tasks is available, uses the real count and opens the tasks screen', () => {
     expect(AVAILABLE_ROWS.has('tasks')).toBe(true);
     expect(effectOf('tasks', AVAILABLE_ROWS, { openTasks: 3 })).toEqual({
@@ -63,17 +58,29 @@ describe('panel mapping', () => {
     expect(effectOf('tasks', AVAILABLE_ROWS, { openTasks: 0 })!.bubble).toBeNull();
   });
 
-  describe('once calendar and inbox exist', () => {
-    const all = new Set<PanelRowId>(PANEL_ROWS.map((r) => r.id));
+  describe('calendar and inbox (Phase 8)', () => {
+    it('are available and open their screens', () => {
+      expect(AVAILABLE_ROWS.has('calendar')).toBe(true);
+      expect(AVAILABLE_ROWS.has('inbox')).toBe(true);
+      expect(effectOf('calendar')!.opens).toBe('calendar');
+      expect(effectOf('inbox')!.opens).toBe('inbox');
+    });
 
-    it('calendar and inbox are pink, annoyed and surprised', () => {
-      expect(effectOf('calendar', all)).toEqual({
+    it('say the busy line only when today really is busy', () => {
+      expect(effectOf('calendar', AVAILABLE_ROWS, { busyToday: true })).toEqual({
         frog: 'annoyed', bubble: { tone: 'urgent', text: 'Your calendar looks suspiciously busy today.' },
-        mood: 'judging a little', opens: null,
+        mood: 'judging a little', opens: 'calendar',
       });
-      expect(effectOf('inbox', all)).toEqual({
-        frog: 'surprised', bubble: { tone: 'urgent', text: 'Psst. Someone emailed you.' }, mood: 'startled', opens: null,
+      expect(effectOf('calendar', AVAILABLE_ROWS, { busyToday: false })!.bubble).toBeNull();
+      expect(effectOf('calendar')!.bubble).toBeNull();
+    });
+
+    it('say the email line only when new mail arrived, and never what it is', () => {
+      expect(effectOf('inbox', AVAILABLE_ROWS, { newEmails: 2 })).toEqual({
+        frog: 'surprised', bubble: { tone: 'urgent', text: 'Psst. Someone emailed you.' }, mood: 'startled', opens: 'inbox',
       });
+      expect(effectOf('inbox', AVAILABLE_ROWS, { newEmails: 0 })!.bubble).toBeNull();
+      expect(effectOf('inbox')!.bubble).toBeNull();
     });
   });
 });

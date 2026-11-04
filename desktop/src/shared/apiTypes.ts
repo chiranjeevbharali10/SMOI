@@ -97,7 +97,9 @@ export type StreamEvent =
 /** Why a request failed, in words the user can act on. Never hidden behind personality. */
 export type ApiErrorKind =
   | 'unreachable' | 'timeout' | 'bad_credentials' | 'session_expired' | 'rate_limited'
-  | 'not_found' | 'gone' | 'invalid' | 'conflict' | 'too_large' | 'unsupported' | 'unavailable' | 'server';
+  | 'not_found' | 'gone' | 'invalid' | 'conflict' | 'too_large' | 'unsupported' | 'unavailable' | 'server'
+  // Google (Phase 8): from the problem's "code"
+  | 'google_reconnect' | 'google_not_connected' | 'google_not_configured';
 
 export interface ApiFailure {
   kind: ApiErrorKind;
@@ -116,7 +118,8 @@ export interface SyncResult {
 
 /** What SMOI understood a command to mean (backend com.smoi.command.Proposal). Nothing done yet. */
 export interface Proposal {
-  intent: 'create_task' | 'create_reminder' | 'ask_brain' | 'list_events' | 'create_event' | 'draft_email' | 'unknown';
+  intent: 'create_task' | 'create_reminder' | 'ask_brain' | 'list_events' | 'create_event' | 'update_event' | 'delete_event'
+    | 'draft_email' | 'unknown';
   /** False for intents whose feature isn't built yet. */
   available: boolean;
   task: { title: string; dueAt: string | null; priority: 'low' | 'normal' | 'high' } | null;
@@ -124,4 +127,100 @@ export interface Proposal {
   question: string | null;
   /** A plain sentence explaining why the command can't be used as it stands. */
   problem: string | null;
+  event?: { title: string; start: string; end: string } | null;
+  /** Which event to change (words from its title, and its day), and the new start; null newStart for a delete. */
+  eventChange?: { query: string; day: string; newStart: string | null; delete: boolean } | null;
+  email?: { to: string; subject: string; body: string } | null;
+}
+
+// ---------- Google Calendar and Gmail (Phase 8) ----------
+
+export interface GoogleScope {
+  scope: string;
+  name: string;
+  why: string;
+}
+
+export interface GoogleStatus {
+  status: 'not_configured' | 'not_connected' | 'connected' | 'reconnect_required';
+  email: string | null;
+  grantedScopes: string[];
+  scopes: GoogleScope[];
+}
+
+export interface CalendarEvent {
+  id: string;
+  title: string;
+  /** Timed events. */
+  start: string | null;
+  end: string | null;
+  /** All-day events (YYYY-MM-DD; end is exclusive). */
+  startDate: string | null;
+  endDate: string | null;
+  link: string;
+  reminderMinutes: number[] | null;
+}
+
+export interface Upcoming {
+  events: CalendarEvent[];
+  today: { busy: boolean; booked: string; longestRun: number; reason: string | null };
+}
+
+export type EmailCategory = 'recruitment' | 'academic' | 'personal' | 'important' | 'promotional';
+
+/** All text fields are untrusted email content, shown only as plain text. */
+export interface EmailItem {
+  id: string;
+  from: string;
+  subject: string;
+  receivedAt: string;
+  category: EmailCategory | null;
+  summary: string;
+  gmailLink: string;
+  indexed: boolean;
+  taskId: string | null;
+}
+
+export interface EmailAlert {
+  id: string;
+  receivedAt: string;
+}
+
+export interface SyncSummary {
+  fullSync: boolean;
+  newMessages: number;
+  classified: number;
+  unclassified: number;
+}
+
+export interface DraftItem {
+  id: string;
+  to: string;
+  subject: string;
+  body: string;
+  gmailLink: string;
+  gone: boolean;
+}
+
+/** A change to Google waiting for the user's confirmation (the backend's google_actions row). */
+export interface GooglePreview {
+  id: string;
+  kind: 'create_event' | 'update_event' | 'delete_event' | 'create_draft' | 'update_draft';
+  expiresAt: string;
+  before: unknown;
+  after: unknown;
+  conflicts: CalendarEvent[];
+}
+
+export interface GoogleOutcome {
+  id: string;
+  kind: GooglePreview['kind'];
+  status: 'applied' | 'failed' | 'proposed' | 'applying';
+  result: Record<string, unknown> | null;
+}
+
+export interface ReminderCheck {
+  fire: boolean;
+  checked: boolean;
+  message: string | null;
 }

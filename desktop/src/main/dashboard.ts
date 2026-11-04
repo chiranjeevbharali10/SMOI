@@ -17,12 +17,14 @@ import { performance } from 'node:perf_hooks';
 import { ApiClient, ApiError } from './api';
 import type { Session } from './session';
 import type { Commands } from './commands';
+import type { GoogleService, GoogleState } from './google';
 import type { TaskService } from './tasks';
-import type { DocumentInfo, StreamEvent } from '../shared/apiTypes';
+import type { DocumentInfo, GooglePreview, StreamEvent } from '../shared/apiTypes';
 import type {
-  BackendStatus, DashboardView, ReminderInput, Result, SessionStatus, TaskInput, TasksSnapshot, UserSettings,
+  BackendStatus, DashboardView, DraftInput, EventInput, GoogleView, PreviewOutcome, ReminderInput, Result, SessionStatus, TaskInput,
+  TasksSnapshot, UserSettings,
 } from '../shared/bridge';
-import { newReminder } from '../shared/proposal';
+import { describeGooglePreview, newReminder } from '../shared/proposal';
 import { isTimeZone } from '../shared/recurrence';
 import { sortedTasks, type Priority, type ReminderItem, type StoreState, type TaskItem } from '../shared/taskStore';
 
@@ -45,6 +47,7 @@ export interface DashboardDeps {
   timeZone: () => string;
   /** Documents finished indexing since the last check. */
   onIndexed: (count: number) => void;
+  google: GoogleService;
 }
 
 export interface OpenTiming {
@@ -64,6 +67,8 @@ export class Dashboard {
   private openStart: { at: number; cold: boolean } | null = null;
   private timingListeners: ((t: OpenTiming) => void)[] = [];
   private pendingView: DashboardView = 'home';
+  /** Google proposals made from this window; only these ids can be confirmed. */
+  private readonly previews = new Map<string, { preview: GooglePreview; at: number }>();
 
   constructor(private readonly deps: DashboardDeps) {
     this.wireIpc();
@@ -123,6 +128,49 @@ export class Dashboard {
 
   settingsChanged(s: UserSettings): void {
     this.send('settings:changed', s);
+  }
+
+  googleChanged(g: GoogleState): void {
+    if (this.window) this.send('google:changed', this.googleView(g));
+  }
+
+  private googleView(g: GoogleState = this.deps.google.current): GoogleView {
+    return { signedIn: this.deps.session.status().signedIn, status: g.status, syncing: g.syncing, unseen: g.unseen, lastError: g.lastError };
+  }
+
+  /** Keeps a Google proposal so the page can confirm it by id, and describes it. */
+  private keep(preview: GooglePreview): PreviewOutcome {
+    const now = Date.now();
+    for (const [id, p] of this.previews) if (now - p.at > 30 * 60_000) this.previews.delete(id);
+    this.previews.set(preview.id, { preview, at: now });
+    return { id: preview.id, preview, view: describeGooglePreview(preview, this.deps.timeZone()) };
+  }
+
+  /** Runs a Google call; a reconnect or other Google error also updates the shared status. */
+  private google<T>(fn: () => Promise<T>): Promise<Result<T>> {
+    return wrap(async () => {
+      try {
+        return await fn();
+      } catch (e) {
+        this.deps.google.handle(e);
+        throw e;
+      }
+    });
+  }
+
+  private async disconnectGoogle(): Promise<{ disconnected: boolean; revoked: boolean }> {
+    const options: Electron.MessageBoxOptions = {
+      type: 'warning', buttons: ['Disconnect and delete email data', 'Disconnect, keep email data', 'Cancel'],
+      defaultId: 2, cancelId: 2, noLink: true, title: 'Disconnect Google',
+      message: 'Disconnect your Google account from SMOI?',
+      detail: 'SMOI revokes its access at Google. You can also delete the emails SMOI stored and anything it added to '
+        + 'SMOI Brain from them. Tasks you made from emails, and drafts already in Gmail, are kept.',
+    };
+    const w = this.window;
+    const choice = w ? await dialog.showMessageBox(w, options) : await dialog.showMessageBox(options);
+    if (choice.response === 2) return { disconnected: false, revoked: false };
+    const r = await this.deps.google.disconnect(choice.response === 0);
+    return { disconnected: true, revoked: r.revoked };
   }
 
   tasksChanged(s: StoreState, ready: boolean): void {
@@ -301,7 +349,45 @@ export class Dashboard {
       return { deleted: true };
     }));
     handle('command:interpret', (t) => wrap(() => this.deps.commands.interpret(str(typeof t === 'string' ? t.trim() : t, 1000))));
-    handle('command:confirm', (id) => wrap(async () => ({ saved: this.deps.commands.confirm(str(id, 64)) })));
+    handle('command:confirm', (id) => wrap(async () => ({ saved: await this.deps.commands.confirm(str(id, 64)) })));
+    // ---- Google (Phase 8) ----
+    const g = this.deps.google;
+    const api = this.deps.api;
+    handle('google:get', () => this.googleView());
+    handle('google:connect', () => this.google(() => g.connect()));
+    handle('google:disconnect', () => this.google(() => this.disconnectGoogle()));
+    handle('google:open', (url) => wrap(() => g.open(str(url, 2000))));
+    handle('calendar:upcoming', () => this.google(() => api.upcoming(this.deps.timeZone())));
+    handle('calendar:propose', (input) => this.google(async () => this.keep(await api.proposeEvent(eventInput(input)))));
+    handle('calendar:propose-change', (id, input) => this.google(async () =>
+      this.keep(await api.proposeEventUpdate(eventId(id), eventInput(input, true)))));
+    handle('calendar:propose-delete', (id) => this.google(async () => this.keep(await api.proposeEventDelete(eventId(id)))));
+    handle('google:confirm', (id) => this.google(async () => {
+      const kept = this.previews.get(str(id, 64));
+      if (!kept) throw new Error('That proposal has expired. Make it again.');
+      const saved = await this.deps.commands.applyGoogle(kept.preview);
+      this.previews.delete(kept.preview.id);
+      return { saved };
+    }));
+    handle('email:list', () => this.google(async () => {
+      g.seen();
+      return api.emails();
+    }));
+    handle('email:sync', () => this.google(async () => {
+      await g.sync();
+      g.seen();
+      return api.emails();
+    }));
+    handle('email:task', (id) => this.google(async () => {
+      const t = await api.emailToTask(str(id, 64));
+      void this.deps.tasks.sync();
+      return { title: t.title };
+    }));
+    handle('email:index', (id, on) => this.google(() => api.indexEmail(str(id, 64), on === true)));
+    handle('drafts:list', () => this.google(() => api.drafts()));
+    handle('drafts:propose', (input, draftId) => this.google(async () =>
+      this.keep(await api.proposeDraft(draftInput(input), draftId === undefined || draftId === null ? undefined : str(draftId, 64)))));
+
     handle('backend:status', () => this.deps.backend());
     handle('settings:get', () => this.deps.settings());
     handle('settings:update', (patch) => {
@@ -378,6 +464,50 @@ export function taskInput(v: unknown, existing: Record<string, TaskItem>): TaskI
   };
 }
 
+const EVENT_ID = /^[A-Za-z0-9_-]{1,1024}$/;
+
+function eventId(v: unknown): string {
+  if (typeof v !== 'string' || !EVENT_ID.test(v)) throw new Error('Invalid event');
+  return v;
+}
+
+/** Checks an event from the page. With `partial`, missing fields keep the event's current value. */
+export function eventInput(v: unknown, partial = false): EventInput {
+  const i = (v ?? {}) as Partial<EventInput>;
+  if (typeof i !== 'object') throw new Error('Invalid input');
+  const out: Partial<EventInput> = {};
+  if (i.title !== undefined || !partial) out.title = text(i.title, 300, true);
+  for (const k of ['start', 'end'] as const) {
+    if (i[k] !== undefined || !partial) {
+      const iso = isoOrNull(i[k]);
+      if (!iso) throw new Error('Choose when the event starts and ends.');
+      out[k] = iso;
+    }
+  }
+  if (out.start && out.end && Date.parse(out.end) <= Date.parse(out.start)) throw new Error('The event must end after it starts.');
+  if (i.reminderMinutes !== undefined && i.reminderMinutes !== null) {
+    if (!Array.isArray(i.reminderMinutes) || i.reminderMinutes.length > 5
+      || !i.reminderMinutes.every((m) => Number.isInteger(m) && m >= 0 && m <= 40320)) throw new Error('Invalid reminders');
+    out.reminderMinutes = i.reminderMinutes;
+  } else if (!partial) {
+    out.reminderMinutes = null;
+  }
+  return out as EventInput;
+}
+
+const ONE_ADDRESS = /^[^\s@,;<>]+@[^\s@,;<>]+\.[^\s@,;<>]+$/;
+
+export function draftInput(v: unknown): DraftInput {
+  const i = (v ?? {}) as Partial<DraftInput>;
+  const to = typeof i.to === 'string' ? i.to.trim() : '';
+  if (!ONE_ADDRESS.test(to) || to.length > 320) throw new Error('Enter one email address.');
+  const subject = typeof i.subject === 'string' ? i.subject : '';
+  if (subject.length > 998 || /[\r\n]/.test(subject)) throw new Error('The subject must be one line.');
+  const body = typeof i.body === 'string' ? i.body : '';
+  if (body.length > 20000) throw new Error('The message is too long.');
+  return { to, subject, body };
+}
+
 export function reminderInput(v: unknown, timeZone: string, tasks: Record<string, TaskItem>): ReminderItem {
   const i = v as ReminderInput;
   if (!i || typeof i !== 'object') throw new Error('Invalid input');
@@ -390,8 +520,10 @@ export function reminderInput(v: unknown, timeZone: string, tasks: Record<string
   if (!firstAt) throw new Error('Choose when to be reminded.');
   if (i.repeat === 'none' && Date.parse(firstAt) <= Date.now()) throw new Error('That time has already passed.');
   if (i.taskId !== null && (typeof i.taskId !== 'string' || !tasks[i.taskId])) throw new Error('That task no longer exists.');
+  const draftId = i.draftId ?? null;
+  if (draftId !== null && (typeof draftId !== 'string' || !/^[0-9a-f-]{36}$/.test(draftId))) throw new Error('Invalid draft.');
   if (!isTimeZone(timeZone)) throw new Error('Unknown time zone.');
   return newReminder({
-    id: randomUUID(), taskId: i.taskId, title: text(i.title, 300, true), firstAt, repeat: i.repeat, weekdays, timeZone,
+    id: randomUUID(), taskId: i.taskId, title: text(i.title, 300, true), firstAt, repeat: i.repeat, weekdays, timeZone, draftId,
   }, new Date());
 }

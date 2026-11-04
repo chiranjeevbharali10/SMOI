@@ -27,6 +27,7 @@ import { runMeasurement } from './measure';
 import { TaskService } from './tasks';
 import { Notifier } from './notifier';
 import { ClaudeCode } from './claudeCode';
+import { GoogleService } from './google';
 import { Commands } from './commands';
 import { isAccelerator, Voice } from './voice';
 
@@ -46,6 +47,7 @@ let companion: Companion;
 let dashboard: Dashboard;
 let tasks: TaskService;
 let notifier: Notifier;
+let google: GoogleService;
 const claude = new ClaudeCode();
 let voice: Voice;
 /** Why the voice shortcut couldn't be registered, or null. */
@@ -419,7 +421,11 @@ function start() {
       if (effect.opens) dashboard.open(effect.opens === 'dashboard' ? 'home' : effect.opens);
     },
     onChange: () => refreshTrayMenu(),
-    facts: () => ({ openTasks: tasks.openCount ?? undefined, voice: settings.voiceEnabled }),
+    facts: () => ({
+      openTasks: tasks.openCount ?? undefined, voice: settings.voiceEnabled,
+      busyToday: google?.connected ? google.current.busyToday ?? undefined : undefined,
+      newEmails: google?.connected ? google.current.unseen : undefined,
+    }),
     startVoice: () => voice.start(),
   });
 
@@ -433,6 +439,31 @@ function start() {
       if (count > 0) notifier.notify('overdue', 'overdue', { type: 'overdue', count });
     },
     onChange: (s) => dashboard?.tasksChanged(s, session.status().signedIn),
+    // Reminders linked to a Gmail draft check that the draft still exists (FR-05.11).
+    checkDraft: async (id) => {
+      try {
+        return await api.checkReminder(id);
+      } catch {
+        return null;
+      }
+    },
+    onDraftGone: (_r, message) => {
+      const line = personalityLine({ type: 'draft_reminder_cancelled', message }, settings.personality);
+      if (line.line) companion.say(line.line);
+    },
+  });
+  // Google Calendar and Gmail (Phase 8): status, Gmail sync, important-email alerts.
+  google = new GoogleService({
+    api, timeZone,
+    signedIn: () => session.status().signedIn,
+    // No email content in the alert (FR-05.04): only that important mail arrived.
+    onImportant: (count) => notifier.notify('email', `email:${Date.now()}`, { type: 'important_email', count }),
+    onReconnectNeeded: () => {
+      const r = personalityLine({ type: 'google_reconnect' }, settings.personality);
+      if (r.line) companion.say(r.line);
+      machine.react('annoyed', Date.now());
+    },
+    onChange: (g) => dashboard?.googleChanged(g),
   });
   notifier = new Notifier({
     settings: () => settings.notifications,
@@ -449,6 +480,8 @@ function start() {
       if (r.line) companion.say(r.line);
       machine.react('happy', Date.now());
     },
+    openCalendar: () => dashboard.open('calendar'),
+    onGoogleError: (e) => google.handle(e),
   });
   voice = new Voice({
     api,
@@ -476,14 +509,15 @@ function start() {
         dashboard.askFromVoice(proposal.question);
         return;
       }
-      // Everything else is shown first; only a confirmed task or reminder is created (FR-03.06).
-      companion.confirm({ heard, view: describeProposal(proposal, timeZone()) }, (yes) => {
-        if (!yes) return;
-        try {
-          commands.run(proposal);
-        } catch (e) {
-          companion.say({ tone: 'urgent', text: e instanceof Error ? e.message : 'That command could not be run.' });
-        }
+      // Everything else is shown first, and acted on only once confirmed (FR-03.06). Calendar and
+      // email commands become Google proposals first, so the confirmation shows conflicts or the draft.
+      void commands.prepare(proposal).then((outcome) => {
+        companion.confirm({ heard, view: outcome.view }, (yes) => {
+          if (!yes || !outcome.view.actionable) return;
+          commands.confirm(outcome.id).catch((e) => {
+            companion.say({ tone: 'urgent', text: e instanceof Error ? e.message : 'That command could not be run.' });
+          });
+        });
       });
     },
     onShortcutStatus: (error) => {
@@ -510,6 +544,7 @@ function start() {
     tasks,
     commands,
     timeZone,
+    google,
     onIndexed: (count) => notifier.notify('indexing', `indexed:${Date.now()}`, { type: 'indexed', count }),
     onAnswerFinished: (event) => {
       if (event.type !== 'result') return;
@@ -524,8 +559,14 @@ function start() {
   // Signing in loads that account's tasks; signing out puts them away.
   const followSession = () => {
     const s = session.status();
-    if (s.signedIn && s.email) tasks.start(s.email);
-    else tasks.stop();
+    if (s.signedIn && s.email) {
+      tasks.start(s.email);
+      google.start();
+    } else {
+      tasks.stop();
+      google.stop();
+      void google.refresh();
+    }
   };
   session.onChange(() => followSession());
   followSession();
@@ -614,6 +655,7 @@ if (!app.requestSingleInstanceLock()) {
     if (frog) rememberPosition();
     voice?.destroy();
     notifier?.destroy();
+    google?.stop();
     void claude.stop();
     companion?.destroy();
     tray?.destroy();

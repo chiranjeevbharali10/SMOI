@@ -4,8 +4,8 @@
  * with the changes the owner approved for Phase 6B (see "Talk to SMOI" and "Open SMOI Brain").
  *
  * Lines must be true. A line that states a fact (a number of tasks, a busy calendar, an email) is
- * only shown when that fact comes from real data. Until calendar and inbox exist, their rows are
- * unavailable: they read "Not available yet" and show no line at all.
+ * only shown when that fact comes from real data: the calendar line only when today really is
+ * busy, the inbox line only when new mail really arrived.
  *
  * Pure data and functions, so the mapping is unit-tested (test/panelActions.test.ts).
  */
@@ -24,7 +24,7 @@ export type PanelRowId = 'talk' | 'tasks' | 'calendar' | 'inbox' | 'brain' | 'da
 export type PanelEvent = 'hello' | 'closed' | PanelRowId;
 
 /** Where an action takes the user, if anywhere. */
-export type Destination = 'chat' | 'tasks' | 'brain' | 'dashboard';
+export type Destination = 'chat' | 'tasks' | 'calendar' | 'inbox' | 'brain' | 'dashboard';
 
 /**
  * How the frog reacts:
@@ -58,8 +58,8 @@ export const PANEL_ROWS: readonly PanelRow[] = [
 /** Shown in place of a line for rows whose feature doesn't exist yet. No phase numbers in the UI. */
 export const NOT_AVAILABLE = 'Not available yet';
 
-/** Rows that work today. Calendar and inbox are added as their features are built. */
-export const AVAILABLE_ROWS: ReadonlySet<PanelRowId> = new Set<PanelRowId>(['talk', 'tasks', 'brain', 'dashboard']);
+/** Rows that work today. Calendar and inbox open their screens, which offer to connect Google if needed. */
+export const AVAILABLE_ROWS: ReadonlySet<PanelRowId> = new Set<PanelRowId>(['talk', 'tasks', 'calendar', 'inbox', 'brain', 'dashboard']);
 
 /** Real data some lines depend on. Absent means "not known", and the line is not shown. */
 export interface PanelFacts {
@@ -67,6 +67,10 @@ export interface PanelFacts {
   openTasks?: number;
   /** Voice is on: "Talk to SMOI" turns the microphone on instead of opening the typed chat. */
   voice?: boolean;
+  /** Today is "suspiciously busy" by the backend's rule (smoi.google.busy.*), from the real calendar. */
+  busyToday?: boolean;
+  /** Emails synced since the inbox was last opened. */
+  newEmails?: number;
 }
 
 /** The design's listening line and mood, used only while the microphone really is on. */
@@ -106,11 +110,17 @@ export function effectOf(
       return { frog: 'working', bubble, mood: 'locked in', opens: 'tasks' };
     }
     case 'calendar':
-      // When the calendar exists, show this line only if today really is busy.
-      return { frog: 'annoyed', bubble: urgent('Your calendar looks suspiciously busy today.'), mood: 'judging a little', opens: null };
+      // The design's line, only when today really is busy.
+      if (facts.busyToday) {
+        return { frog: 'annoyed', bubble: urgent('Your calendar looks suspiciously busy today.'), mood: 'judging a little', opens: 'calendar' };
+      }
+      return { frog: 'working', bubble: null, mood: 'checking the calendar', opens: 'calendar' };
     case 'inbox':
-      // When the inbox exists, show this line only if there is a new email.
-      return { frog: 'surprised', bubble: urgent('Psst. Someone emailed you.'), mood: 'startled', opens: null };
+      // The design's line, only when new mail really arrived. It never says who or what.
+      if (facts.newEmails && facts.newEmails > 0) {
+        return { frog: 'surprised', bubble: urgent('Psst. Someone emailed you.'), mood: 'startled', opens: 'inbox' };
+      }
+      return { frog: 'working', bubble: null, mood: 'reading mail', opens: 'inbox' };
     case 'brain':
       // No line on opening: nothing has been found yet. FINDING is shown when an answer arrives.
       return { frog: 'thinking', bubble: null, mood: 'thinking', opens: 'brain' };

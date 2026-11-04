@@ -81,7 +81,12 @@ describe('retrieved content is plain text', () => {
 });
 
 describe('menu panel', () => {
-  const rows = PANEL_ROWS.map((r) => ({ ...r, available: AVAILABLE_ROWS.has(r.id) }));
+  // Every row is available since Phase 8; two are switched off here to test how an unavailable row looks.
+  const rows = PANEL_ROWS.map((r) => ({ ...r, available: r.id !== 'calendar' && r.id !== 'inbox' }));
+
+  it('every row is available now', () => {
+    expect(PANEL_ROWS.every((r) => AVAILABLE_ROWS.has(r.id))).toBe(true);
+  });
 
   it('shows SMOI, the mood and six rows; unavailable rows say so, with aria-disabled', () => {
     render(<PanelView mood="feeling chatty" rows={rows} onChoose={() => {}} onClose={() => {}} />);

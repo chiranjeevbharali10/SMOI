@@ -10,8 +10,9 @@
  * (test/api.test.ts).
  */
 import type {
-  AnswerResult, ApiErrorKind, ApiFailure, ChunkInfo, DocumentInfo, LoginResult, Me, Proposal, Providers, StreamEvent,
-  SyncResult,
+  AnswerResult, ApiErrorKind, ApiFailure, ChunkInfo, DocumentInfo, DraftItem, EmailAlert, EmailItem, GoogleOutcome,
+  GooglePreview, GoogleStatus, LoginResult, Me, Proposal, Providers, ReminderCheck, StreamEvent, SyncResult, SyncSummary, Upcoming,
+  CalendarEvent,
 } from '../shared/apiTypes';
 import type { ReminderItem, TaskItem } from '../shared/taskStore';
 import { SseParser } from '../shared/sse';
@@ -119,6 +120,83 @@ export class ApiClient {
 
   async deleteReminder(id: string): Promise<void> {
     await this.json(await this.send('DELETE', `/api/reminders/${encodeURIComponent(id)}`));
+  }
+
+  // ---------- Google Calendar and Gmail (Phase 8) ----------
+
+  google(): Promise<GoogleStatus> {
+    return this.get<GoogleStatus>('/api/google');
+  }
+
+  async connectGoogle(): Promise<string> {
+    const r = await this.json<{ authorizationUrl: string }>(await this.send('POST', '/api/google/connect'));
+    return r.authorizationUrl;
+  }
+
+  async disconnectGoogle(deleteEmailData: boolean): Promise<{ revoked: boolean; emailDataDeleted: boolean }> {
+    return this.json(await this.send('POST', '/api/google/disconnect', { json: { deleteEmailData } }));
+  }
+
+  upcoming(timeZone: string, days = 7): Promise<Upcoming> {
+    return this.get<Upcoming>(`/api/calendar/upcoming?days=${days}&timeZone=${encodeURIComponent(timeZone)}`);
+  }
+
+  findEvents(query: string, day: string, timeZone: string): Promise<CalendarEvent[]> {
+    return this.get<CalendarEvent[]>(`/api/calendar/find?q=${encodeURIComponent(query)}&day=${encodeURIComponent(day)}`
+      + `&timeZone=${encodeURIComponent(timeZone)}`);
+  }
+
+  async proposeEvent(e: { title: string; start: string; end: string; reminderMinutes: number[] | null }): Promise<GooglePreview> {
+    return this.json(await this.send('POST', '/api/calendar/events/propose', { json: e }));
+  }
+
+  async proposeEventUpdate(eventId: string, e: { title?: string; start?: string; end?: string; reminderMinutes?: number[] | null }): Promise<GooglePreview> {
+    return this.json(await this.send('POST', `/api/calendar/events/${encodeURIComponent(eventId)}/propose-update`, { json: e }));
+  }
+
+  async proposeEventDelete(eventId: string): Promise<GooglePreview> {
+    return this.json(await this.send('POST', `/api/calendar/events/${encodeURIComponent(eventId)}/propose-delete`));
+  }
+
+  async proposeDraft(d: { to: string; subject: string; body: string }, draftId?: string): Promise<GooglePreview> {
+    const path = draftId ? `/api/drafts/${encodeURIComponent(draftId)}/propose` : '/api/drafts/propose';
+    return this.json(await this.send('POST', path, { json: d }));
+  }
+
+  /** Applies a change the user confirmed. Repeating it is safe: the backend applies it once. */
+  async confirmAction(id: string): Promise<GoogleOutcome> {
+    return this.json(await this.send('POST', `/api/google/actions/${encodeURIComponent(id)}/confirm`, { timeoutMs: 60_000 }));
+  }
+
+  emails(): Promise<EmailItem[]> {
+    return this.get<EmailItem[]>('/api/email?limit=100');
+  }
+
+  /** Can take a while: classification runs on the LLM. */
+  async syncEmail(): Promise<SyncSummary> {
+    return this.json(await this.send('POST', '/api/email/sync', { timeoutMs: 180_000 }));
+  }
+
+  /** Important emails not announced before. Each is returned once, ever. */
+  async claimEmailAlerts(): Promise<EmailAlert[]> {
+    return this.json(await this.send('POST', '/api/email/alerts'));
+  }
+
+  async emailToTask(id: string, title?: string, dueAt?: string | null): Promise<TaskItem> {
+    return this.json(await this.send('POST', `/api/email/${encodeURIComponent(id)}/task`, { json: { title, dueAt } }));
+  }
+
+  async indexEmail(id: string, on: boolean): Promise<EmailItem> {
+    return this.json(await this.send(on ? 'POST' : 'DELETE', `/api/email/${encodeURIComponent(id)}/index`));
+  }
+
+  drafts(): Promise<DraftItem[]> {
+    return this.get<DraftItem[]>('/api/drafts');
+  }
+
+  /** Before a draft-linked reminder fires: is the draft still there? (FR-05.11) */
+  async checkReminder(id: string): Promise<ReminderCheck> {
+    return this.json(await this.send('POST', `/api/reminders/${encodeURIComponent(id)}/check`, { timeoutMs: 15_000 }));
   }
 
   // ---------- commands and voice ----------
@@ -238,7 +316,11 @@ export class ApiClient {
     }
     const problem = safeJson(await res.text().catch(() => ''));
     const detail = typeof problem?.detail === 'string' ? problem.detail : null;
+    const code = typeof problem?.code === 'string' ? problem.code : null;
     const s = res.status;
+    if (code === 'google_reconnect' || code === 'google_not_connected' || code === 'google_not_configured') {
+      throw new ApiError(code, detail ?? 'Google is not connected.', s, requestId);
+    }
     if (s === 401) {
       this.session.expired();
       throw new ApiError('session_expired', 'Your session has expired. Please sign in again.', s, requestId);

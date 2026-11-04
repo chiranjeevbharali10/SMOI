@@ -11,13 +11,14 @@
  * Pure (the caller passes the time and the local minute of the day); tested in test/notify.test.ts.
  */
 
-export type Category = 'reminders' | 'overdue' | 'indexing' | 'claudeDone' | 'claudeWaiting';
+export type Category = 'reminders' | 'overdue' | 'indexing' | 'claudeDone' | 'claudeWaiting' | 'email';
 export type Level = 'low' | 'normal' | 'high';
 
 export const CATEGORIES: { id: Category; label: string }[] = [
   { id: 'reminders', label: 'Reminders' },
   { id: 'overdue', label: 'Overdue tasks' },
   { id: 'indexing', label: 'Documents finished indexing' },
+  { id: 'email', label: 'Important email arrived' },
   { id: 'claudeDone', label: 'Claude Code finished a long run' },
   { id: 'claudeWaiting', label: 'Claude Code is waiting for permission' },
 ];
@@ -35,6 +36,7 @@ export const DEFAULT_NOTIFICATIONS: NotificationSettings = {
     reminders: { enabled: true, priority: 'high' },
     overdue: { enabled: true, priority: 'normal' },
     indexing: { enabled: true, priority: 'low' },
+    email: { enabled: true, priority: 'normal' },
     claudeDone: { enabled: true, priority: 'normal' },
     claudeWaiting: { enabled: true, priority: 'normal' },
   },

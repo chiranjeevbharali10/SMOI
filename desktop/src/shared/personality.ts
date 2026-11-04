@@ -62,7 +62,14 @@ export type CompanionEvent =
   | { type: 'reminder_saved'; title: string; when: string }
   /** No prompt text or project names: only how long the run took (FR-10, NFR-03.16). */
   | { type: 'claude_done'; minutes: number }
-  | { type: 'claude_waiting' };
+  | { type: 'claude_waiting' }
+  /** Never the sender, subject or text: email content stays out of bubbles (FR-05.04). */
+  | { type: 'important_email'; count: number }
+  | { type: 'google_reconnect' }
+  /** The backend's plain sentence: which draft is gone, so the reminder was cancelled (FR-05.11). */
+  | { type: 'draft_reminder_cancelled'; message: string }
+  /** A confirmed calendar or draft change went through; the sentence comes from shared/proposal.ts. */
+  | { type: 'google_done'; text: string };
 
 export interface Reaction {
   /** Null when the event shouldn't produce a bubble at these settings. */
@@ -147,6 +154,28 @@ export function react(event: CompanionEvent, p: Personality): Reaction {
         cheeky: `Claude Code finished. ${d}. You can stop pretending to wait now.`,
       };
       return { line: { tone: 'finding', text: lines[style] }, frog: 'celebrating' };
+    }
+    case 'important_email': {
+      const one = event.count <= 1;
+      const lines: Lines = {
+        plain: one ? "You've got an important email." : `You've got ${event.count} important emails.`,
+        warm: one ? "An important email just arrived. Have a look when you can." : `${event.count} important emails just arrived.`,
+        playful: one ? 'Ooh! An important email just landed.' : `Ooh! ${event.count} important emails just landed.`,
+        cheeky: one ? 'Important email. Probably more important than whatever this is.' : `${event.count} important emails. Popular today.`,
+      };
+      return { line: { tone: 'urgent', text: lines[style] }, frog: 'surprised' };
+    }
+    case 'google_reconnect': {
+      return {
+        line: { tone: 'urgent', text: 'Google stopped letting me in. Reconnect it in Settings to get calendar and email back.' },
+        frog: 'annoyed',
+      };
+    }
+    case 'draft_reminder_cancelled': {
+      return { line: { tone: 'nudge', text: event.message }, frog: 'happy' };
+    }
+    case 'google_done': {
+      return { line: { tone: 'nudge', text: event.text }, frog: 'happy' };
     }
     case 'claude_waiting': {
       const lines: Lines = {

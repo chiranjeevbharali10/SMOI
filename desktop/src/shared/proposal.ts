@@ -6,7 +6,7 @@
  *
  * Pure; tested in test/proposal.test.ts.
  */
-import type { Proposal } from './apiTypes';
+import type { CalendarEvent, GooglePreview, Proposal } from './apiTypes';
 import { latestOccurrence, type Repeat } from './recurrence';
 import type { ReminderItem, TaskItem } from './taskStore';
 
@@ -38,11 +38,7 @@ export interface ProposalView {
   confirmLabel: string | null;
 }
 
-const NOT_YET: Record<string, string> = {
-  list_events: 'Reading your calendar',
-  create_event: 'Adding calendar events',
-  draft_email: 'Drafting emails',
-};
+const NOT_YET: Record<string, string> = {};
 
 export function describeProposal(p: Proposal, timeZone: string, locale = 'en-GB'): ProposalView {
   if (p.problem) return { actionable: false, heading: p.problem, details: [], confirmLabel: null };
@@ -65,6 +61,87 @@ export function describeProposal(p: Proposal, timeZone: string, locale = 'en-GB'
     return { actionable: false, heading: 'Asking SMOI Brain', details: [`“${p.question}”`], confirmLabel: null };
   }
   return { actionable: false, heading: "I don't know how to do that yet.", details: [], confirmLabel: null };
+}
+
+/** "Tue 4 Nov, 10:00 to 11:00" (or across days, both in full). */
+export function formatRange(start: string, end: string, timeZone: string, locale = 'en-GB'): string {
+  const a = formatWhen(start, timeZone, locale);
+  const b = formatWhen(end, timeZone, locale);
+  const [dayA, timeA] = a.split(', ');
+  const [dayB, timeB] = b.split(', ');
+  return dayA === dayB ? `${dayA}, ${timeA} to ${timeB}` : `${a} to ${b}`;
+}
+
+function eventLine(e: { title: string; start: string | null; end: string | null; startDate?: string | null }, tz: string): string {
+  if (e.start && e.end) return `“${e.title}”, ${formatRange(e.start, e.end, tz)}`;
+  return `“${e.title}”, all day ${e.startDate ?? ''}`.trim();
+}
+
+function remindersLine(minutes: number[] | null | undefined): string | null {
+  if (!minutes || minutes.length === 0) return null;
+  const one = (m: number) => (m % 1440 === 0 ? `${m / 1440} day${m === 1440 ? '' : 's'}` : m % 60 === 0 ? `${m / 60} h` : `${m} min`);
+  return `Reminders: ${minutes.map(one).join(', ')} before`;
+}
+
+const preview = (x: unknown) => (x && typeof x === 'object' ? (x as Record<string, unknown>) : {});
+const str = (x: unknown) => (typeof x === 'string' ? x : '');
+
+/**
+ * Describes a change to Google that waits for confirmation (FR-04.04, FR-04.05, FR-05.08): the
+ * event or draft as it would be, as it is now for a change, and any overlapping events.
+ */
+export function describeGooglePreview(p: GooglePreview, timeZone: string): ProposalView {
+  const after = preview(p.after);
+  const before = preview(p.before);
+  const conflicts = (p.conflicts ?? []).map((c: CalendarEvent) => `Overlaps ${eventLine(c, timeZone)}`);
+  switch (p.kind) {
+    case 'create_event': {
+      const details = [eventLine({ title: str(after.title), start: str(after.start), end: str(after.end) }, timeZone)];
+      const r = remindersLine(after.reminderMinutes as number[] | null);
+      if (r) details.push(r);
+      return { actionable: true, heading: conflicts.length ? 'Add this event? It overlaps other events.' : 'Add this event to Google Calendar?',
+        details: [...details, ...conflicts], confirmLabel: 'Add event' };
+    }
+    case 'update_event':
+      return {
+        actionable: true, heading: conflicts.length ? 'Change this event? The new time overlaps other events.' : 'Change this event?',
+        details: [
+          `Now: ${eventLine({ title: str(before.title), start: str(before.start) || null, end: str(before.end) || null }, timeZone)}`,
+          `New: ${eventLine({ title: str(after.title), start: str(after.start), end: str(after.end) }, timeZone)}`,
+          ...conflicts,
+        ],
+        confirmLabel: 'Change event',
+      };
+    case 'delete_event':
+      return {
+        actionable: true, heading: 'Delete this event from Google Calendar?',
+        details: [eventLine({ title: str(before.title), start: str(before.start) || null, end: str(before.end) || null,
+          startDate: str(before.startDate) || null }, timeZone)],
+        confirmLabel: 'Delete event',
+      };
+    case 'create_draft':
+    case 'update_draft': {
+      const body = str(after.body);
+      return {
+        actionable: true,
+        heading: p.kind === 'create_draft' ? 'Create this draft in Gmail? You send it yourself.' : 'Update this draft in Gmail?',
+        details: [`To: ${str(after.to)}`, `Subject: ${str(after.subject) || '(no subject)'}`,
+          body.length > 300 ? `${body.slice(0, 300)}…` : body],
+        confirmLabel: p.kind === 'create_draft' ? 'Create draft' : 'Update draft',
+      };
+    }
+  }
+}
+
+/** What SMOI says once a confirmed change went through. */
+export function googleDone(kind: GooglePreview['kind']): { message: string } {
+  switch (kind) {
+    case 'create_event': return { message: 'Added to your Google Calendar.' };
+    case 'update_event': return { message: 'Event changed in your Google Calendar.' };
+    case 'delete_event': return { message: 'Event deleted from your Google Calendar.' };
+    case 'create_draft': return { message: 'Draft saved in Gmail. Open it there to check and send it.' };
+    case 'update_draft': return { message: 'Draft updated in Gmail.' };
+  }
 }
 
 /** The task to create once the user confirms. */
