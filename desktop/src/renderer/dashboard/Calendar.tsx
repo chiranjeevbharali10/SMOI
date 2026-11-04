@@ -132,7 +132,7 @@ export function Calendar({ google }: { google: GoogleView | null }) {
 
           <section className="card list-card" aria-labelledby="h-upcoming">
             <div className="row">
-              <h3 id="h-upcoming">Next 7 days</h3>
+              <h3 id="h-upcoming">Next 30 days</h3>
               <button className="btn small" type="button" disabled={!connected} onClick={() => void load()}>Refresh</button>
             </div>
             {connected && !data && !error && <p className="answer-status"><Face name="pondering" /> Reading your calendar…</p>}

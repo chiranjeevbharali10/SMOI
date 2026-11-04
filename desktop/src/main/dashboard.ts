@@ -357,7 +357,7 @@ export class Dashboard {
     handle('google:connect', () => this.google(() => g.connect()));
     handle('google:disconnect', () => this.google(() => this.disconnectGoogle()));
     handle('google:open', (url) => wrap(() => g.open(str(url, 2000))));
-    handle('calendar:upcoming', () => this.google(() => api.upcoming(this.deps.timeZone())));
+    handle('calendar:upcoming', () => this.google(() => api.upcoming(this.deps.timeZone(), 30)));
     handle('calendar:propose', (input) => this.google(async () => this.keep(await api.proposeEvent(eventInput(input)))));
     handle('calendar:propose-change', (id, input) => this.google(async () =>
       this.keep(await api.proposeEventUpdate(eventId(id), eventInput(input, true)))));
