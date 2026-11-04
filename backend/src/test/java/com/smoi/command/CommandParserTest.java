@@ -75,13 +75,16 @@ class CommandParserTest {
     }
 
     @Test
-    void calendarAndEmailIntentsAreRecognisedButNotAvailable() {
+    void emailIntentsAreAvailableSincePhase8AndOnlyEverDraft() {
         Proposal p = parse("{\"intent\":\"draft_email\",\"to\":\"boss@example.com\"}");
 
         assertThat(p.intent()).isEqualTo("draft_email");
-        assertThat(p.available()).isFalse();
+        assertThat(p.available()).isTrue();
+        assertThat(p.email()).isNotNull();
         assertThat(p.task()).isNull();
         assertThat(p.reminder()).isNull();
+        // There is no intent that sends email.
+        assertThat(parse("{\"intent\":\"send_email\",\"to\":\"boss@example.com\"}").intent()).isEqualTo("unknown");
     }
 
     @Test
