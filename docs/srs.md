@@ -28,6 +28,8 @@ Personal desktop intelligence companion
   detecting revoked Google access (FR-05.08 to FR-05.12), and an explicit ban on sending or deleting email (FR-05.13).
 - FR-06 gains local-directory indexing as its own requirement (FR-06.11, split from FR-06.02) and citation
   validation (FR-06.12).
+- FR-10 (Claude Code notifications) and NFR-03.16 were added as Phase 10. FR-06.11 moved from Phase 8 to
+  Phase 9.
 - New security requirements cover prompt injection and per-user data isolation (NFR-03.08 to NFR-03.15).
 - The new NFR-09 holds measurable quality requirements for retrieval, citations and intent detection.
   Their targets are `TBD` until they are measured.
@@ -128,7 +130,7 @@ Personal desktop intelligence companion
 | FR-06.08 | The user shall be able to query SMOI Brain by typed text and by voice. | 2, 7 |
 | FR-06.09 | The system shall summarise a document and compare two documents, with citations. | 2 |
 | FR-06.10 | The user shall be able to delete an indexed source. Deleting it removes its chunks and vectors, and they no longer appear in any retrieval result. | 1 |
-| FR-06.11 | The user shall be able to choose local directories to index. Only files in supported formats inside the chosen directories are indexed. | 8 |
+| FR-06.11 | The user shall be able to choose local directories to index. Only files in supported formats inside the chosen directories are indexed. | 9 |
 | FR-06.12 | Every citation in an answer shall refer to a chunk that was retrieved for that query. The backend shall reject an answer that cites anything else. | 2 |
 
 ### FR-08: Personality and notifications
@@ -141,6 +143,22 @@ Personal desktop intelligence companion
 | FR-08.04 | The user shall be able to set which notification categories are enabled, their priority levels, and quiet hours during which non-critical notifications are held. | 7 |
 | FR-08.05 | Notifications shall be shown either as speech bubbles (styled as in the character design) or as native Windows notifications, depending on the user's setting. | 6, 7 |
 | FR-08.06 | A non-critical notification of the same category and source shall not repeat within a configurable cooldown period (default 30 minutes). | 7 |
+
+### FR-10: Claude Code notifications
+
+SMOI tells the user when a Claude Code session on the same machine finishes a long run or is blocked
+waiting for permission. Claude Code's hooks call a local endpoint in the desktop app.
+
+| ID | Requirement | Phase |
+| --- | --- | --- |
+| FR-10.01 | The desktop app shall accept hook events on `POST /claude/start`, `/claude/done` and `/claude/waiting`, on a listener bound to 127.0.0.1 only. | 10 |
+| FR-10.02 | SMOI shall track each run by `session_id` and compute its duration from start to done. Parallel sessions are tracked independently. | 10 |
+| FR-10.03 | On done, SMOI shall celebrate with a speech bubble showing the duration only if the run took at least a configurable threshold (default 3 minutes). A done event with no matching start shall produce no celebration. | 10 |
+| FR-10.04 | On waiting, SMOI shall always alert the user with a state distinct from the celebration, because the run is blocked. | 10 |
+| FR-10.05 | Repeated events for the same run shall not produce duplicate alerts. Runs that start and never finish shall expire without an alert. Mute and quiet hours (FR-08.04) shall apply. | 10 |
+| FR-10.06 | The user shall be able to turn Claude Code notifications on or off in settings. They are on by default. | 10 |
+| FR-10.07 | SMOI shall not change the user's Claude Code settings. The repository shall provide a setup document and a script that prints the hook configuration for the user to merge. | 10 |
+| FR-10.08 | The hook commands shall use a short timeout (at most 2 seconds), so that Claude Code is not slowed when SMOI is closed. | 10 |
 
 ---
 
@@ -189,6 +207,7 @@ environment by a benchmark script added in Phase 4.
 | NFR-03.13 | **Data isolation in storage:** every user-owned table shall have a `user_id` column. Every query on such a table shall filter by `user_id`, including in vector and keyword search. | 1 onwards |
 | NFR-03.14 | Repeated failed logins for one account or IP address shall be throttled after a configurable number of attempts (default TBD). | 5 |
 | NFR-03.15 | Secrets shall be supplied only through environment variables (`.env` locally, which is gitignored). CI shall run a secret scan on every push. | 0, 5 |
+| NFR-03.16 | The Claude Code hook endpoint shall reject requests without the shared secret from the environment, passed in a request header. Hook payloads are untrusted: they shall be validated against a schema, and prompt text and file contents shall never be logged or stored. | 10 |
 
 ### NFR-04: Privacy
 
@@ -283,8 +302,9 @@ A traceability matrix linking requirement IDs to tests will be added as features
 | 5 | Security | NFR-03.09, NFR-03.10, NFR-03.14, NFR-04.06 |
 | 6 | Desktop frog | FR-01, FR-08.05, NFR-01.01, NFR-01.02, NFR-05, NFR-08 |
 | 7 | Tasks, reminders and voice | FR-02, FR-03, FR-08, NFR-01.03, NFR-01.04, NFR-02.01, NFR-02.05, NFR-04.02, NFR-04.03 |
-| 8 | Calendar and Gmail | FR-04, FR-05, FR-06.02, FR-06.11, NFR-03.03, NFR-03.05, NFR-04.01, NFR-09.07 |
-| 9 | Packaging | FR-01.05 (launch at sign-in, installer), NFR-07.05 |
+| 8 | Calendar and Gmail | FR-02.05, FR-04, FR-05, FR-06.02, NFR-03.03, NFR-03.05, NFR-04.01, NFR-09.07 |
+| 9 | Packaging | FR-01.05 (launch at sign-in, installer), FR-06.11, NFR-07.05 |
+| 10 | Claude Code notifications | FR-10, NFR-03.16 |
 
 If time runs short, Phases 0 to 3 plus a basic Phase 6 frog and Phase 9 form a complete project.
 
