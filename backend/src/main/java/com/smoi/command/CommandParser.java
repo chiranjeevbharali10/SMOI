@@ -7,6 +7,7 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 import tools.jackson.core.JacksonException;
@@ -59,8 +60,103 @@ public final class CommandParser {
             case CREATE_TASK -> task(json, zone, now);
             case CREATE_REMINDER -> reminder(json, zone, now);
             case ASK_BRAIN -> question(json);
+            case LIST_EVENTS -> new Proposal(Intent.LIST_EVENTS.id, true, null, null, null, null);
+            case CREATE_EVENT -> createEvent(json, zone, now);
+            case UPDATE_EVENT, DELETE_EVENT -> changeEvent(intent, json, zone, now);
+            case DRAFT_EMAIL -> draftEmail(json, command);
             default -> Proposal.unknown(null);
         };
+    }
+
+    static final int DEFAULT_EVENT_MINUTES = 60;
+    static final int MAX_EVENT_MINUTES = 24 * 60;
+    static final int MAX_DRAFT_BODY = 5000;
+
+    private static Proposal createEvent(JsonNode json, ZoneId zone, Instant now) {
+        String title = title(json);
+        if (title == null) {
+            return problem(Intent.CREATE_EVENT, "I couldn't tell what the event is.");
+        }
+        if (!(When.resolve(json, zone, now) instanceof When.At at)) {
+            return problem(Intent.CREATE_EVENT, "I couldn't work out when the event is.");
+        }
+        JsonNode d = json.get("durationMinutes");
+        long minutes = d != null && d.isNumber() ? d.asLong() : DEFAULT_EVENT_MINUTES;
+        if (minutes < 5 || minutes > MAX_EVENT_MINUTES) {
+            minutes = DEFAULT_EVENT_MINUTES;
+        }
+        Instant start = at.instant();
+        return new Proposal(Intent.CREATE_EVENT.id, true, null, null, null, null,
+                new Proposal.EventDraft(title, start, start.plusSeconds(minutes * 60)), null, null);
+    }
+
+    /**
+     * "Move the dentist to 4pm", "cancel tomorrow's team lunch". The model names the event by words
+     * from its title ("event") and its day; for a move, the new day and time go in "newDay" and
+     * "newTime". Matching the event is done against the real calendar later, not by the model.
+     */
+    private static Proposal changeEvent(Intent intent, JsonNode json, ZoneId zone, Instant now) {
+        String query = text(json, "event");
+        if (query == null || query.isBlank()) {
+            return problem(intent, "I couldn't tell which event you mean.");
+        }
+        query = query.strip();
+        query = query.length() > 200 ? query.substring(0, 200) : query;
+        java.time.LocalDate day = java.time.ZonedDateTime.ofInstant(now, zone).toLocalDate();
+        String dayText = text(json, "day");
+        if (dayText != null) {
+            tools.jackson.databind.node.ObjectNode probe = JSON.createObjectNode();
+            probe.put("day", dayText);
+            probe.put("time", "12:00");
+            if (!(When.resolve(probe, zone, now) instanceof When.At at)) {
+                return problem(intent, "I couldn't work out which day the event is on.");
+            }
+            day = java.time.ZonedDateTime.ofInstant(at.instant(), zone).toLocalDate();
+        }
+        if (intent == Intent.DELETE_EVENT) {
+            return new Proposal(intent.id, true, null, null, null, null, null,
+                    new Proposal.EventChangeDraft(query, day, null, true), null);
+        }
+        String newDay = text(json, "newDay");
+        String newTime = text(json, "newTime");
+        if (newDay == null && newTime == null) {
+            return problem(intent, "I couldn't tell what to change it to.");
+        }
+        tools.jackson.databind.node.ObjectNode target = JSON.createObjectNode();
+        target.put("day", newDay != null ? newDay : day.toString());
+        if (newTime != null) {
+            target.put("time", newTime);
+        }
+        if (!(When.resolve(target, zone, now) instanceof When.At at)) {
+            return problem(intent, "I couldn't work out the new time.");
+        }
+        return new Proposal(intent.id, true, null, null, null, null, null,
+                new Proposal.EventChangeDraft(query, day, at.instant(), false), null);
+    }
+
+    /**
+     * A draft for the user to review in Gmail. The recipient must be an address that appears
+     * word for word in the command: the model can't invent or swap who it goes to.
+     */
+    private static Proposal draftEmail(JsonNode json, String command) {
+        String to = text(json, "to");
+        if (to == null || to.isBlank()) {
+            return problem(Intent.DRAFT_EMAIL, "Say the full email address to write to.");
+        }
+        to = to.strip();
+        if (command != null && !command.toLowerCase(java.util.Locale.ROOT).contains(to.toLowerCase(java.util.Locale.ROOT))) {
+            return problem(Intent.DRAFT_EMAIL, "Say the full email address to write to.");
+        }
+        try {
+            String subject = Optional.ofNullable(text(json, "subject")).orElse("").strip().replaceAll("[\\r\\n]+", " ");
+            String body = Optional.ofNullable(text(json, "body")).orElse("");
+            body = body.length() > MAX_DRAFT_BODY ? body.substring(0, MAX_DRAFT_BODY) : body;
+            com.smoi.gmail.DraftMessage m = new com.smoi.gmail.DraftMessage(to, subject.length() > 200 ? subject.substring(0, 200) : subject, body);
+            return new Proposal(Intent.DRAFT_EMAIL.id, true, null, null, null, null, null, null,
+                    new Proposal.EmailDraft(m.to(), m.subject(), m.body()));
+        } catch (IllegalArgumentException e) {
+            return problem(Intent.DRAFT_EMAIL, e.getMessage());
+        }
     }
 
     private static Proposal task(JsonNode json, ZoneId zone, Instant now) {

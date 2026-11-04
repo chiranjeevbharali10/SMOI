@@ -76,17 +76,20 @@ final class When {
         }
         tools.jackson.databind.node.ObjectNode o = original.deepCopy();
         String said = command.toLowerCase(Locale.ROOT);
-        String day = text(o, "day");
-        if (day != null) {
-            String d = day.strip().toLowerCase(Locale.ROOT);
-            boolean weekday = d.length() >= 3 && DAYS.containsKey(d.substring(0, 3)) && said.contains(d.substring(0, 3));
-            if (!(said.contains(d) || weekday)) {
-                o.remove("day");
+        for (String field : new String[] {"day", "newDay"}) {
+            String day = text(o, field);
+            if (day != null) {
+                String d = day.strip().toLowerCase(Locale.ROOT);
+                boolean weekday = d.length() >= 3 && DAYS.containsKey(d.substring(0, 3)) && said.contains(d.substring(0, 3));
+                if (!(said.contains(d) || weekday)) {
+                    o.remove(field);
+                }
             }
         }
         boolean saysTime = DIGIT.matcher(said).find() || said.contains("noon") || said.contains("midnight");
         if (!saysTime) {
             o.remove("time");
+            o.remove("newTime");
             o.remove("when");
         }
         if (!(said.contains("min") || said.contains("hour"))) {

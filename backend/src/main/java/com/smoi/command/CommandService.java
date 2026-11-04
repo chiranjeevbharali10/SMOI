@@ -32,13 +32,19 @@ public class CommandService {
 
             Fields:
             - "intent": one of create_task, create_reminder, ask_brain, list_events, create_event,
-              draft_email, unknown.
+              update_event, delete_event, draft_email, unknown.
             - For create_task: "title" (short, without the date), and optionally "day", "time" and
               "priority" (low, normal or high).
             - For create_reminder: "title" (what to remind about), "day" and "time", or "inMinutes",
               and "repeat" (none, daily, weekly, monthly or weekdays). For weekdays, also "days",
               a list such as ["mon", "wed"].
             - For ask_brain: "question", the user's question about their own documents.
+            - For create_event: "title", "day" and "time", and optionally "durationMinutes".
+            - For update_event: "event" (words from the event's name), optionally "day" (the day it is
+              on now), and "newDay" and/or "newTime" (when it should move to).
+            - For delete_event: "event" (words from the event's name), and optionally "day".
+            - For draft_email: "to" (the email address exactly as the user said it), "subject" and
+              "body" (a short, polite draft of what the user asked to say).
             - Copy the day and time as the user said them; don't work out dates. "day" is "today",
               "tomorrow", a weekday such as "friday", or a date the user gave as 2026-01-31. "time"
               is 24-hour, such as "18:00". "inMinutes" is a number, for "in 10 minutes".
@@ -60,6 +66,14 @@ public class CommandService {
             {"intent":"ask_brain","question":"What did the report say about natterjack toads?"}
             Command: what's on my calendar today
             {"intent":"list_events"}
+            Command: add lunch with sam on friday at 12:30 for 90 minutes
+            {"intent":"create_event","title":"Lunch with Sam","day":"friday","time":"12:30","durationMinutes":90}
+            Command: move the dentist tomorrow to 4pm
+            {"intent":"update_event","event":"dentist","day":"tomorrow","newTime":"16:00"}
+            Command: cancel my team sync on monday
+            {"intent":"delete_event","event":"team sync","day":"monday"}
+            Command: draft an email to sam@example.com saying I'll be ten minutes late
+            {"intent":"draft_email","to":"sam@example.com","subject":"Running late","body":"Hi Sam, I'll be about ten minutes late. Sorry!"}
             Command: sing me a song
             {"intent":"unknown"}
             """;
