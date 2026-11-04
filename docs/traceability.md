@@ -138,3 +138,18 @@ sidecar API tests with `cd sidecars/whisper && python -m pytest`. Decisions are 
 | NFR-02.01 / NFR-02.05 / NFR-08.05 works offline, nothing lost | `taskService.test.ts` (changes saved with the backend down and sent when it returns; kept across a restart; reminders fire with no backend); `taskStore.test.ts` (merge and outbox rules); `TaskIT` (newest edit wins, deletes win, capped clock) |
 | NFR-03.04 isolation | `TaskIT` (Bob can't see, edit, delete or attach reminders to Alice's tasks) |
 | NFR-01.03, NFR-01.04, NFR-09.06 | Not measured in this phase (owner's choice); targets stay TBD |
+
+## Phase 10: Claude Code notifications
+
+Decisions in `docs/adr/0016-claude-code-hooks.md`; setup in `docs/claude-code-hooks.md`.
+
+| Requirement | Evidence |
+| --- | --- |
+| FR-10.01 / NFR-03.16 listener on 127.0.0.1, shared secret, validated payloads, nothing logged | `claudeHooks.test.ts` (real socket: bound address, missing and wrong secret, malformed JSON, bad `session_id`, wrong hook for the route, oversized body, unknown route, wrong method, foreign Host, rejection reasons never contain body text) |
+| FR-10.02 runs by `session_id`, duration start to done, parallel sessions | `claudeRuns.test.ts` |
+| FR-10.03 celebrate only at or above the threshold; no celebration without a start | `claudeRuns.test.ts` (below, at and above the threshold; done with no start; duplicate done) |
+| FR-10.04 waiting always alerts, with its own pose | `claudeRuns.test.ts`; `personality.ts` (`claude_waiting` gives a pink bubble and the `attention` pose); `sprites.test.ts` (the draft pose uses only the design's colours) |
+| FR-10.05 no duplicates, stale runs expire, quiet hours and categories apply | `claudeRuns.test.ts` (repeats collapsed, stale runs forgotten); `src/main/claudeCode.ts` sends every alert through the notifier (`notify.test.ts`) |
+| FR-10.06 on/off toggle and threshold, on by default | `src/main/settings.ts` (`DEFAULT_CLAUDE_CODE`, `mergeClaudeCode`); Settings screen |
+| FR-10.07 / FR-10.08 SMOI never edits Claude Code settings; 2 s curl timeout | `desktop/scripts/print-claude-hooks.mjs` prints the config only; every hook uses `-m 2` and `|| true` |
+| End-to-end with curl and a real Claude Code session | `desktop/scripts/claude-hook-demo.sh`; owner's manual checklist (pending) |
