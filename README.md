@@ -4,8 +4,11 @@ SMOI is a Windows desktop companion: a pixel-art frog that sits on your desktop 
 retrieval-augmented generation (RAG) backend. You give it your documents (**SMOI Brain**), ask it
 questions, and get answers with citations.
 
-> Status: Phase 2 (retrieval and cited answers). Upload PDF, DOCX and TXT files, then ask questions
-> and get answers that cite the exact passages they came from. The frog and integrations come later.
+> Status: Phases 1 to 4, 6, 7 and 10 are built; Phase 8 (Google Calendar and Gmail) is built and
+> awaiting the owner's test on a real Google account. Upload documents and get cited answers, manage
+> tasks and reminders by text or voice from the desktop frog, see your calendar, and have unread mail
+> sorted and summarised, with every change to Google confirmed first and email drafts only. Phase 5
+> (security hardening) and Phase 9 (packaging) are not started. See `docs/traceability.md`.
 
 ## Stack
 

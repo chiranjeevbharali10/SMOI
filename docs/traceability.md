@@ -139,6 +139,37 @@ sidecar API tests with `cd sidecars/whisper && python -m pytest`. Decisions are 
 | NFR-03.04 isolation | `TaskIT` (Bob can't see, edit, delete or attach reminders to Alice's tasks) |
 | NFR-01.03, NFR-01.04, NFR-09.06 | Not measured in this phase (owner's choice); targets stay TBD |
 
+## Phase 8: Google Calendar and Gmail
+
+Decisions in `docs/adr/0017-google-oauth-and-token-storage.md` and
+`docs/adr/0018-gmail-sync-and-confirmed-google-changes.md`. Google is replaced in tests by
+`backend/src/test/java/com/smoi/support/FakeGoogleServer.java`; all mail in tests and the eval set is synthetic.
+
+| Requirement | Evidence |
+| --- | --- |
+| FR-04.01 / FR-05.01 OAuth code flow with PKCE, three scopes | `GoogleConnectionIT` (connects through the fake; S256 challenge; only the three scopes; state works once and only for its user) |
+| NFR-03.03 tokens encrypted, never logged | `GoogleUnitTest` (AES-GCM: fresh IV, bound to the user, tamper and wrong-key rejected); `GoogleConnectionIT` (stored bytes don't contain the token; disconnect overwrites them); `GoogleHttp` logs method, path and status only |
+| Token refresh | `GoogleConnectionIT.refreshesAnExpiredAccessTokenAndCarriesOn` |
+| FR-05.12 invalid_grant pauses Google only, keeps data, reconnect works | `GoogleConnectionIT.invalidGrantMarksTheAccountForReconnectionAndKeepsLocalData`; desktop reconnect banner (`GoogleParts.tsx`) |
+| NFR-04.04 disconnect revokes and can delete email data | `GoogleConnectionIT.disconnectRevokesTheTokenAndCanDeleteEmailData`, `disconnectWithoutDeletingKeepsEmails` |
+| FR-04.02 upcoming events; busy flag | `CalendarIT.listsUpcomingEvents`; `GoogleUnitTest` (busy rule: 6 h, 3 back to back, overlaps counted once) |
+| FR-04.03 / FR-04.04 create, change, delete, only after confirming | `CalendarIT` (proposals change nothing; before/after shown; confirm applies); `CalendarAndDraftIntentTest` (typed or spoken commands); `googleDesktop.test.ts` |
+| FR-04.05 conflicts listed before confirming | `CalendarIT.aProposalChangesNothingAndListsConflicts`; `proposal.test.ts` |
+| FR-04.06 event reminders | `CalendarIT.confirmingTwiceCreatesOneEvent` (popup reminder sent) |
+| NFR-02.03 no duplicates on retry | `CalendarIT` (double confirm, lost response then retry, six concurrent confirms: one event); `GmailIT.aDraftRetriedAfterALostResponseIsNotDuplicated`, `aDraftIsCreatedOnlyAfterConfirmingAndOnlyOnce` |
+| FR-05.02 bounded first sync, history after, expiry fallback | `GmailIT` (query and limit checked; history used; expired historyId gives a full sync without duplicates; only unread primary mail) |
+| Reading never changes read state; rate-limit backoff | `GmailIT.readingNeverChangesMailAndNothingIsSentOrDeleted`, `rateLimitedSyncBacksOffAndRecovers`; `CalendarIT` (backs off, then gives up with a clear error) |
+| FR-05.03 / FR-05.05 classify and summarise (80 words) | `EmailUnitTest`; `GmailIT.aSummaryIsCappedAndExtraFieldsAreIgnored` |
+| FR-05.04 important mail alerts once, with no content | `GmailIT.anImportantEmailIsAnnouncedOnceEvenAcrossPollsAndRestarts`, `theFirstSyncsBacklogDoesNotSetOffAlerts`; `personality.ts` (`important_email` line has no email text); `panelActions.test.ts` |
+| FR-02.05 / FR-05.06 / FR-05.07 email to task with a link back; open in Gmail | `GmailIT.anEmailBecomesATaskThatLinksBackOnce`; `googleDesktop.test.ts` (only Google's sites are opened) |
+| FR-05.08 / FR-05.09 drafts only after confirming; only SMOI's own drafts updated | `GmailIT` (draft flow; header injection rejected; unknown draft refused); `EmailUnitTest` |
+| FR-05.10 / FR-05.11 reminder linked to a draft, cancelled when the draft is gone | `GmailIT.aReminderForADraftIsCancelledOnceTheDraftIsGone`, `aReminderStillFiresWhenGoogleCannotBeAsked`, `aReminderCannotLinkAnotherUsersDraft`; `googleDesktop.test.ts` |
+| FR-05.13 no send, delete or trash; all Gmail calls through one wrapper | `GmailSafetyTest` (reflection and source scan); `GoogleApiTest.forbiddenGmailCalls` checked in `GmailIT` |
+| NFR-03.08 email is untrusted; injected instructions can't act | `GmailIT.anEmailWithInjectedInstructionsCannotChangeEventsOrDrafts` (a model that "obeys" still changes nothing); `CalendarAndDraftIntentTest.draftsOnlyToAnAddressTheUserSaid` |
+| FR-06.02 index chosen emails into SMOI Brain, off by default | `GoogleConnectionIT.disconnectRevokesTheTokenAndCanDeleteEmailData` (index, then deleted with email data). Attachments are not indexed yet. |
+| NFR-09.07 email classification quality | `python eval/run_eval.py email` (in `make eval`) on `eval/data/emails_v1.jsonl`; results in `docs/email-classification.md`. Target TBD. |
+| End-to-end with a real Google account | Owner's manual checklist (pending) |
+
 ## Phase 10: Claude Code notifications
 
 Decisions in `docs/adr/0016-claude-code-hooks.md`; setup in `docs/claude-code-hooks.md`.
