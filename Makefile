@@ -2,7 +2,7 @@
 # command on the right directly.
 PY ?= python
 
-.PHONY: eval eval-retrieval eval-sweep eval-report eval-test eval-validate eval-unit backend-verify
+.PHONY: eval eval-retrieval eval-sweep eval-report eval-test eval-validate eval-unit eval-email backend-verify
 
 # Everything: create .env if missing, start the stack, run the evaluation, write docs/benchmarks.md.
 eval:
@@ -22,6 +22,10 @@ eval-report:
 # The locked test set. Run it only once settings are final: every run is logged.
 eval-test:
 	$(PY) eval/run_eval.py run --set test
+
+# Email classification on the synthetic set (NFR-09.07); the stack must be running.
+eval-email:
+	$(PY) eval/run_eval.py email
 
 eval-validate:
 	$(PY) eval/run_eval.py validate
