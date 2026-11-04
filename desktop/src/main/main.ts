@@ -28,6 +28,7 @@ import { TaskService } from './tasks';
 import { Notifier } from './notifier';
 import { ClaudeCode } from './claudeCode';
 import { GoogleService } from './google';
+import { overdueTasks } from '../shared/taskStore';
 import { Commands } from './commands';
 import { isAccelerator, Voice } from './voice';
 
@@ -437,8 +438,15 @@ function start() {
       { type: 'reminder', title: r.title, missed }),
     onOverdue: (count) => {
       if (count > 0) notifier.notify('overdue', 'overdue', { type: 'overdue', count });
+      // A task can become overdue just by time passing, with no change to the store.
+      if (machine.isActive('tasks') !== count > 0) machine.set('tasks', count > 0, Date.now());
     },
-    onChange: (s) => dashboard?.tasksChanged(s, session.status().signedIn),
+    onChange: (s) => {
+      dashboard?.tasksChanged(s, session.status().signedIn);
+      // The tasks pose lasts while something is overdue, and goes when it's done or rescheduled.
+      const overdue = session.status().signedIn && overdueTasks(s, Date.now()).length > 0;
+      if (machine.isActive('tasks') !== overdue) machine.set('tasks', overdue, Date.now());
+    },
     // Reminders linked to a Gmail draft check that the draft still exists (FR-05.11).
     checkDraft: async (id) => {
       try {
@@ -463,7 +471,12 @@ function start() {
       if (r.line) companion.say(r.line);
       machine.react('annoyed', Date.now());
     },
-    onChange: (g) => dashboard?.googleChanged(g),
+    onChange: (g) => {
+      dashboard?.googleChanged(g);
+      // The mail pose lasts while there is new mail the user hasn't looked at in the inbox.
+      const mail = g.status?.status === 'connected' && g.unseen > 0;
+      if (machine.isActive('mail') !== mail) machine.set('mail', mail, Date.now());
+    },
   });
   notifier = new Notifier({
     settings: () => settings.notifications,

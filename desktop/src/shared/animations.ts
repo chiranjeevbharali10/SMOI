@@ -8,7 +8,11 @@ export type FrogState =
   | 'idle' | 'happy' | 'sleeping' | 'working' | 'thinking' | 'surprised'
   | 'annoyed' | 'celebrating' | 'listening' | 'speaking' | 'walking' | 'error'
   /** DRAFT, not yet in the design board: Claude Code is blocked waiting for permission (FR-10.04). */
-  | 'attention';
+  | 'attention'
+  /** DRAFT: new email since the inbox was last opened. */
+  | 'mail'
+  /** DRAFT: tasks are overdue. */
+  | 'tasks';
 
 export interface Animation {
   /** Milliseconds each frame is shown, in strip order. */
@@ -33,12 +37,14 @@ export const ANIMATIONS: Record<FrogState, Animation> = {
   walking: { frames: [100, 90, 90, 100, 90, 90], loop: true },
   error: { frames: repeat(170, 6), loop: true },
   attention: { frames: [220, 140, 220, 140, 220, 500], loop: true },
+  mail: { frames: [260, 180, 260, 180, 260, 900], loop: true },
+  tasks: { frames: [260, 180, 260, 180, 260, 900], loop: true },
 };
 
 export const STATES = Object.keys(ANIMATIONS) as FrogState[];
 
 /** States whose art was drawn for SMOI rather than extracted from the design board. */
-export const DRAFT_STATES: readonly FrogState[] = ['attention'];
+export const DRAFT_STATES: readonly FrogState[] = ['attention', 'mail', 'tasks'];
 
 export function totalDuration(state: FrogState): number {
   return ANIMATIONS[state].frames.reduce((a, b) => a + b, 0);

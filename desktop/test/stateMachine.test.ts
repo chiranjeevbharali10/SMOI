@@ -162,3 +162,29 @@ describe('Phase 6B state priority: error, then thinking or speaking, then workin
     expect(m.state).toBe('working');
   });
 });
+
+describe('waiting-for-you poses (Phase 8)', () => {
+  it('mail and tasks last until cleared, mail outranks tasks, and both beat sleeping', () => {
+    const m = new FrogStateMachine();
+    m.set('sleeping', true, 0);
+    m.set('tasks', true, 0);
+    expect(m.state).toBe('tasks');
+    m.set('mail', true, 0);
+    expect(m.state).toBe('mail');
+    m.tick(10 * 60_000);
+    expect(m.state).toBe('mail');
+    m.set('mail', false, 10 * 60_000);
+    expect(m.state).toBe('tasks');
+    m.set('tasks', false, 10 * 60_000);
+    expect(m.state).toBe('sleeping');
+  });
+
+  it('an alert still interrupts them, then they come back', () => {
+    const m = new FrogStateMachine();
+    m.set('mail', true, 0);
+    m.react('surprised', 0);
+    expect(m.state).toBe('surprised');
+    m.animationFinished('surprised', 900);
+    expect(m.state).toBe('mail');
+  });
+});

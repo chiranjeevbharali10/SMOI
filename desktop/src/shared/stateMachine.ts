@@ -28,12 +28,16 @@ export const PRIORITY: Record<FrogState, number> = {
   celebrating: 50,
   happy: 45,
   working: 40,
+  mail: 35,
+  tasks: 30,
   walking: 20,
   sleeping: 10,
   idle: 0,
 };
 
-export type Condition = 'error' | 'listening' | 'speaking' | 'thinking' | 'working' | 'sleeping' | 'walking';
+export type Condition = 'error' | 'listening' | 'speaking' | 'thinking' | 'working' | 'sleeping' | 'walking'
+  /** Waiting for the user: new email (until the inbox is opened), overdue tasks (until done). */
+  | 'mail' | 'tasks';
 /**
  * Thinking, working and error can also be brief reactions: opening SMOI Brain shows thinking for a
  * moment, and an answer that fell back to passages shows error for a moment, without either being

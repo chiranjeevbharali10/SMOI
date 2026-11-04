@@ -51,8 +51,18 @@ export function Calendar({ google }: { google: GoogleView | null }) {
     } else setError(r.error.message);
   }, []);
 
+  // Events made in Google Calendar (or on the phone) show up here too: reload every minute while
+  // this screen is open, and whenever the window comes back into focus.
   useEffect(() => {
-    if (connected) void load();
+    if (!connected) return;
+    void load();
+    const timer = setInterval(() => void load(), 60_000);
+    const onFocus = () => void load();
+    window.addEventListener('focus', onFocus);
+    return () => {
+      clearInterval(timer);
+      window.removeEventListener('focus', onFocus);
+    };
   }, [connected, load]);
 
   const show = (r: Awaited<ReturnType<ReturnType<typeof api>['proposeEvent']>>) => {
