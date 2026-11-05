@@ -39,6 +39,38 @@ answer model. For a Claude run: `pip install -r eval/requirements-claude-judge.t
 `ANTHROPIC_API_KEY`, and pass `--judge anthropic:claude-sonnet-5-5`. Judged scores are always
 reported as estimates, next to the judge's agreement with the hand labels.
 
+## File-level search eval (`run_eval.py brain`)
+
+`make eval-brain` (or `python eval/run_eval.py brain --label <name>`) with the stack running. It
+uploads the demo corpus for a fresh user, runs every query in `data/brain_v1.csv` through
+`/api/search` in each mode (hybrid_rerank only if the reranker is enabled), deletes the documents
+and writes `results/brain_<label>_*.json`.
+
+`brain_v1.csv` columns: `id, category, query, expected_file, expected_page, notes`. Categories are
+`exact` (distinctive terms), `paraphrase`, `filename` (asks for a file by name, with typos and
+spaces) and `no_result` (leave `expected_file` empty). `expected_page` is optional. To add your own
+documents, put them in the corpus and add rows the same way.
+
+Metrics: recall@5 and MRR@10 over distinct files in result order, the share of `no_result` queries
+that come back empty, and wall-clock latency per query (rate-limit waits are not timed).
+
+### Baseline of 2026-11-05 (`results/brain_baseline_20261105_093602.json`)
+
+Before the brain upgrade: `nomic-embed-text`, chunks of 500/75 tokens, cross-encoder reranker
+sidecar, RTX 4050 laptop. 44 queries (38 with an expected file, 6 no-result), 24 documents, 467 chunks.
+
+| Mode | recall@5 | MRR@10 | No-result correct | Mean latency |
+|---|---|---|---|---|
+| keyword | 0.789 | 0.624 | 0.000 | 16 ms |
+| vector | 0.868 | 0.772 | 0.000 | 74 ms |
+| hybrid | 0.947 | 0.725 | 0.000 | 58 ms |
+| hybrid_rerank | 1.000 | 0.974 | 0.000 | 1297 ms |
+
+No mode ever returns an empty result, so every no-result query fails. Filename queries mostly
+succeed by accident: the file names are words in the content ("saturn"), and keyword search alone
+finds 3 of 8. The corpus is small, with one topic per file, so recall@5 saturates; MRR is the more
+useful number here.
+
 ## Local chat model benchmark
 
 `bench_local_llm.py` (standard library only) compares Ollama chat models on grounded answers. For

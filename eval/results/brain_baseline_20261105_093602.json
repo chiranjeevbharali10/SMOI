@@ -1,0 +1,3551 @@
+{
+  "run": {
+    "label": "baseline",
+    "queries": 44,
+    "modes": [
+      "keyword",
+      "vector",
+      "hybrid",
+      "hybrid_rerank"
+    ],
+    "providers": {
+      "llm": {
+        "provider": "ollama",
+        "model": "qwen3.5:2b-q4_K_M",
+        "hosted": false
+      },
+      "embedding": {
+        "model": "ollama/nomic-embed-text",
+        "hosted": false
+      },
+      "reranker": {
+        "enabled": true,
+        "model": "cross-encoder (sidecar)",
+        "hosted": false
+      },
+      "chunking": {
+        "maxTokens": 500,
+        "overlapTokens": 75
+      }
+    },
+    "started": "2026-11-05T09:35:58+00:00"
+  },
+  "environment": {
+    "git": {
+      "commit": "33697adbeca115403ce310329806ab0dacce2d7b",
+      "dirty": true,
+      "backend_tree": "19367c3f07ae300f2d9e20f3f42867a9934780a2",
+      "reranker_tree": "5b075b5e1b9a13615c2fc9f4dd2d39a436a41f81"
+    },
+    "hardware": {
+      "os": "Windows 11",
+      "machine": "AMD64",
+      "logical_cpus": 20,
+      "cpu": "13th Gen Intel(R) Core(TM) i7-13650HX",
+      "ram_gib": 15.6,
+      "docker": {
+        "cpus": 20,
+        "memory_gib": 7.6,
+        "os": "Docker Desktop (containerized)",
+        "server_version": "28.5.2"
+      },
+      "gpu_used": false
+    }
+  },
+  "corpus": {
+    "documents": 24,
+    "bytes": 677663,
+    "formats": {
+      "txt": 12,
+      "pdf": 6,
+      "docx": 6
+    },
+    "groups": [
+      "databases",
+      "frogs",
+      "planets"
+    ],
+    "chunks": 467,
+    "index_seconds": 183.8545768999993
+  },
+  "summary": {
+    "keyword": {
+      "overall": {
+        "queries": 38,
+        "recall@5": 0.7894736842105263,
+        "mrr@10": 0.6236842105263157
+      },
+      "by_category": {
+        "exact": {
+          "queries": 15,
+          "recall@5": 0.9333333333333333,
+          "mrr@10": 0.7799999999999999
+        },
+        "paraphrase": {
+          "queries": 15,
+          "recall@5": 0.8666666666666667,
+          "mrr@10": 0.6333333333333333
+        },
+        "filename": {
+          "queries": 8,
+          "recall@5": 0.375,
+          "mrr@10": 0.3125
+        }
+      },
+      "no_result": {
+        "queries": 6,
+        "correctly_empty": 0.0
+      },
+      "latency_ms": {
+        "wall_mean": 15.715909090909092,
+        "wall_p50": 11.2,
+        "wall_p95": 33.0,
+        "server_mean": 3.4318181818181817,
+        "queries": 44
+      },
+      "rerank_applied": null
+    },
+    "vector": {
+      "overall": {
+        "queries": 38,
+        "recall@5": 0.868421052631579,
+        "mrr@10": 0.7719298245614035
+      },
+      "by_category": {
+        "exact": {
+          "queries": 15,
+          "recall@5": 0.6666666666666666,
+          "mrr@10": 0.5333333333333333
+        },
+        "paraphrase": {
+          "queries": 15,
+          "recall@5": 1.0,
+          "mrr@10": 0.888888888888889
+        },
+        "filename": {
+          "queries": 8,
+          "recall@5": 1.0,
+          "mrr@10": 1.0
+        }
+      },
+      "no_result": {
+        "queries": 6,
+        "correctly_empty": 0.0
+      },
+      "latency_ms": {
+        "wall_mean": 73.7909090909091,
+        "wall_p50": 79.2,
+        "wall_p95": 111.5,
+        "server_mean": 57.88636363636363,
+        "queries": 44
+      },
+      "rerank_applied": null
+    },
+    "hybrid": {
+      "overall": {
+        "queries": 38,
+        "recall@5": 0.9473684210526315,
+        "mrr@10": 0.7254385964912281
+      },
+      "by_category": {
+        "exact": {
+          "queries": 15,
+          "recall@5": 0.9333333333333333,
+          "mrr@10": 0.7555555555555556
+        },
+        "paraphrase": {
+          "queries": 15,
+          "recall@5": 0.9333333333333333,
+          "mrr@10": 0.7388888888888889
+        },
+        "filename": {
+          "queries": 8,
+          "recall@5": 1.0,
+          "mrr@10": 0.64375
+        }
+      },
+      "no_result": {
+        "queries": 6,
+        "correctly_empty": 0.0
+      },
+      "latency_ms": {
+        "wall_mean": 57.50909090909091,
+        "wall_p50": 64.0,
+        "wall_p95": 80.1,
+        "server_mean": 40.56818181818182,
+        "queries": 44
+      },
+      "rerank_applied": null
+    },
+    "hybrid_rerank": {
+      "overall": {
+        "queries": 38,
+        "recall@5": 1.0,
+        "mrr@10": 0.9736842105263158
+      },
+      "by_category": {
+        "exact": {
+          "queries": 15,
+          "recall@5": 1.0,
+          "mrr@10": 0.9666666666666667
+        },
+        "paraphrase": {
+          "queries": 15,
+          "recall@5": 1.0,
+          "mrr@10": 0.9666666666666667
+        },
+        "filename": {
+          "queries": 8,
+          "recall@5": 1.0,
+          "mrr@10": 1.0
+        }
+      },
+      "no_result": {
+        "queries": 6,
+        "correctly_empty": 0.0
+      },
+      "latency_ms": {
+        "wall_mean": 1296.6886363636363,
+        "wall_p50": 1286.1,
+        "wall_p95": 1458.1,
+        "server_mean": 1281.7954545454545,
+        "queries": 44
+      },
+      "rerank_applied": 44
+    }
+  },
+  "misses": {
+    "keyword": [
+      "b06",
+      "b18",
+      "b20",
+      "b31",
+      "b32",
+      "b33",
+      "b36",
+      "b37",
+      "b39",
+      "b40",
+      "b41",
+      "b42",
+      "b43",
+      "b44"
+    ],
+    "vector": [
+      "b01",
+      "b03",
+      "b07",
+      "b08",
+      "b15",
+      "b39",
+      "b40",
+      "b41",
+      "b42",
+      "b43",
+      "b44"
+    ],
+    "hybrid": [
+      "b15",
+      "b18",
+      "b39",
+      "b40",
+      "b41",
+      "b42",
+      "b43",
+      "b44"
+    ],
+    "hybrid_rerank": [
+      "b39",
+      "b40",
+      "b41",
+      "b42",
+      "b43",
+      "b44"
+    ]
+  },
+  "per_query": {
+    "keyword": [
+      {
+        "id": "b01",
+        "category": "exact",
+        "mode": "keyword",
+        "rerank": "not_requested",
+        "wall_ms": 10.5,
+        "server_ms": 1,
+        "returned": 1,
+        "top_score": 0.1,
+        "top_files": [
+          "moor_frog.pdf"
+        ],
+        "rank": 1,
+        "recall@5": 1.0,
+        "mrr@10": 1.0
+      },
+      {
+        "id": "b02",
+        "category": "exact",
+        "mode": "keyword",
+        "rerank": "not_requested",
+        "wall_ms": 9.1,
+        "server_ms": 1,
+        "returned": 3,
+        "top_score": 0.4,
+        "top_files": [
+          "common_toad.txt"
+        ],
+        "rank": 1,
+        "recall@5": 1.0,
+        "mrr@10": 1.0
+      },
+      {
+        "id": "b03",
+        "category": "exact",
+        "mode": "keyword",
+        "rerank": "not_requested",
+        "wall_ms": 9.8,
+        "server_ms": 2,
+        "returned": 2,
+        "top_score": 0.3,
+        "top_files": [
+          "common_toad.txt",
+          "jupiter.txt"
+        ],
+        "rank": 1,
+        "recall@5": 1.0,
+        "mrr@10": 1.0
+      },
+      {
+        "id": "b04",
+        "category": "exact",
+        "mode": "keyword",
+        "rerank": "not_requested",
+        "wall_ms": 10.8,
+        "server_ms": 2,
+        "returned": 10,
+        "top_score": 1.4,
+        "top_files": [
+          "mvcc.pdf",
+          "isolation_levels.txt",
+          "postgresql.txt",
+          "mysql.pdf",
+          "mariadb.docx"
+        ],
+        "rank": 5,
+        "recall@5": 1.0,
+        "mrr@10": 0.2
+      },
+      {
+        "id": "b05",
+        "category": "exact",
+        "mode": "keyword",
+        "rerank": "not_requested",
+        "wall_ms": 10.3,
+        "server_ms": 3,
+        "returned": 10,
+        "top_score": 0.699999988079071,
+        "top_files": [
+          "mariadb.docx",
+          "mysql.pdf"
+        ],
+        "rank": 1,
+        "recall@5": 1.0,
+        "mrr@10": 1.0
+      },
+      {
+        "id": "b06",
+        "category": "exact",
+        "mode": "keyword",
+        "rerank": "not_requested",
+        "wall_ms": 10.3,
+        "server_ms": 3,
+        "returned": 10,
+        "top_score": 0.5,
+        "top_files": [
+          "europa.txt",
+          "neptune.txt",
+          "marsh_frog.pdf",
+          "b_tree.docx",
+          "saturn.pdf"
+        ],
+        "rank": null,
+        "recall@5": 0.0,
+        "mrr@10": 0.0
+      },
+      {
+        "id": "b07",
+        "category": "exact",
+        "mode": "keyword",
+        "rerank": "not_requested",
+        "wall_ms": 8.2,
+        "server_ms": 1,
+        "returned": 9,
+        "top_score": 0.800000011920929,
+        "top_files": [
+          "b_tree.docx",
+          "sqlite.txt",
+          "marsh_frog.pdf",
+          "mariadb.docx",
+          "enceladus.txt"
+        ],
+        "rank": 2,
+        "recall@5": 1.0,
+        "mrr@10": 0.5
+      },
+      {
+        "id": "b08",
+        "category": "exact",
+        "mode": "keyword",
+        "rerank": "not_requested",
+        "wall_ms": 9.1,
+        "server_ms": 1,
+        "returned": 1,
+        "top_score": 0.2,
+        "top_files": [
+          "sqlite.txt"
+        ],
+        "rank": 1,
+        "recall@5": 1.0,
+        "mrr@10": 1.0
+      },
+      {
+        "id": "b09",
+        "category": "exact",
+        "mode": "keyword",
+        "rerank": "not_requested",
+        "wall_ms": 10.8,
+        "server_ms": 4,
+        "returned": 10,
+        "top_score": 0.5,
+        "top_files": [
+          "b_tree.docx",
+          "europa.txt",
+          "jupiter.txt",
+          "titan.docx",
+          "common_toad.txt"
+        ],
+        "rank": 1,
+        "recall@5": 1.0,
+        "mrr@10": 1.0
+      },
+      {
+        "id": "b10",
+        "category": "exact",
+        "mode": "keyword",
+        "rerank": "not_requested",
+        "wall_ms": 8.1,
+        "server_ms": 1,
+        "returned": 10,
+        "top_score": 1.3000000715255737,
+        "top_files": [
+          "isolation_levels.txt",
+          "mvcc.pdf",
+          "postgresql.txt",
+          "mariadb.docx"
+        ],
+        "rank": 2,
+        "recall@5": 1.0,
+        "mrr@10": 0.5
+      },
+      {
+        "id": "b11",
+        "category": "exact",
+        "mode": "keyword",
+        "rerank": "not_requested",
+        "wall_ms": 13.1,
+        "server_ms": 5,
+        "returned": 10,
+        "top_score": 1.2000000476837158,
+        "top_files": [
+          "isolation_levels.txt",
+          "pool_frog.txt",
+          "io.pdf",
+          "b_tree.docx",
+          "mvcc.pdf"
+        ],
+        "rank": 1,
+        "recall@5": 1.0,
+        "mrr@10": 1.0
+      },
+      {
+        "id": "b12",
+        "category": "exact",
+        "mode": "keyword",
+        "rerank": "not_requested",
+        "wall_ms": 12.1,
+        "server_ms": 4,
+        "returned": 10,
+        "top_score": 2.0,
+        "top_files": [
+          "jupiter.txt",
+          "neptune.txt",
+          "io.pdf",
+          "saturn.pdf"
+        ],
+        "rank": 1,
+        "recall@5": 1.0,
+        "mrr@10": 1.0
+      },
+      {
+        "id": "b13",
+        "category": "exact",
+        "mode": "keyword",
+        "rerank": "not_requested",
+        "wall_ms": 11.9,
+        "server_ms": 5,
+        "returned": 10,
+        "top_score": 1.5,
+        "top_files": [
+          "neptune.txt",
+          "mvcc.pdf",
+          "titan.docx",
+          "io.pdf",
+          "enceladus.txt"
+        ],
+        "rank": 1,
+        "recall@5": 1.0,
+        "mrr@10": 1.0
+      },
+      {
+        "id": "b14",
+        "category": "exact",
+        "mode": "keyword",
+        "rerank": "not_requested",
+        "wall_ms": 25.7,
+        "server_ms": 3,
+        "returned": 10,
+        "top_score": 0.699999988079071,
+        "top_files": [
+          "titan.docx",
+          "saturn.pdf",
+          "io.pdf"
+        ],
+        "rank": 1,
+        "recall@5": 1.0,
+        "mrr@10": 1.0
+      },
+      {
+        "id": "b15",
+        "category": "exact",
+        "mode": "keyword",
+        "rerank": "not_requested",
+        "wall_ms": 9.5,
+        "server_ms": 3,
+        "returned": 10,
+        "top_score": 0.20000000298023224,
+        "top_files": [
+          "saturn.pdf",
+          "neptune.txt",
+          "titan.docx",
+          "enceladus.txt",
+          "europa.txt"
+        ],
+        "rank": 2,
+        "recall@5": 1.0,
+        "mrr@10": 0.5
+      },
+      {
+        "id": "b16",
+        "category": "paraphrase",
+        "mode": "keyword",
+        "rerank": "not_requested",
+        "wall_ms": 14.8,
+        "server_ms": 6,
+        "returned": 10,
+        "top_score": 2.700000047683716,
+        "top_files": [
+          "moor_frog.pdf",
+          "marsh_frog.pdf",
+          "common_frog.txt",
+          "pool_frog.txt"
+        ],
+        "rank": 1,
+        "recall@5": 1.0,
+        "mrr@10": 1.0
+      },
+      {
+        "id": "b17",
+        "category": "paraphrase",
+        "mode": "keyword",
+        "rerank": "not_requested",
+        "wall_ms": 10.8,
+        "server_ms": 4,
+        "returned": 10,
+        "top_score": 1.5,
+        "top_files": [
+          "common_toad.txt",
+          "natterjack_toad.txt",
+          "common_frog.txt"
+        ],
+        "rank": 2,
+        "recall@5": 1.0,
+        "mrr@10": 0.5
+      },
+      {
+        "id": "b18",
+        "category": "paraphrase",
+        "mode": "keyword",
+        "rerank": "not_requested",
+        "wall_ms": 8.8,
+        "server_ms": 2,
+        "returned": 10,
+        "top_score": 2.4,
+        "top_files": [
+          "marsh_frog.pdf",
+          "common_frog.txt",
+          "pool_frog.txt",
+          "moor_frog.pdf"
+        ],
+        "rank": null,
+        "recall@5": 0.0,
+        "mrr@10": 0.0
+      },
+      {
+        "id": "b19",
+        "category": "paraphrase",
+        "mode": "keyword",
+        "rerank": "not_requested",
+        "wall_ms": 9.4,
+        "server_ms": 3,
+        "returned": 10,
+        "top_score": 3.3,
+        "top_files": [
+          "marsh_frog.pdf",
+          "pool_frog.txt",
+          "common_frog.txt"
+        ],
+        "rank": 1,
+        "recall@5": 1.0,
+        "mrr@10": 1.0
+      },
+      {
+        "id": "b20",
+        "category": "paraphrase",
+        "mode": "keyword",
+        "rerank": "not_requested",
+        "wall_ms": 15.3,
+        "server_ms": 8,
+        "returned": 10,
+        "top_score": 3.5,
+        "top_files": [
+          "pool_frog.txt",
+          "marsh_frog.pdf",
+          "common_frog.txt"
+        ],
+        "rank": null,
+        "recall@5": 0.0,
+        "mrr@10": 0.0
+      },
+      {
+        "id": "b21",
+        "category": "paraphrase",
+        "mode": "keyword",
+        "rerank": "not_requested",
+        "wall_ms": 15.8,
+        "server_ms": 8,
+        "returned": 10,
+        "top_score": 1.8000000715255737,
+        "top_files": [
+          "common_toad.txt",
+          "common_frog.txt",
+          "natterjack_toad.txt"
+        ],
+        "rank": 1,
+        "recall@5": 1.0,
+        "mrr@10": 1.0
+      },
+      {
+        "id": "b22",
+        "category": "paraphrase",
+        "mode": "keyword",
+        "rerank": "not_requested",
+        "wall_ms": 12.3,
+        "server_ms": 6,
+        "returned": 10,
+        "top_score": 2.700000047683716,
+        "top_files": [
+          "sqlite.txt",
+          "b_tree.docx",
+          "mysql.pdf"
+        ],
+        "rank": 1,
+        "recall@5": 1.0,
+        "mrr@10": 1.0
+      },
+      {
+        "id": "b23",
+        "category": "paraphrase",
+        "mode": "keyword",
+        "rerank": "not_requested",
+        "wall_ms": 11.4,
+        "server_ms": 5,
+        "returned": 10,
+        "top_score": 1.2000000476837158,
+        "top_files": [
+          "mysql.pdf",
+          "neptune.txt",
+          "postgresql.txt",
+          "sqlite.txt",
+          "enceladus.txt"
+        ],
+        "rank": 1,
+        "recall@5": 1.0,
+        "mrr@10": 1.0
+      },
+      {
+        "id": "b24",
+        "category": "paraphrase",
+        "mode": "keyword",
+        "rerank": "not_requested",
+        "wall_ms": 12.0,
+        "server_ms": 6,
+        "returned": 10,
+        "top_score": 1.8000000715255737,
+        "top_files": [
+          "write_ahead_logging.txt",
+          "uranus.docx",
+          "postgresql.txt",
+          "mariadb.docx",
+          "b_tree.docx"
+        ],
+        "rank": 1,
+        "recall@5": 1.0,
+        "mrr@10": 1.0
+      },
+      {
+        "id": "b25",
+        "category": "paraphrase",
+        "mode": "keyword",
+        "rerank": "not_requested",
+        "wall_ms": 11.2,
+        "server_ms": 5,
+        "returned": 10,
+        "top_score": 2.4000000953674316,
+        "top_files": [
+          "pool_frog.txt",
+          "postgresql.txt",
+          "mysql.pdf",
+          "sqlite.txt",
+          "mvcc.pdf"
+        ],
+        "rank": 2,
+        "recall@5": 1.0,
+        "mrr@10": 0.5
+      },
+      {
+        "id": "b26",
+        "category": "paraphrase",
+        "mode": "keyword",
+        "rerank": "not_requested",
+        "wall_ms": 26.5,
+        "server_ms": 4,
+        "returned": 10,
+        "top_score": 1.600000023841858,
+        "top_files": [
+          "jupiter.txt",
+          "io.pdf",
+          "europa.txt",
+          "titan.docx",
+          "saturn.pdf"
+        ],
+        "rank": 2,
+        "recall@5": 1.0,
+        "mrr@10": 0.5
+      },
+      {
+        "id": "b27",
+        "category": "paraphrase",
+        "mode": "keyword",
+        "rerank": "not_requested",
+        "wall_ms": 13.1,
+        "server_ms": 6,
+        "returned": 10,
+        "top_score": 1.7000000476837158,
+        "top_files": [
+          "uranus.docx",
+          "neptune.txt",
+          "jupiter.txt",
+          "saturn.pdf",
+          "enceladus.txt"
+        ],
+        "rank": 4,
+        "recall@5": 1.0,
+        "mrr@10": 0.25
+      },
+      {
+        "id": "b28",
+        "category": "paraphrase",
+        "mode": "keyword",
+        "rerank": "not_requested",
+        "wall_ms": 9.0,
+        "server_ms": 3,
+        "returned": 10,
+        "top_score": 2.5,
+        "top_files": [
+          "jupiter.txt",
+          "europa.txt",
+          "io.pdf",
+          "titan.docx"
+        ],
+        "rank": 2,
+        "recall@5": 1.0,
+        "mrr@10": 0.5
+      },
+      {
+        "id": "b29",
+        "category": "paraphrase",
+        "mode": "keyword",
+        "rerank": "not_requested",
+        "wall_ms": 8.5,
+        "server_ms": 3,
+        "returned": 10,
+        "top_score": 1.3000001,
+        "top_files": [
+          "uranus.docx",
+          "neptune.txt"
+        ],
+        "rank": 1,
+        "recall@5": 1.0,
+        "mrr@10": 1.0
+      },
+      {
+        "id": "b30",
+        "category": "paraphrase",
+        "mode": "keyword",
+        "rerank": "not_requested",
+        "wall_ms": 11.7,
+        "server_ms": 6,
+        "returned": 10,
+        "top_score": 2.700000047683716,
+        "top_files": [
+          "titan.docx",
+          "saturn.pdf",
+          "jupiter.txt",
+          "enceladus.txt"
+        ],
+        "rank": 4,
+        "recall@5": 1.0,
+        "mrr@10": 0.25
+      },
+      {
+        "id": "b31",
+        "category": "filename",
+        "mode": "keyword",
+        "rerank": "not_requested",
+        "wall_ms": 33.4,
+        "server_ms": 2,
+        "returned": 10,
+        "top_score": 0.4000000059604645,
+        "top_files": [
+          "titan.docx",
+          "pool_frog.txt",
+          "b_tree.docx",
+          "enceladus.txt",
+          "marsh_frog.pdf"
+        ],
+        "rank": null,
+        "recall@5": 0.0,
+        "mrr@10": 0.0
+      },
+      {
+        "id": "b32",
+        "category": "filename",
+        "mode": "keyword",
+        "rerank": "not_requested",
+        "wall_ms": 31.4,
+        "server_ms": 2,
+        "returned": 10,
+        "top_score": 0.30000001192092896,
+        "top_files": [
+          "mysql.pdf",
+          "postgresql.txt",
+          "mariadb.docx"
+        ],
+        "rank": null,
+        "recall@5": 0.0,
+        "mrr@10": 0.0
+      },
+      {
+        "id": "b33",
+        "category": "filename",
+        "mode": "keyword",
+        "rerank": "not_requested",
+        "wall_ms": 31.6,
+        "server_ms": 3,
+        "returned": 10,
+        "top_score": 2.1000001430511475,
+        "top_files": [
+          "b_tree.docx",
+          "sqlite.txt",
+          "titan.docx",
+          "pool_frog.txt",
+          "enceladus.txt"
+        ],
+        "rank": null,
+        "recall@5": 0.0,
+        "mrr@10": 0.0
+      },
+      {
+        "id": "b34",
+        "category": "filename",
+        "mode": "keyword",
+        "rerank": "not_requested",
+        "wall_ms": 9.4,
+        "server_ms": 3,
+        "returned": 10,
+        "top_score": 1.3000000715255737,
+        "top_files": [
+          "saturn.pdf",
+          "titan.docx"
+        ],
+        "rank": 1,
+        "recall@5": 1.0,
+        "mrr@10": 1.0
+      },
+      {
+        "id": "b35",
+        "category": "filename",
+        "mode": "keyword",
+        "rerank": "not_requested",
+        "wall_ms": 9.5,
+        "server_ms": 3,
+        "returned": 10,
+        "top_score": 2.299999952316284,
+        "top_files": [
+          "write_ahead_logging.txt",
+          "b_tree.docx",
+          "sqlite.txt",
+          "isolation_levels.txt",
+          "mvcc.pdf"
+        ],
+        "rank": 1,
+        "recall@5": 1.0,
+        "mrr@10": 1.0
+      },
+      {
+        "id": "b36",
+        "category": "filename",
+        "mode": "keyword",
+        "rerank": "not_requested",
+        "wall_ms": 27.2,
+        "server_ms": 2,
+        "returned": 10,
+        "top_score": 0.30000001192092896,
+        "top_files": [
+          "mysql.pdf",
+          "postgresql.txt",
+          "mariadb.docx"
+        ],
+        "rank": null,
+        "recall@5": 0.0,
+        "mrr@10": 0.0
+      },
+      {
+        "id": "b37",
+        "category": "filename",
+        "mode": "keyword",
+        "rerank": "not_requested",
+        "wall_ms": 35.0,
+        "server_ms": 4,
+        "returned": 10,
+        "top_score": 2.9000000953674316,
+        "top_files": [
+          "marsh_frog.pdf",
+          "pool_frog.txt",
+          "common_frog.txt",
+          "moor_frog.pdf"
+        ],
+        "rank": null,
+        "recall@5": 0.0,
+        "mrr@10": 0.0
+      },
+      {
+        "id": "b38",
+        "category": "filename",
+        "mode": "keyword",
+        "rerank": "not_requested",
+        "wall_ms": 29.6,
+        "server_ms": 2,
+        "returned": 10,
+        "top_score": 1.9,
+        "top_files": [
+          "b_tree.docx",
+          "enceladus.txt"
+        ],
+        "rank": 2,
+        "recall@5": 1.0,
+        "mrr@10": 0.5
+      },
+      {
+        "id": "b39",
+        "category": "no_result",
+        "mode": "keyword",
+        "rerank": "not_requested",
+        "wall_ms": 31.9,
+        "server_ms": 2,
+        "returned": 10,
+        "top_score": 0.3,
+        "top_files": [
+          "mysql.pdf",
+          "marsh_frog.pdf",
+          "europa.txt",
+          "io.pdf",
+          "uranus.docx"
+        ],
+        "correctly_empty": 0.0
+      },
+      {
+        "id": "b40",
+        "category": "no_result",
+        "mode": "keyword",
+        "rerank": "not_requested",
+        "wall_ms": 8.5,
+        "server_ms": 2,
+        "returned": 1,
+        "top_score": 0.10000000149011612,
+        "top_files": [
+          "io.pdf"
+        ],
+        "correctly_empty": 0.0
+      },
+      {
+        "id": "b41",
+        "category": "no_result",
+        "mode": "keyword",
+        "rerank": "not_requested",
+        "wall_ms": 10.2,
+        "server_ms": 4,
+        "returned": 10,
+        "top_score": 0.20000000298023224,
+        "top_files": [
+          "postgresql.txt",
+          "neptune.txt",
+          "saturn.pdf",
+          "titan.docx",
+          "europa.txt"
+        ],
+        "correctly_empty": 0.0
+      },
+      {
+        "id": "b42",
+        "category": "no_result",
+        "mode": "keyword",
+        "rerank": "not_requested",
+        "wall_ms": 9.4,
+        "server_ms": 2,
+        "returned": 10,
+        "top_score": 0.4000000059604645,
+        "top_files": [
+          "titan.docx",
+          "pool_frog.txt",
+          "b_tree.docx",
+          "enceladus.txt",
+          "marsh_frog.pdf"
+        ],
+        "correctly_empty": 0.0
+      },
+      {
+        "id": "b43",
+        "category": "no_result",
+        "mode": "keyword",
+        "rerank": "not_requested",
+        "wall_ms": 33.0,
+        "server_ms": 3,
+        "returned": 6,
+        "top_score": 0.20000000298023224,
+        "top_files": [
+          "titan.docx",
+          "uranus.docx",
+          "neptune.txt",
+          "postgresql.txt",
+          "b_tree.docx"
+        ],
+        "correctly_empty": 0.0
+      },
+      {
+        "id": "b44",
+        "category": "no_result",
+        "mode": "keyword",
+        "rerank": "not_requested",
+        "wall_ms": 31.5,
+        "server_ms": 3,
+        "returned": 10,
+        "top_score": 0.30000001192092896,
+        "top_files": [
+          "enceladus.txt",
+          "titan.docx",
+          "saturn.pdf",
+          "pool_frog.txt",
+          "common_toad.txt"
+        ],
+        "correctly_empty": 0.0
+      }
+    ],
+    "vector": [
+      {
+        "id": "b01",
+        "category": "exact",
+        "mode": "vector",
+        "rerank": "not_requested",
+        "wall_ms": 38.5,
+        "server_ms": 29,
+        "returned": 10,
+        "top_score": 0.5182116828021404,
+        "top_files": [
+          "europa.txt",
+          "uranus.docx",
+          "io.pdf",
+          "mysql.pdf",
+          "jupiter.txt"
+        ],
+        "rank": null,
+        "recall@5": 0.0,
+        "mrr@10": 0.0
+      },
+      {
+        "id": "b02",
+        "category": "exact",
+        "mode": "vector",
+        "rerank": "not_requested",
+        "wall_ms": 33.4,
+        "server_ms": 26,
+        "returned": 10,
+        "top_score": 0.8189470796208816,
+        "top_files": [
+          "common_toad.txt",
+          "moor_frog.pdf",
+          "marsh_frog.pdf"
+        ],
+        "rank": 1,
+        "recall@5": 1.0,
+        "mrr@10": 1.0
+      },
+      {
+        "id": "b03",
+        "category": "exact",
+        "mode": "vector",
+        "rerank": "not_requested",
+        "wall_ms": 38.8,
+        "server_ms": 31,
+        "returned": 10,
+        "top_score": 0.5384220985359949,
+        "top_files": [
+          "neptune.txt",
+          "europa.txt",
+          "jupiter.txt",
+          "io.pdf"
+        ],
+        "rank": null,
+        "recall@5": 0.0,
+        "mrr@10": 0.0
+      },
+      {
+        "id": "b04",
+        "category": "exact",
+        "mode": "vector",
+        "rerank": "not_requested",
+        "wall_ms": 38.3,
+        "server_ms": 30,
+        "returned": 10,
+        "top_score": 0.7714244042111991,
+        "top_files": [
+          "mariadb.docx",
+          "mvcc.pdf",
+          "mysql.pdf",
+          "postgresql.txt",
+          "isolation_levels.txt"
+        ],
+        "rank": 1,
+        "recall@5": 1.0,
+        "mrr@10": 1.0
+      },
+      {
+        "id": "b05",
+        "category": "exact",
+        "mode": "vector",
+        "rerank": "not_requested",
+        "wall_ms": 38.1,
+        "server_ms": 30,
+        "returned": 10,
+        "top_score": 0.627431712899712,
+        "top_files": [
+          "mariadb.docx",
+          "europa.txt"
+        ],
+        "rank": 1,
+        "recall@5": 1.0,
+        "mrr@10": 1.0
+      },
+      {
+        "id": "b06",
+        "category": "exact",
+        "mode": "vector",
+        "rerank": "not_requested",
+        "wall_ms": 62.5,
+        "server_ms": 33,
+        "returned": 10,
+        "top_score": 0.5420931477324611,
+        "top_files": [
+          "postgresql.txt",
+          "mysql.pdf",
+          "mariadb.docx",
+          "jupiter.txt",
+          "io.pdf"
+        ],
+        "rank": 2,
+        "recall@5": 1.0,
+        "mrr@10": 0.5
+      },
+      {
+        "id": "b07",
+        "category": "exact",
+        "mode": "vector",
+        "rerank": "not_requested",
+        "wall_ms": 39.0,
+        "server_ms": 30,
+        "returned": 10,
+        "top_score": 0.5313378889166287,
+        "top_files": [
+          "neptune.txt",
+          "uranus.docx",
+          "jupiter.txt",
+          "titan.docx",
+          "mysql.pdf"
+        ],
+        "rank": null,
+        "recall@5": 0.0,
+        "mrr@10": 0.0
+      },
+      {
+        "id": "b08",
+        "category": "exact",
+        "mode": "vector",
+        "rerank": "not_requested",
+        "wall_ms": 37.7,
+        "server_ms": 29,
+        "returned": 10,
+        "top_score": 0.5909646126522722,
+        "top_files": [
+          "mariadb.docx",
+          "postgresql.txt",
+          "mysql.pdf"
+        ],
+        "rank": null,
+        "recall@5": 0.0,
+        "mrr@10": 0.0
+      },
+      {
+        "id": "b09",
+        "category": "exact",
+        "mode": "vector",
+        "rerank": "not_requested",
+        "wall_ms": 37.7,
+        "server_ms": 29,
+        "returned": 10,
+        "top_score": 0.5687731165425122,
+        "top_files": [
+          "titan.docx",
+          "mysql.pdf",
+          "postgresql.txt",
+          "b_tree.docx",
+          "mariadb.docx"
+        ],
+        "rank": 4,
+        "recall@5": 1.0,
+        "mrr@10": 0.25
+      },
+      {
+        "id": "b10",
+        "category": "exact",
+        "mode": "vector",
+        "rerank": "not_requested",
+        "wall_ms": 57.3,
+        "server_ms": 32,
+        "returned": 10,
+        "top_score": 0.6463893688221017,
+        "top_files": [
+          "isolation_levels.txt",
+          "mariadb.docx",
+          "postgresql.txt",
+          "mvcc.pdf"
+        ],
+        "rank": 4,
+        "recall@5": 1.0,
+        "mrr@10": 0.25
+      },
+      {
+        "id": "b11",
+        "category": "exact",
+        "mode": "vector",
+        "rerank": "not_requested",
+        "wall_ms": 95.3,
+        "server_ms": 87,
+        "returned": 10,
+        "top_score": 0.7478344373055742,
+        "top_files": [
+          "isolation_levels.txt",
+          "mvcc.pdf",
+          "b_tree.docx",
+          "postgresql.txt",
+          "mariadb.docx"
+        ],
+        "rank": 1,
+        "recall@5": 1.0,
+        "mrr@10": 1.0
+      },
+      {
+        "id": "b12",
+        "category": "exact",
+        "mode": "vector",
+        "rerank": "not_requested",
+        "wall_ms": 112.7,
+        "server_ms": 86,
+        "returned": 10,
+        "top_score": 0.6796701990476907,
+        "top_files": [
+          "jupiter.txt",
+          "neptune.txt",
+          "uranus.docx",
+          "titan.docx"
+        ],
+        "rank": 1,
+        "recall@5": 1.0,
+        "mrr@10": 1.0
+      },
+      {
+        "id": "b13",
+        "category": "exact",
+        "mode": "vector",
+        "rerank": "not_requested",
+        "wall_ms": 38.0,
+        "server_ms": 30,
+        "returned": 10,
+        "top_score": 0.7063375711441241,
+        "top_files": [
+          "neptune.txt",
+          "io.pdf",
+          "uranus.docx",
+          "titan.docx",
+          "enceladus.txt"
+        ],
+        "rank": 1,
+        "recall@5": 1.0,
+        "mrr@10": 1.0
+      },
+      {
+        "id": "b14",
+        "category": "exact",
+        "mode": "vector",
+        "rerank": "not_requested",
+        "wall_ms": 60.2,
+        "server_ms": 30,
+        "returned": 10,
+        "top_score": 0.6674845816899215,
+        "top_files": [
+          "titan.docx",
+          "saturn.pdf",
+          "neptune.txt",
+          "io.pdf",
+          "uranus.docx"
+        ],
+        "rank": 1,
+        "recall@5": 1.0,
+        "mrr@10": 1.0
+      },
+      {
+        "id": "b15",
+        "category": "exact",
+        "mode": "vector",
+        "rerank": "not_requested",
+        "wall_ms": 96.0,
+        "server_ms": 88,
+        "returned": 10,
+        "top_score": 0.4720173792830109,
+        "top_files": [
+          "mysql.pdf",
+          "uranus.docx",
+          "mariadb.docx",
+          "enceladus.txt",
+          "write_ahead_logging.txt"
+        ],
+        "rank": null,
+        "recall@5": 0.0,
+        "mrr@10": 0.0
+      },
+      {
+        "id": "b16",
+        "category": "paraphrase",
+        "mode": "vector",
+        "rerank": "not_requested",
+        "wall_ms": 117.0,
+        "server_ms": 82,
+        "returned": 10,
+        "top_score": 0.7894704749688767,
+        "top_files": [
+          "moor_frog.pdf",
+          "pool_frog.txt",
+          "marsh_frog.pdf",
+          "common_frog.txt"
+        ],
+        "rank": 1,
+        "recall@5": 1.0,
+        "mrr@10": 1.0
+      },
+      {
+        "id": "b17",
+        "category": "paraphrase",
+        "mode": "vector",
+        "rerank": "not_requested",
+        "wall_ms": 88.4,
+        "server_ms": 80,
+        "returned": 10,
+        "top_score": 0.7943753004074322,
+        "top_files": [
+          "natterjack_toad.txt",
+          "common_toad.txt",
+          "common_frog.txt",
+          "pool_frog.txt",
+          "agile_frog.docx"
+        ],
+        "rank": 1,
+        "recall@5": 1.0,
+        "mrr@10": 1.0
+      },
+      {
+        "id": "b18",
+        "category": "paraphrase",
+        "mode": "vector",
+        "rerank": "not_requested",
+        "wall_ms": 100.2,
+        "server_ms": 71,
+        "returned": 10,
+        "top_score": 0.7931524998111366,
+        "top_files": [
+          "agile_frog.docx",
+          "common_frog.txt",
+          "pool_frog.txt"
+        ],
+        "rank": 1,
+        "recall@5": 1.0,
+        "mrr@10": 1.0
+      },
+      {
+        "id": "b19",
+        "category": "paraphrase",
+        "mode": "vector",
+        "rerank": "not_requested",
+        "wall_ms": 102.5,
+        "server_ms": 73,
+        "returned": 10,
+        "top_score": 0.7979589459847204,
+        "top_files": [
+          "marsh_frog.pdf",
+          "pool_frog.txt",
+          "moor_frog.pdf",
+          "common_frog.txt"
+        ],
+        "rank": 1,
+        "recall@5": 1.0,
+        "mrr@10": 1.0
+      },
+      {
+        "id": "b20",
+        "category": "paraphrase",
+        "mode": "vector",
+        "rerank": "not_requested",
+        "wall_ms": 79.2,
+        "server_ms": 71,
+        "returned": 10,
+        "top_score": 0.840970170787065,
+        "top_files": [
+          "pool_frog.txt",
+          "edible_frog.docx",
+          "marsh_frog.pdf",
+          "common_frog.txt",
+          "moor_frog.pdf"
+        ],
+        "rank": 2,
+        "recall@5": 1.0,
+        "mrr@10": 0.5
+      },
+      {
+        "id": "b21",
+        "category": "paraphrase",
+        "mode": "vector",
+        "rerank": "not_requested",
+        "wall_ms": 73.3,
+        "server_ms": 66,
+        "returned": 10,
+        "top_score": 0.899599009489442,
+        "top_files": [
+          "common_toad.txt",
+          "common_frog.txt"
+        ],
+        "rank": 1,
+        "recall@5": 1.0,
+        "mrr@10": 1.0
+      },
+      {
+        "id": "b22",
+        "category": "paraphrase",
+        "mode": "vector",
+        "rerank": "not_requested",
+        "wall_ms": 35.5,
+        "server_ms": 28,
+        "returned": 10,
+        "top_score": 0.7669001916348377,
+        "top_files": [
+          "sqlite.txt",
+          "postgresql.txt",
+          "b_tree.docx"
+        ],
+        "rank": 1,
+        "recall@5": 1.0,
+        "mrr@10": 1.0
+      },
+      {
+        "id": "b23",
+        "category": "paraphrase",
+        "mode": "vector",
+        "rerank": "not_requested",
+        "wall_ms": 83.4,
+        "server_ms": 71,
+        "returned": 10,
+        "top_score": 0.8155245341121098,
+        "top_files": [
+          "mysql.pdf",
+          "mariadb.docx"
+        ],
+        "rank": 1,
+        "recall@5": 1.0,
+        "mrr@10": 1.0
+      },
+      {
+        "id": "b24",
+        "category": "paraphrase",
+        "mode": "vector",
+        "rerank": "not_requested",
+        "wall_ms": 108.0,
+        "server_ms": 76,
+        "returned": 10,
+        "top_score": 0.6972280740738113,
+        "top_files": [
+          "write_ahead_logging.txt",
+          "postgresql.txt",
+          "isolation_levels.txt",
+          "mvcc.pdf",
+          "mariadb.docx"
+        ],
+        "rank": 1,
+        "recall@5": 1.0,
+        "mrr@10": 1.0
+      },
+      {
+        "id": "b25",
+        "category": "paraphrase",
+        "mode": "vector",
+        "rerank": "not_requested",
+        "wall_ms": 96.1,
+        "server_ms": 74,
+        "returned": 10,
+        "top_score": 0.855341101966167,
+        "top_files": [
+          "postgresql.txt",
+          "mysql.pdf",
+          "mariadb.docx"
+        ],
+        "rank": 1,
+        "recall@5": 1.0,
+        "mrr@10": 1.0
+      },
+      {
+        "id": "b26",
+        "category": "paraphrase",
+        "mode": "vector",
+        "rerank": "not_requested",
+        "wall_ms": 82.5,
+        "server_ms": 76,
+        "returned": 10,
+        "top_score": 0.7682175592857676,
+        "top_files": [
+          "io.pdf",
+          "titan.docx",
+          "saturn.pdf",
+          "uranus.docx",
+          "europa.txt"
+        ],
+        "rank": 1,
+        "recall@5": 1.0,
+        "mrr@10": 1.0
+      },
+      {
+        "id": "b27",
+        "category": "paraphrase",
+        "mode": "vector",
+        "rerank": "not_requested",
+        "wall_ms": 79.1,
+        "server_ms": 69,
+        "returned": 10,
+        "top_score": 0.7710633098317907,
+        "top_files": [
+          "saturn.pdf",
+          "uranus.docx",
+          "jupiter.txt",
+          "neptune.txt"
+        ],
+        "rank": 1,
+        "recall@5": 1.0,
+        "mrr@10": 1.0
+      },
+      {
+        "id": "b28",
+        "category": "paraphrase",
+        "mode": "vector",
+        "rerank": "not_requested",
+        "wall_ms": 101.3,
+        "server_ms": 90,
+        "returned": 10,
+        "top_score": 0.7773987452867015,
+        "top_files": [
+          "io.pdf",
+          "europa.txt",
+          "jupiter.txt",
+          "uranus.docx",
+          "neptune.txt"
+        ],
+        "rank": 2,
+        "recall@5": 1.0,
+        "mrr@10": 0.5
+      },
+      {
+        "id": "b29",
+        "category": "paraphrase",
+        "mode": "vector",
+        "rerank": "not_requested",
+        "wall_ms": 98.1,
+        "server_ms": 75,
+        "returned": 10,
+        "top_score": 0.8404109027695987,
+        "top_files": [
+          "uranus.docx",
+          "neptune.txt"
+        ],
+        "rank": 1,
+        "recall@5": 1.0,
+        "mrr@10": 1.0
+      },
+      {
+        "id": "b30",
+        "category": "paraphrase",
+        "mode": "vector",
+        "rerank": "not_requested",
+        "wall_ms": 50.5,
+        "server_ms": 27,
+        "returned": 10,
+        "top_score": 0.7893847023478229,
+        "top_files": [
+          "saturn.pdf",
+          "titan.docx",
+          "enceladus.txt"
+        ],
+        "rank": 3,
+        "recall@5": 1.0,
+        "mrr@10": 0.3333333333333333
+      },
+      {
+        "id": "b31",
+        "category": "filename",
+        "mode": "vector",
+        "rerank": "not_requested",
+        "wall_ms": 36.8,
+        "server_ms": 29,
+        "returned": 10,
+        "top_score": 0.6529213968421694,
+        "top_files": [
+          "mvcc.pdf",
+          "postgresql.txt",
+          "mariadb.docx",
+          "mysql.pdf"
+        ],
+        "rank": 1,
+        "recall@5": 1.0,
+        "mrr@10": 1.0
+      },
+      {
+        "id": "b32",
+        "category": "filename",
+        "mode": "vector",
+        "rerank": "not_requested",
+        "wall_ms": 111.5,
+        "server_ms": 85,
+        "returned": 10,
+        "top_score": 0.6681648091876962,
+        "top_files": [
+          "b_tree.docx"
+        ],
+        "rank": 1,
+        "recall@5": 1.0,
+        "mrr@10": 1.0
+      },
+      {
+        "id": "b33",
+        "category": "filename",
+        "mode": "vector",
+        "rerank": "not_requested",
+        "wall_ms": 87.6,
+        "server_ms": 68,
+        "returned": 10,
+        "top_score": 0.7493225634905674,
+        "top_files": [
+          "natterjack_toad.txt",
+          "common_toad.txt",
+          "common_frog.txt"
+        ],
+        "rank": 1,
+        "recall@5": 1.0,
+        "mrr@10": 1.0
+      },
+      {
+        "id": "b34",
+        "category": "filename",
+        "mode": "vector",
+        "rerank": "not_requested",
+        "wall_ms": 96.5,
+        "server_ms": 72,
+        "returned": 10,
+        "top_score": 0.659103075212434,
+        "top_files": [
+          "saturn.pdf",
+          "titan.docx"
+        ],
+        "rank": 1,
+        "recall@5": 1.0,
+        "mrr@10": 1.0
+      },
+      {
+        "id": "b35",
+        "category": "filename",
+        "mode": "vector",
+        "rerank": "not_requested",
+        "wall_ms": 76.9,
+        "server_ms": 69,
+        "returned": 10,
+        "top_score": 0.7704536694688701,
+        "top_files": [
+          "write_ahead_logging.txt",
+          "sqlite.txt",
+          "postgresql.txt",
+          "mvcc.pdf",
+          "mysql.pdf"
+        ],
+        "rank": 1,
+        "recall@5": 1.0,
+        "mrr@10": 1.0
+      },
+      {
+        "id": "b36",
+        "category": "filename",
+        "mode": "vector",
+        "rerank": "not_requested",
+        "wall_ms": 86.3,
+        "server_ms": 66,
+        "returned": 10,
+        "top_score": 0.7026245303824156,
+        "top_files": [
+          "sqlite.txt",
+          "mysql.pdf",
+          "postgresql.txt"
+        ],
+        "rank": 1,
+        "recall@5": 1.0,
+        "mrr@10": 1.0
+      },
+      {
+        "id": "b37",
+        "category": "filename",
+        "mode": "vector",
+        "rerank": "not_requested",
+        "wall_ms": 95.8,
+        "server_ms": 66,
+        "returned": 10,
+        "top_score": 0.7311125903666502,
+        "top_files": [
+          "edible_frog.docx",
+          "common_frog.txt",
+          "pool_frog.txt",
+          "marsh_frog.pdf"
+        ],
+        "rank": 1,
+        "recall@5": 1.0,
+        "mrr@10": 1.0
+      },
+      {
+        "id": "b38",
+        "category": "filename",
+        "mode": "vector",
+        "rerank": "not_requested",
+        "wall_ms": 34.8,
+        "server_ms": 25,
+        "returned": 10,
+        "top_score": 0.6682555672665713,
+        "top_files": [
+          "enceladus.txt"
+        ],
+        "rank": 1,
+        "recall@5": 1.0,
+        "mrr@10": 1.0
+      },
+      {
+        "id": "b39",
+        "category": "no_result",
+        "mode": "vector",
+        "rerank": "not_requested",
+        "wall_ms": 35.5,
+        "server_ms": 28,
+        "returned": 10,
+        "top_score": 0.5813058074397929,
+        "top_files": [
+          "mysql.pdf",
+          "uranus.docx",
+          "pool_frog.txt",
+          "isolation_levels.txt",
+          "mariadb.docx"
+        ],
+        "correctly_empty": 0.0
+      },
+      {
+        "id": "b40",
+        "category": "no_result",
+        "mode": "vector",
+        "rerank": "not_requested",
+        "wall_ms": 78.7,
+        "server_ms": 71,
+        "returned": 10,
+        "top_score": 0.5053894218570347,
+        "top_files": [
+          "mariadb.docx",
+          "b_tree.docx",
+          "moor_frog.pdf",
+          "write_ahead_logging.txt",
+          "mvcc.pdf"
+        ],
+        "correctly_empty": 0.0
+      },
+      {
+        "id": "b41",
+        "category": "no_result",
+        "mode": "vector",
+        "rerank": "not_requested",
+        "wall_ms": 111.2,
+        "server_ms": 81,
+        "returned": 10,
+        "top_score": 0.5850763714132089,
+        "top_files": [
+          "mariadb.docx",
+          "mysql.pdf",
+          "postgresql.txt"
+        ],
+        "correctly_empty": 0.0
+      },
+      {
+        "id": "b42",
+        "category": "no_result",
+        "mode": "vector",
+        "rerank": "not_requested",
+        "wall_ms": 108.4,
+        "server_ms": 86,
+        "returned": 10,
+        "top_score": 0.5450780066801393,
+        "top_files": [
+          "mysql.pdf",
+          "mariadb.docx",
+          "io.pdf",
+          "enceladus.txt",
+          "postgresql.txt"
+        ],
+        "correctly_empty": 0.0
+      },
+      {
+        "id": "b43",
+        "category": "no_result",
+        "mode": "vector",
+        "rerank": "not_requested",
+        "wall_ms": 80.2,
+        "server_ms": 72,
+        "returned": 10,
+        "top_score": 0.557826993012129,
+        "top_files": [
+          "common_toad.txt",
+          "pool_frog.txt",
+          "uranus.docx",
+          "moor_frog.pdf",
+          "io.pdf"
+        ],
+        "correctly_empty": 0.0
+      },
+      {
+        "id": "b44",
+        "category": "no_result",
+        "mode": "vector",
+        "rerank": "not_requested",
+        "wall_ms": 88.0,
+        "server_ms": 80,
+        "returned": 10,
+        "top_score": 0.5775270780824184,
+        "top_files": [
+          "mariadb.docx",
+          "mysql.pdf",
+          "titan.docx",
+          "enceladus.txt"
+        ],
+        "correctly_empty": 0.0
+      }
+    ],
+    "hybrid": [
+      {
+        "id": "b01",
+        "category": "exact",
+        "mode": "hybrid",
+        "rerank": "not_requested",
+        "wall_ms": 69.1,
+        "server_ms": 61,
+        "returned": 10,
+        "top_score": 0.029726775956284153,
+        "top_files": [
+          "moor_frog.pdf",
+          "europa.txt",
+          "uranus.docx",
+          "io.pdf",
+          "mysql.pdf"
+        ],
+        "rank": 1,
+        "recall@5": 1.0,
+        "mrr@10": 1.0
+      },
+      {
+        "id": "b02",
+        "category": "exact",
+        "mode": "hybrid",
+        "rerank": "not_requested",
+        "wall_ms": 16.2,
+        "server_ms": 6,
+        "returned": 10,
+        "top_score": 0.03278688524590164,
+        "top_files": [
+          "common_toad.txt",
+          "moor_frog.pdf",
+          "marsh_frog.pdf"
+        ],
+        "rank": 1,
+        "recall@5": 1.0,
+        "mrr@10": 1.0
+      },
+      {
+        "id": "b03",
+        "category": "exact",
+        "mode": "hybrid",
+        "rerank": "not_requested",
+        "wall_ms": 86.8,
+        "server_ms": 57,
+        "returned": 10,
+        "top_score": 0.030834914611005692,
+        "top_files": [
+          "jupiter.txt",
+          "neptune.txt",
+          "common_toad.txt",
+          "europa.txt",
+          "io.pdf"
+        ],
+        "rank": 3,
+        "recall@5": 1.0,
+        "mrr@10": 0.3333333333333333
+      },
+      {
+        "id": "b04",
+        "category": "exact",
+        "mode": "hybrid",
+        "rerank": "not_requested",
+        "wall_ms": 64.0,
+        "server_ms": 57,
+        "returned": 10,
+        "top_score": 0.03252247488101534,
+        "top_files": [
+          "mvcc.pdf",
+          "mariadb.docx",
+          "mysql.pdf",
+          "postgresql.txt",
+          "isolation_levels.txt"
+        ],
+        "rank": 2,
+        "recall@5": 1.0,
+        "mrr@10": 0.5
+      },
+      {
+        "id": "b05",
+        "category": "exact",
+        "mode": "hybrid",
+        "rerank": "not_requested",
+        "wall_ms": 65.2,
+        "server_ms": 58,
+        "returned": 10,
+        "top_score": 0.03278688524590164,
+        "top_files": [
+          "mariadb.docx",
+          "mysql.pdf",
+          "europa.txt"
+        ],
+        "rank": 1,
+        "recall@5": 1.0,
+        "mrr@10": 1.0
+      },
+      {
+        "id": "b06",
+        "category": "exact",
+        "mode": "hybrid",
+        "rerank": "not_requested",
+        "wall_ms": 61.9,
+        "server_ms": 55,
+        "returned": 10,
+        "top_score": 0.029726775956284153,
+        "top_files": [
+          "postgresql.txt",
+          "mysql.pdf",
+          "io.pdf",
+          "jupiter.txt",
+          "titan.docx"
+        ],
+        "rank": 2,
+        "recall@5": 1.0,
+        "mrr@10": 0.5
+      },
+      {
+        "id": "b07",
+        "category": "exact",
+        "mode": "hybrid",
+        "rerank": "not_requested",
+        "wall_ms": 72.7,
+        "server_ms": 45,
+        "returned": 10,
+        "top_score": 0.025677830940988834,
+        "top_files": [
+          "neptune.txt",
+          "b_tree.docx",
+          "sqlite.txt",
+          "marsh_frog.pdf",
+          "uranus.docx"
+        ],
+        "rank": 3,
+        "recall@5": 1.0,
+        "mrr@10": 0.3333333333333333
+      },
+      {
+        "id": "b08",
+        "category": "exact",
+        "mode": "hybrid",
+        "rerank": "not_requested",
+        "wall_ms": 51.4,
+        "server_ms": 45,
+        "returned": 10,
+        "top_score": 0.02889344262295082,
+        "top_files": [
+          "sqlite.txt",
+          "mariadb.docx",
+          "postgresql.txt",
+          "mysql.pdf"
+        ],
+        "rank": 1,
+        "recall@5": 1.0,
+        "mrr@10": 1.0
+      },
+      {
+        "id": "b09",
+        "category": "exact",
+        "mode": "hybrid",
+        "rerank": "not_requested",
+        "wall_ms": 67.9,
+        "server_ms": 45,
+        "returned": 10,
+        "top_score": 0.032018442622950824,
+        "top_files": [
+          "b_tree.docx",
+          "titan.docx",
+          "mysql.pdf",
+          "europa.txt",
+          "postgresql.txt"
+        ],
+        "rank": 1,
+        "recall@5": 1.0,
+        "mrr@10": 1.0
+      },
+      {
+        "id": "b10",
+        "category": "exact",
+        "mode": "hybrid",
+        "rerank": "not_requested",
+        "wall_ms": 22.2,
+        "server_ms": 5,
+        "returned": 10,
+        "top_score": 0.03252247488101534,
+        "top_files": [
+          "isolation_levels.txt",
+          "mvcc.pdf",
+          "mariadb.docx",
+          "postgresql.txt"
+        ],
+        "rank": 2,
+        "recall@5": 1.0,
+        "mrr@10": 0.5
+      },
+      {
+        "id": "b11",
+        "category": "exact",
+        "mode": "hybrid",
+        "rerank": "not_requested",
+        "wall_ms": 67.5,
+        "server_ms": 47,
+        "returned": 10,
+        "top_score": 0.03252247488101534,
+        "top_files": [
+          "isolation_levels.txt",
+          "mvcc.pdf",
+          "b_tree.docx",
+          "sqlite.txt"
+        ],
+        "rank": 1,
+        "recall@5": 1.0,
+        "mrr@10": 1.0
+      },
+      {
+        "id": "b12",
+        "category": "exact",
+        "mode": "hybrid",
+        "rerank": "not_requested",
+        "wall_ms": 76.3,
+        "server_ms": 59,
+        "returned": 10,
+        "top_score": 0.03278688524590164,
+        "top_files": [
+          "jupiter.txt",
+          "neptune.txt",
+          "io.pdf"
+        ],
+        "rank": 1,
+        "recall@5": 1.0,
+        "mrr@10": 1.0
+      },
+      {
+        "id": "b13",
+        "category": "exact",
+        "mode": "hybrid",
+        "rerank": "not_requested",
+        "wall_ms": 66.8,
+        "server_ms": 46,
+        "returned": 10,
+        "top_score": 0.03278688524590164,
+        "top_files": [
+          "neptune.txt",
+          "io.pdf",
+          "titan.docx",
+          "enceladus.txt",
+          "saturn.pdf"
+        ],
+        "rank": 1,
+        "recall@5": 1.0,
+        "mrr@10": 1.0
+      },
+      {
+        "id": "b14",
+        "category": "exact",
+        "mode": "hybrid",
+        "rerank": "not_requested",
+        "wall_ms": 74.3,
+        "server_ms": 45,
+        "returned": 10,
+        "top_score": 0.03278688524590164,
+        "top_files": [
+          "titan.docx",
+          "saturn.pdf",
+          "io.pdf"
+        ],
+        "rank": 1,
+        "recall@5": 1.0,
+        "mrr@10": 1.0
+      },
+      {
+        "id": "b15",
+        "category": "exact",
+        "mode": "hybrid",
+        "rerank": "not_requested",
+        "wall_ms": 61.3,
+        "server_ms": 44,
+        "returned": 10,
+        "top_score": 0.02919863597612958,
+        "top_files": [
+          "uranus.docx",
+          "enceladus.txt",
+          "io.pdf",
+          "saturn.pdf",
+          "mysql.pdf"
+        ],
+        "rank": 6,
+        "recall@5": 0.0,
+        "mrr@10": 0.16666666666666666
+      },
+      {
+        "id": "b16",
+        "category": "paraphrase",
+        "mode": "hybrid",
+        "rerank": "not_requested",
+        "wall_ms": 59.5,
+        "server_ms": 48,
+        "returned": 10,
+        "top_score": 0.03278688524590164,
+        "top_files": [
+          "moor_frog.pdf",
+          "common_frog.txt",
+          "pool_frog.txt",
+          "marsh_frog.pdf"
+        ],
+        "rank": 1,
+        "recall@5": 1.0,
+        "mrr@10": 1.0
+      },
+      {
+        "id": "b17",
+        "category": "paraphrase",
+        "mode": "hybrid",
+        "rerank": "not_requested",
+        "wall_ms": 62.9,
+        "server_ms": 45,
+        "returned": 10,
+        "top_score": 0.03225806451612903,
+        "top_files": [
+          "common_toad.txt",
+          "natterjack_toad.txt",
+          "common_frog.txt",
+          "pool_frog.txt"
+        ],
+        "rank": 2,
+        "recall@5": 1.0,
+        "mrr@10": 0.5
+      },
+      {
+        "id": "b18",
+        "category": "paraphrase",
+        "mode": "hybrid",
+        "rerank": "not_requested",
+        "wall_ms": 11.7,
+        "server_ms": 6,
+        "returned": 10,
+        "top_score": 0.031054405392392875,
+        "top_files": [
+          "common_frog.txt",
+          "marsh_frog.pdf",
+          "pool_frog.txt",
+          "edible_frog.docx"
+        ],
+        "rank": null,
+        "recall@5": 0.0,
+        "mrr@10": 0.0
+      },
+      {
+        "id": "b19",
+        "category": "paraphrase",
+        "mode": "hybrid",
+        "rerank": "not_requested",
+        "wall_ms": 30.8,
+        "server_ms": 6,
+        "returned": 10,
+        "top_score": 0.032266458495966696,
+        "top_files": [
+          "marsh_frog.pdf",
+          "pool_frog.txt"
+        ],
+        "rank": 1,
+        "recall@5": 1.0,
+        "mrr@10": 1.0
+      },
+      {
+        "id": "b20",
+        "category": "paraphrase",
+        "mode": "hybrid",
+        "rerank": "not_requested",
+        "wall_ms": 69.3,
+        "server_ms": 49,
+        "returned": 10,
+        "top_score": 0.03278688524590164,
+        "top_files": [
+          "pool_frog.txt",
+          "marsh_frog.pdf",
+          "common_frog.txt",
+          "edible_frog.docx"
+        ],
+        "rank": 4,
+        "recall@5": 1.0,
+        "mrr@10": 0.25
+      },
+      {
+        "id": "b21",
+        "category": "paraphrase",
+        "mode": "hybrid",
+        "rerank": "not_requested",
+        "wall_ms": 74.5,
+        "server_ms": 50,
+        "returned": 10,
+        "top_score": 0.03252247488101534,
+        "top_files": [
+          "common_toad.txt",
+          "common_frog.txt",
+          "natterjack_toad.txt"
+        ],
+        "rank": 1,
+        "recall@5": 1.0,
+        "mrr@10": 1.0
+      },
+      {
+        "id": "b22",
+        "category": "paraphrase",
+        "mode": "hybrid",
+        "rerank": "not_requested",
+        "wall_ms": 78.0,
+        "server_ms": 48,
+        "returned": 10,
+        "top_score": 0.03252247488101534,
+        "top_files": [
+          "sqlite.txt",
+          "mysql.pdf",
+          "postgresql.txt"
+        ],
+        "rank": 1,
+        "recall@5": 1.0,
+        "mrr@10": 1.0
+      },
+      {
+        "id": "b23",
+        "category": "paraphrase",
+        "mode": "hybrid",
+        "rerank": "not_requested",
+        "wall_ms": 77.2,
+        "server_ms": 46,
+        "returned": 10,
+        "top_score": 0.03278688524590164,
+        "top_files": [
+          "mysql.pdf",
+          "postgresql.txt",
+          "sqlite.txt",
+          "mariadb.docx"
+        ],
+        "rank": 1,
+        "recall@5": 1.0,
+        "mrr@10": 1.0
+      },
+      {
+        "id": "b24",
+        "category": "paraphrase",
+        "mode": "hybrid",
+        "rerank": "not_requested",
+        "wall_ms": 82.1,
+        "server_ms": 50,
+        "returned": 10,
+        "top_score": 0.03252247488101534,
+        "top_files": [
+          "write_ahead_logging.txt",
+          "mvcc.pdf",
+          "postgresql.txt",
+          "mariadb.docx",
+          "b_tree.docx"
+        ],
+        "rank": 1,
+        "recall@5": 1.0,
+        "mrr@10": 1.0
+      },
+      {
+        "id": "b25",
+        "category": "paraphrase",
+        "mode": "hybrid",
+        "rerank": "not_requested",
+        "wall_ms": 66.8,
+        "server_ms": 57,
+        "returned": 10,
+        "top_score": 0.03252247488101534,
+        "top_files": [
+          "postgresql.txt",
+          "mysql.pdf",
+          "mariadb.docx"
+        ],
+        "rank": 1,
+        "recall@5": 1.0,
+        "mrr@10": 1.0
+      },
+      {
+        "id": "b26",
+        "category": "paraphrase",
+        "mode": "hybrid",
+        "rerank": "not_requested",
+        "wall_ms": 14.3,
+        "server_ms": 7,
+        "returned": 10,
+        "top_score": 0.03252247488101534,
+        "top_files": [
+          "io.pdf",
+          "titan.docx",
+          "jupiter.txt",
+          "europa.txt",
+          "saturn.pdf"
+        ],
+        "rank": 1,
+        "recall@5": 1.0,
+        "mrr@10": 1.0
+      },
+      {
+        "id": "b27",
+        "category": "paraphrase",
+        "mode": "hybrid",
+        "rerank": "not_requested",
+        "wall_ms": 16.5,
+        "server_ms": 7,
+        "returned": 10,
+        "top_score": 0.03252247488101534,
+        "top_files": [
+          "uranus.docx",
+          "saturn.pdf",
+          "jupiter.txt",
+          "neptune.txt",
+          "enceladus.txt"
+        ],
+        "rank": 2,
+        "recall@5": 1.0,
+        "mrr@10": 0.5
+      },
+      {
+        "id": "b28",
+        "category": "paraphrase",
+        "mode": "hybrid",
+        "rerank": "not_requested",
+        "wall_ms": 80.1,
+        "server_ms": 63,
+        "returned": 10,
+        "top_score": 0.032266458495966696,
+        "top_files": [
+          "jupiter.txt",
+          "europa.txt",
+          "io.pdf",
+          "titan.docx"
+        ],
+        "rank": 2,
+        "recall@5": 1.0,
+        "mrr@10": 0.5
+      },
+      {
+        "id": "b29",
+        "category": "paraphrase",
+        "mode": "hybrid",
+        "rerank": "not_requested",
+        "wall_ms": 77.8,
+        "server_ms": 48,
+        "returned": 10,
+        "top_score": 0.03200204813108039,
+        "top_files": [
+          "uranus.docx",
+          "neptune.txt",
+          "io.pdf"
+        ],
+        "rank": 1,
+        "recall@5": 1.0,
+        "mrr@10": 1.0
+      },
+      {
+        "id": "b30",
+        "category": "paraphrase",
+        "mode": "hybrid",
+        "rerank": "not_requested",
+        "wall_ms": 68.3,
+        "server_ms": 47,
+        "returned": 10,
+        "top_score": 0.03252247488101534,
+        "top_files": [
+          "saturn.pdf",
+          "titan.docx",
+          "enceladus.txt",
+          "jupiter.txt"
+        ],
+        "rank": 3,
+        "recall@5": 1.0,
+        "mrr@10": 0.3333333333333333
+      },
+      {
+        "id": "b31",
+        "category": "filename",
+        "mode": "hybrid",
+        "rerank": "not_requested",
+        "wall_ms": 78.4,
+        "server_ms": 44,
+        "returned": 10,
+        "top_score": 0.01639344262295082,
+        "top_files": [
+          "mvcc.pdf",
+          "titan.docx",
+          "pool_frog.txt",
+          "b_tree.docx",
+          "postgresql.txt"
+        ],
+        "rank": 1,
+        "recall@5": 1.0,
+        "mrr@10": 1.0
+      },
+      {
+        "id": "b32",
+        "category": "filename",
+        "mode": "hybrid",
+        "rerank": "not_requested",
+        "wall_ms": 51.0,
+        "server_ms": 44,
+        "returned": 10,
+        "top_score": 0.02738970588235294,
+        "top_files": [
+          "mysql.pdf",
+          "mariadb.docx",
+          "postgresql.txt",
+          "sqlite.txt",
+          "b_tree.docx"
+        ],
+        "rank": 5,
+        "recall@5": 1.0,
+        "mrr@10": 0.2
+      },
+      {
+        "id": "b33",
+        "category": "filename",
+        "mode": "hybrid",
+        "rerank": "not_requested",
+        "wall_ms": 76.3,
+        "server_ms": 45,
+        "returned": 10,
+        "top_score": 0.028629032258064516,
+        "top_files": [
+          "b_tree.docx",
+          "common_toad.txt",
+          "marsh_frog.pdf",
+          "pool_frog.txt",
+          "natterjack_toad.txt"
+        ],
+        "rank": 5,
+        "recall@5": 1.0,
+        "mrr@10": 0.2
+      },
+      {
+        "id": "b34",
+        "category": "filename",
+        "mode": "hybrid",
+        "rerank": "not_requested",
+        "wall_ms": 17.4,
+        "server_ms": 7,
+        "returned": 10,
+        "top_score": 0.032266458495966696,
+        "top_files": [
+          "saturn.pdf",
+          "titan.docx"
+        ],
+        "rank": 1,
+        "recall@5": 1.0,
+        "mrr@10": 1.0
+      },
+      {
+        "id": "b35",
+        "category": "filename",
+        "mode": "hybrid",
+        "rerank": "not_requested",
+        "wall_ms": 12.9,
+        "server_ms": 6,
+        "returned": 10,
+        "top_score": 0.03278688524590164,
+        "top_files": [
+          "write_ahead_logging.txt",
+          "sqlite.txt",
+          "mvcc.pdf",
+          "mariadb.docx",
+          "postgresql.txt"
+        ],
+        "rank": 1,
+        "recall@5": 1.0,
+        "mrr@10": 1.0
+      },
+      {
+        "id": "b36",
+        "category": "filename",
+        "mode": "hybrid",
+        "rerank": "not_requested",
+        "wall_ms": 61.3,
+        "server_ms": 54,
+        "returned": 10,
+        "top_score": 0.030776515151515152,
+        "top_files": [
+          "mysql.pdf",
+          "sqlite.txt",
+          "mariadb.docx",
+          "postgresql.txt"
+        ],
+        "rank": 2,
+        "recall@5": 1.0,
+        "mrr@10": 0.5
+      },
+      {
+        "id": "b37",
+        "category": "filename",
+        "mode": "hybrid",
+        "rerank": "not_requested",
+        "wall_ms": 63.2,
+        "server_ms": 54,
+        "returned": 10,
+        "top_score": 0.0315136476426799,
+        "top_files": [
+          "pool_frog.txt",
+          "common_frog.txt",
+          "marsh_frog.pdf",
+          "edible_frog.docx"
+        ],
+        "rank": 4,
+        "recall@5": 1.0,
+        "mrr@10": 0.25
+      },
+      {
+        "id": "b38",
+        "category": "filename",
+        "mode": "hybrid",
+        "rerank": "not_requested",
+        "wall_ms": 69.4,
+        "server_ms": 45,
+        "returned": 10,
+        "top_score": 0.03225806451612903,
+        "top_files": [
+          "enceladus.txt"
+        ],
+        "rank": 1,
+        "recall@5": 1.0,
+        "mrr@10": 1.0
+      },
+      {
+        "id": "b39",
+        "category": "no_result",
+        "mode": "hybrid",
+        "rerank": "not_requested",
+        "wall_ms": 62.9,
+        "server_ms": 46,
+        "returned": 10,
+        "top_score": 0.02701252236135957,
+        "top_files": [
+          "uranus.docx",
+          "marsh_frog.pdf",
+          "mysql.pdf",
+          "europa.txt",
+          "pool_frog.txt"
+        ],
+        "correctly_empty": 0.0
+      },
+      {
+        "id": "b40",
+        "category": "no_result",
+        "mode": "hybrid",
+        "rerank": "not_requested",
+        "wall_ms": 51.9,
+        "server_ms": 45,
+        "returned": 10,
+        "top_score": 0.01639344262295082,
+        "top_files": [
+          "mariadb.docx",
+          "io.pdf",
+          "b_tree.docx",
+          "moor_frog.pdf",
+          "write_ahead_logging.txt"
+        ],
+        "correctly_empty": 0.0
+      },
+      {
+        "id": "b41",
+        "category": "no_result",
+        "mode": "hybrid",
+        "rerank": "not_requested",
+        "wall_ms": 72.3,
+        "server_ms": 47,
+        "returned": 10,
+        "top_score": 0.030117753623188408,
+        "top_files": [
+          "postgresql.txt",
+          "mariadb.docx",
+          "neptune.txt",
+          "saturn.pdf",
+          "titan.docx"
+        ],
+        "correctly_empty": 0.0
+      },
+      {
+        "id": "b42",
+        "category": "no_result",
+        "mode": "hybrid",
+        "rerank": "not_requested",
+        "wall_ms": 52.6,
+        "server_ms": 46,
+        "returned": 10,
+        "top_score": 0.01639344262295082,
+        "top_files": [
+          "mysql.pdf",
+          "titan.docx",
+          "mariadb.docx",
+          "pool_frog.txt",
+          "b_tree.docx"
+        ],
+        "correctly_empty": 0.0
+      },
+      {
+        "id": "b43",
+        "category": "no_result",
+        "mode": "hybrid",
+        "rerank": "not_requested",
+        "wall_ms": 15.4,
+        "server_ms": 5,
+        "returned": 10,
+        "top_score": 0.027529761904761904,
+        "top_files": [
+          "uranus.docx",
+          "common_toad.txt",
+          "titan.docx",
+          "pool_frog.txt",
+          "neptune.txt"
+        ],
+        "correctly_empty": 0.0
+      },
+      {
+        "id": "b44",
+        "category": "no_result",
+        "mode": "hybrid",
+        "rerank": "not_requested",
+        "wall_ms": 52.0,
+        "server_ms": 45,
+        "returned": 10,
+        "top_score": 0.02967032967032967,
+        "top_files": [
+          "enceladus.txt",
+          "saturn.pdf",
+          "mariadb.docx",
+          "europa.txt",
+          "titan.docx"
+        ],
+        "correctly_empty": 0.0
+      }
+    ],
+    "hybrid_rerank": [
+      {
+        "id": "b01",
+        "category": "exact",
+        "mode": "hybrid_rerank",
+        "rerank": "applied",
+        "wall_ms": 1190.3,
+        "server_ms": 1184,
+        "returned": 10,
+        "top_score": -5.458743572235107,
+        "top_files": [
+          "moor_frog.pdf",
+          "titan.docx",
+          "common_frog.txt",
+          "common_toad.txt",
+          "pool_frog.txt"
+        ],
+        "rank": 1,
+        "recall@5": 1.0,
+        "mrr@10": 1.0
+      },
+      {
+        "id": "b02",
+        "category": "exact",
+        "mode": "hybrid_rerank",
+        "rerank": "applied",
+        "wall_ms": 1224.5,
+        "server_ms": 1217,
+        "returned": 10,
+        "top_score": 7.749460220336914,
+        "top_files": [
+          "common_toad.txt",
+          "marsh_frog.pdf",
+          "common_frog.txt"
+        ],
+        "rank": 1,
+        "recall@5": 1.0,
+        "mrr@10": 1.0
+      },
+      {
+        "id": "b03",
+        "category": "exact",
+        "mode": "hybrid_rerank",
+        "rerank": "applied",
+        "wall_ms": 1378.7,
+        "server_ms": 1370,
+        "returned": 10,
+        "top_score": 2.817032814025879,
+        "top_files": [
+          "common_toad.txt",
+          "jupiter.txt",
+          "uranus.docx",
+          "europa.txt",
+          "io.pdf"
+        ],
+        "rank": 1,
+        "recall@5": 1.0,
+        "mrr@10": 1.0
+      },
+      {
+        "id": "b04",
+        "category": "exact",
+        "mode": "hybrid_rerank",
+        "rerank": "applied",
+        "wall_ms": 1477.8,
+        "server_ms": 1469,
+        "returned": 10,
+        "top_score": 8.254240036010742,
+        "top_files": [
+          "mariadb.docx",
+          "mvcc.pdf",
+          "postgresql.txt",
+          "mysql.pdf",
+          "isolation_levels.txt"
+        ],
+        "rank": 1,
+        "recall@5": 1.0,
+        "mrr@10": 1.0
+      },
+      {
+        "id": "b05",
+        "category": "exact",
+        "mode": "hybrid_rerank",
+        "rerank": "applied",
+        "wall_ms": 1405.8,
+        "server_ms": 1398,
+        "returned": 10,
+        "top_score": 6.950551509857178,
+        "top_files": [
+          "mariadb.docx",
+          "mysql.pdf"
+        ],
+        "rank": 1,
+        "recall@5": 1.0,
+        "mrr@10": 1.0
+      },
+      {
+        "id": "b06",
+        "category": "exact",
+        "mode": "hybrid_rerank",
+        "rerank": "applied",
+        "wall_ms": 1345.8,
+        "server_ms": 1322,
+        "returned": 10,
+        "top_score": 2.391177177429199,
+        "top_files": [
+          "mysql.pdf",
+          "postgresql.txt",
+          "jupiter.txt",
+          "titan.docx",
+          "europa.txt"
+        ],
+        "rank": 1,
+        "recall@5": 1.0,
+        "mrr@10": 1.0
+      },
+      {
+        "id": "b07",
+        "category": "exact",
+        "mode": "hybrid_rerank",
+        "rerank": "applied",
+        "wall_ms": 1221.1,
+        "server_ms": 1203,
+        "returned": 10,
+        "top_score": -5.19694709777832,
+        "top_files": [
+          "sqlite.txt",
+          "b_tree.docx",
+          "europa.txt",
+          "titan.docx",
+          "enceladus.txt"
+        ],
+        "rank": 1,
+        "recall@5": 1.0,
+        "mrr@10": 1.0
+      },
+      {
+        "id": "b08",
+        "category": "exact",
+        "mode": "hybrid_rerank",
+        "rerank": "applied",
+        "wall_ms": 1239.3,
+        "server_ms": 1232,
+        "returned": 10,
+        "top_score": 2.2894697189331055,
+        "top_files": [
+          "sqlite.txt",
+          "mariadb.docx"
+        ],
+        "rank": 1,
+        "recall@5": 1.0,
+        "mrr@10": 1.0
+      },
+      {
+        "id": "b09",
+        "category": "exact",
+        "mode": "hybrid_rerank",
+        "rerank": "applied",
+        "wall_ms": 1320.6,
+        "server_ms": 1309,
+        "returned": 10,
+        "top_score": 3.761578321456909,
+        "top_files": [
+          "b_tree.docx",
+          "europa.txt",
+          "titan.docx",
+          "common_toad.txt",
+          "postgresql.txt"
+        ],
+        "rank": 1,
+        "recall@5": 1.0,
+        "mrr@10": 1.0
+      },
+      {
+        "id": "b10",
+        "category": "exact",
+        "mode": "hybrid_rerank",
+        "rerank": "applied",
+        "wall_ms": 1387.0,
+        "server_ms": 1355,
+        "returned": 10,
+        "top_score": 4.829377174377441,
+        "top_files": [
+          "mariadb.docx",
+          "mvcc.pdf",
+          "isolation_levels.txt",
+          "postgresql.txt"
+        ],
+        "rank": 2,
+        "recall@5": 1.0,
+        "mrr@10": 0.5
+      },
+      {
+        "id": "b11",
+        "category": "exact",
+        "mode": "hybrid_rerank",
+        "rerank": "applied",
+        "wall_ms": 1297.5,
+        "server_ms": 1273,
+        "returned": 10,
+        "top_score": 8.680206298828125,
+        "top_files": [
+          "isolation_levels.txt",
+          "mvcc.pdf",
+          "b_tree.docx",
+          "io.pdf",
+          "sqlite.txt"
+        ],
+        "rank": 1,
+        "recall@5": 1.0,
+        "mrr@10": 1.0
+      },
+      {
+        "id": "b12",
+        "category": "exact",
+        "mode": "hybrid_rerank",
+        "rerank": "applied",
+        "wall_ms": 1166.4,
+        "server_ms": 1156,
+        "returned": 10,
+        "top_score": 6.79439115524292,
+        "top_files": [
+          "jupiter.txt",
+          "neptune.txt",
+          "saturn.pdf"
+        ],
+        "rank": 1,
+        "recall@5": 1.0,
+        "mrr@10": 1.0
+      },
+      {
+        "id": "b13",
+        "category": "exact",
+        "mode": "hybrid_rerank",
+        "rerank": "applied",
+        "wall_ms": 1240.3,
+        "server_ms": 1215,
+        "returned": 10,
+        "top_score": 8.990560531616211,
+        "top_files": [
+          "neptune.txt",
+          "enceladus.txt",
+          "uranus.docx"
+        ],
+        "rank": 1,
+        "recall@5": 1.0,
+        "mrr@10": 1.0
+      },
+      {
+        "id": "b14",
+        "category": "exact",
+        "mode": "hybrid_rerank",
+        "rerank": "applied",
+        "wall_ms": 1212.6,
+        "server_ms": 1203,
+        "returned": 10,
+        "top_score": 6.902919769287109,
+        "top_files": [
+          "titan.docx",
+          "saturn.pdf"
+        ],
+        "rank": 1,
+        "recall@5": 1.0,
+        "mrr@10": 1.0
+      },
+      {
+        "id": "b15",
+        "category": "exact",
+        "mode": "hybrid_rerank",
+        "rerank": "applied",
+        "wall_ms": 1237.6,
+        "server_ms": 1230,
+        "returned": 10,
+        "top_score": -5.643500328063965,
+        "top_files": [
+          "neptune.txt",
+          "common_toad.txt",
+          "uranus.docx",
+          "io.pdf",
+          "enceladus.txt"
+        ],
+        "rank": 1,
+        "recall@5": 1.0,
+        "mrr@10": 1.0
+      },
+      {
+        "id": "b16",
+        "category": "paraphrase",
+        "mode": "hybrid_rerank",
+        "rerank": "applied",
+        "wall_ms": 1349.4,
+        "server_ms": 1338,
+        "returned": 10,
+        "top_score": 7.404453277587891,
+        "top_files": [
+          "moor_frog.pdf",
+          "pool_frog.txt",
+          "common_frog.txt",
+          "marsh_frog.pdf"
+        ],
+        "rank": 1,
+        "recall@5": 1.0,
+        "mrr@10": 1.0
+      },
+      {
+        "id": "b17",
+        "category": "paraphrase",
+        "mode": "hybrid_rerank",
+        "rerank": "applied",
+        "wall_ms": 1273.5,
+        "server_ms": 1265,
+        "returned": 10,
+        "top_score": 5.503437042236328,
+        "top_files": [
+          "natterjack_toad.txt",
+          "common_toad.txt",
+          "common_frog.txt"
+        ],
+        "rank": 1,
+        "recall@5": 1.0,
+        "mrr@10": 1.0
+      },
+      {
+        "id": "b18",
+        "category": "paraphrase",
+        "mode": "hybrid_rerank",
+        "rerank": "applied",
+        "wall_ms": 1163.9,
+        "server_ms": 1153,
+        "returned": 10,
+        "top_score": 5.536114692687988,
+        "top_files": [
+          "agile_frog.docx",
+          "common_frog.txt",
+          "pool_frog.txt",
+          "moor_frog.pdf"
+        ],
+        "rank": 1,
+        "recall@5": 1.0,
+        "mrr@10": 1.0
+      },
+      {
+        "id": "b19",
+        "category": "paraphrase",
+        "mode": "hybrid_rerank",
+        "rerank": "applied",
+        "wall_ms": 1174.5,
+        "server_ms": 1167,
+        "returned": 10,
+        "top_score": 5.40046501159668,
+        "top_files": [
+          "marsh_frog.pdf",
+          "pool_frog.txt",
+          "moor_frog.pdf"
+        ],
+        "rank": 1,
+        "recall@5": 1.0,
+        "mrr@10": 1.0
+      },
+      {
+        "id": "b20",
+        "category": "paraphrase",
+        "mode": "hybrid_rerank",
+        "rerank": "applied",
+        "wall_ms": 1212.3,
+        "server_ms": 1184,
+        "returned": 10,
+        "top_score": 8.103808403015137,
+        "top_files": [
+          "edible_frog.docx",
+          "pool_frog.txt",
+          "marsh_frog.pdf"
+        ],
+        "rank": 1,
+        "recall@5": 1.0,
+        "mrr@10": 1.0
+      },
+      {
+        "id": "b21",
+        "category": "paraphrase",
+        "mode": "hybrid_rerank",
+        "rerank": "applied",
+        "wall_ms": 1284.8,
+        "server_ms": 1275,
+        "returned": 10,
+        "top_score": 10.071428298950195,
+        "top_files": [
+          "common_toad.txt",
+          "natterjack_toad.txt"
+        ],
+        "rank": 1,
+        "recall@5": 1.0,
+        "mrr@10": 1.0
+      },
+      {
+        "id": "b22",
+        "category": "paraphrase",
+        "mode": "hybrid_rerank",
+        "rerank": "applied",
+        "wall_ms": 1458.1,
+        "server_ms": 1446,
+        "returned": 10,
+        "top_score": 2.0867691040039062,
+        "top_files": [
+          "sqlite.txt",
+          "b_tree.docx"
+        ],
+        "rank": 1,
+        "recall@5": 1.0,
+        "mrr@10": 1.0
+      },
+      {
+        "id": "b23",
+        "category": "paraphrase",
+        "mode": "hybrid_rerank",
+        "rerank": "applied",
+        "wall_ms": 1543.1,
+        "server_ms": 1531,
+        "returned": 10,
+        "top_score": 2.9135665893554688,
+        "top_files": [
+          "mysql.pdf",
+          "mariadb.docx",
+          "sqlite.txt",
+          "postgresql.txt"
+        ],
+        "rank": 1,
+        "recall@5": 1.0,
+        "mrr@10": 1.0
+      },
+      {
+        "id": "b24",
+        "category": "paraphrase",
+        "mode": "hybrid_rerank",
+        "rerank": "applied",
+        "wall_ms": 1293.6,
+        "server_ms": 1286,
+        "returned": 10,
+        "top_score": -1.3507945537567139,
+        "top_files": [
+          "write_ahead_logging.txt",
+          "postgresql.txt",
+          "b_tree.docx",
+          "mvcc.pdf",
+          "isolation_levels.txt"
+        ],
+        "rank": 1,
+        "recall@5": 1.0,
+        "mrr@10": 1.0
+      },
+      {
+        "id": "b25",
+        "category": "paraphrase",
+        "mode": "hybrid_rerank",
+        "rerank": "applied",
+        "wall_ms": 1292.4,
+        "server_ms": 1272,
+        "returned": 10,
+        "top_score": 8.429434776306152,
+        "top_files": [
+          "postgresql.txt"
+        ],
+        "rank": 1,
+        "recall@5": 1.0,
+        "mrr@10": 1.0
+      },
+      {
+        "id": "b26",
+        "category": "paraphrase",
+        "mode": "hybrid_rerank",
+        "rerank": "applied",
+        "wall_ms": 1229.5,
+        "server_ms": 1207,
+        "returned": 10,
+        "top_score": 6.254035949707031,
+        "top_files": [
+          "io.pdf",
+          "europa.txt",
+          "saturn.pdf",
+          "titan.docx",
+          "uranus.docx"
+        ],
+        "rank": 1,
+        "recall@5": 1.0,
+        "mrr@10": 1.0
+      },
+      {
+        "id": "b27",
+        "category": "paraphrase",
+        "mode": "hybrid_rerank",
+        "rerank": "applied",
+        "wall_ms": 1248.1,
+        "server_ms": 1226,
+        "returned": 10,
+        "top_score": 2.7083914279937744,
+        "top_files": [
+          "saturn.pdf",
+          "jupiter.txt",
+          "neptune.txt",
+          "enceladus.txt",
+          "uranus.docx"
+        ],
+        "rank": 1,
+        "recall@5": 1.0,
+        "mrr@10": 1.0
+      },
+      {
+        "id": "b28",
+        "category": "paraphrase",
+        "mode": "hybrid_rerank",
+        "rerank": "applied",
+        "wall_ms": 1301.8,
+        "server_ms": 1292,
+        "returned": 10,
+        "top_score": 7.321147918701172,
+        "top_files": [
+          "europa.txt",
+          "io.pdf",
+          "jupiter.txt",
+          "neptune.txt",
+          "titan.docx"
+        ],
+        "rank": 1,
+        "recall@5": 1.0,
+        "mrr@10": 1.0
+      },
+      {
+        "id": "b29",
+        "category": "paraphrase",
+        "mode": "hybrid_rerank",
+        "rerank": "applied",
+        "wall_ms": 1289.1,
+        "server_ms": 1279,
+        "returned": 10,
+        "top_score": 10.247936248779297,
+        "top_files": [
+          "uranus.docx",
+          "neptune.txt",
+          "io.pdf"
+        ],
+        "rank": 1,
+        "recall@5": 1.0,
+        "mrr@10": 1.0
+      },
+      {
+        "id": "b30",
+        "category": "paraphrase",
+        "mode": "hybrid_rerank",
+        "rerank": "applied",
+        "wall_ms": 1268.8,
+        "server_ms": 1259,
+        "returned": 10,
+        "top_score": 3.442625045776367,
+        "top_files": [
+          "saturn.pdf",
+          "enceladus.txt",
+          "titan.docx",
+          "uranus.docx"
+        ],
+        "rank": 2,
+        "recall@5": 1.0,
+        "mrr@10": 0.5
+      },
+      {
+        "id": "b31",
+        "category": "filename",
+        "mode": "hybrid_rerank",
+        "rerank": "applied",
+        "wall_ms": 1330.0,
+        "server_ms": 1297,
+        "returned": 10,
+        "top_score": 1.0690803527832031,
+        "top_files": [
+          "mvcc.pdf",
+          "postgresql.txt",
+          "mariadb.docx",
+          "mysql.pdf",
+          "b_tree.docx"
+        ],
+        "rank": 1,
+        "recall@5": 1.0,
+        "mrr@10": 1.0
+      },
+      {
+        "id": "b32",
+        "category": "filename",
+        "mode": "hybrid_rerank",
+        "rerank": "applied",
+        "wall_ms": 1320.5,
+        "server_ms": 1289,
+        "returned": 10,
+        "top_score": 0.9125320911407471,
+        "top_files": [
+          "b_tree.docx"
+        ],
+        "rank": 1,
+        "recall@5": 1.0,
+        "mrr@10": 1.0
+      },
+      {
+        "id": "b33",
+        "category": "filename",
+        "mode": "hybrid_rerank",
+        "rerank": "applied",
+        "wall_ms": 1286.1,
+        "server_ms": 1279,
+        "returned": 10,
+        "top_score": -0.03588932752609253,
+        "top_files": [
+          "natterjack_toad.txt",
+          "common_toad.txt",
+          "common_frog.txt"
+        ],
+        "rank": 1,
+        "recall@5": 1.0,
+        "mrr@10": 1.0
+      },
+      {
+        "id": "b34",
+        "category": "filename",
+        "mode": "hybrid_rerank",
+        "rerank": "applied",
+        "wall_ms": 1359.4,
+        "server_ms": 1351,
+        "returned": 10,
+        "top_score": -0.6893061399459839,
+        "top_files": [
+          "saturn.pdf",
+          "titan.docx"
+        ],
+        "rank": 1,
+        "recall@5": 1.0,
+        "mrr@10": 1.0
+      },
+      {
+        "id": "b35",
+        "category": "filename",
+        "mode": "hybrid_rerank",
+        "rerank": "applied",
+        "wall_ms": 1451.4,
+        "server_ms": 1431,
+        "returned": 10,
+        "top_score": 6.774259567260742,
+        "top_files": [
+          "write_ahead_logging.txt",
+          "sqlite.txt",
+          "mariadb.docx",
+          "postgresql.txt",
+          "mvcc.pdf"
+        ],
+        "rank": 1,
+        "recall@5": 1.0,
+        "mrr@10": 1.0
+      },
+      {
+        "id": "b36",
+        "category": "filename",
+        "mode": "hybrid_rerank",
+        "rerank": "applied",
+        "wall_ms": 1396.3,
+        "server_ms": 1386,
+        "returned": 10,
+        "top_score": -4.213397979736328,
+        "top_files": [
+          "sqlite.txt",
+          "postgresql.txt",
+          "mysql.pdf",
+          "mariadb.docx"
+        ],
+        "rank": 1,
+        "recall@5": 1.0,
+        "mrr@10": 1.0
+      },
+      {
+        "id": "b37",
+        "category": "filename",
+        "mode": "hybrid_rerank",
+        "rerank": "applied",
+        "wall_ms": 1194.0,
+        "server_ms": 1184,
+        "returned": 10,
+        "top_score": 4.027055740356445,
+        "top_files": [
+          "edible_frog.docx",
+          "pool_frog.txt",
+          "marsh_frog.pdf"
+        ],
+        "rank": 1,
+        "recall@5": 1.0,
+        "mrr@10": 1.0
+      },
+      {
+        "id": "b38",
+        "category": "filename",
+        "mode": "hybrid_rerank",
+        "rerank": "applied",
+        "wall_ms": 1225.0,
+        "server_ms": 1201,
+        "returned": 10,
+        "top_score": 3.394580125808716,
+        "top_files": [
+          "enceladus.txt"
+        ],
+        "rank": 1,
+        "recall@5": 1.0,
+        "mrr@10": 1.0
+      },
+      {
+        "id": "b39",
+        "category": "no_result",
+        "mode": "hybrid_rerank",
+        "rerank": "applied",
+        "wall_ms": 1377.2,
+        "server_ms": 1346,
+        "returned": 10,
+        "top_score": -7.535030364990234,
+        "top_files": [
+          "mysql.pdf",
+          "io.pdf",
+          "mariadb.docx",
+          "uranus.docx",
+          "jupiter.txt"
+        ],
+        "correctly_empty": 0.0
+      },
+      {
+        "id": "b40",
+        "category": "no_result",
+        "mode": "hybrid_rerank",
+        "rerank": "applied",
+        "wall_ms": 1305.2,
+        "server_ms": 1293,
+        "returned": 10,
+        "top_score": -10.770233154296875,
+        "top_files": [
+          "io.pdf",
+          "uranus.docx",
+          "mariadb.docx",
+          "common_toad.txt",
+          "b_tree.docx"
+        ],
+        "correctly_empty": 0.0
+      },
+      {
+        "id": "b41",
+        "category": "no_result",
+        "mode": "hybrid_rerank",
+        "rerank": "applied",
+        "wall_ms": 1335.1,
+        "server_ms": 1328,
+        "returned": 10,
+        "top_score": -11.037351608276367,
+        "top_files": [
+          "saturn.pdf",
+          "neptune.txt",
+          "europa.txt",
+          "titan.docx",
+          "uranus.docx"
+        ],
+        "correctly_empty": 0.0
+      },
+      {
+        "id": "b42",
+        "category": "no_result",
+        "mode": "hybrid_rerank",
+        "rerank": "applied",
+        "wall_ms": 1264.0,
+        "server_ms": 1257,
+        "returned": 10,
+        "top_score": -6.9656805992126465,
+        "top_files": [
+          "mariadb.docx",
+          "mysql.pdf",
+          "neptune.txt",
+          "postgresql.txt"
+        ],
+        "correctly_empty": 0.0
+      },
+      {
+        "id": "b43",
+        "category": "no_result",
+        "mode": "hybrid_rerank",
+        "rerank": "applied",
+        "wall_ms": 1245.6,
+        "server_ms": 1214,
+        "returned": 10,
+        "top_score": -10.278329849243164,
+        "top_files": [
+          "common_toad.txt",
+          "common_frog.txt",
+          "io.pdf",
+          "marsh_frog.pdf",
+          "uranus.docx"
+        ],
+        "correctly_empty": 0.0
+      },
+      {
+        "id": "b44",
+        "category": "no_result",
+        "mode": "hybrid_rerank",
+        "rerank": "applied",
+        "wall_ms": 1236.3,
+        "server_ms": 1227,
+        "returned": 10,
+        "top_score": -10.348316192626953,
+        "top_files": [
+          "enceladus.txt",
+          "titan.docx",
+          "postgresql.txt",
+          "io.pdf",
+          "saturn.pdf"
+        ],
+        "correctly_empty": 0.0
+      }
+    ]
+  }
+}

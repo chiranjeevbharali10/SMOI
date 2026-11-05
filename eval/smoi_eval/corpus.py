@@ -54,7 +54,7 @@ def ingest(client: SmoiClient, timeout_s: float = 1800, log=print) -> IndexedCor
     pending: dict[str, IndexedDocument] = {}
     for d in manifest():
         path = CORPUS_DIR / "docs" / d["group"] / d["file"]
-        uploaded = client.upload(path)
+        uploaded = client.retry_rate_limited(lambda: client.upload(path))
         pending[uploaded["id"]] = IndexedDocument(d["file"], d["group"], d["title"], uploaded["id"])
     log(f"Uploaded {len(pending)} documents; waiting for indexing")
 

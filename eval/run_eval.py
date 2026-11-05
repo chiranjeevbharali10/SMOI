@@ -12,6 +12,8 @@ Commands:
   ci-check       retrieval-only run on the CI subset; fails if recall drops below eval/thresholds.json
   email          email classification on the synthetic set (NFR-09.07): per-class precision, recall,
                  F1 and macro-F1; writes eval/results/email_*.json and docs/email-classification.md
+  brain          file-level search eval (eval/data/brain_v1.csv): recall@5, MRR@10, no-result accuracy and
+                 latency per mode; writes eval/results/brain_<label>_*.json
 
 Question sets: draft (every question not rejected; results marked DRAFT), tuning, test (the locked
 set; each run is logged), ci (eval/data/ci_subset_v1.json). The default is tuning once a split
@@ -30,7 +32,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from smoi_eval import corpus as corpus_mod, dataset, email_eval, environment, metrics, report, runner  # noqa: E402
+from smoi_eval import brain, corpus as corpus_mod, dataset, email_eval, environment, metrics, report, runner  # noqa: E402
 from smoi_eval.api import SmoiClient  # noqa: E402
 from smoi_eval.judge import make_judge  # noqa: E402
 
@@ -437,6 +439,41 @@ def cmd_ci_check(args):
     return 0
 
 
+def cmd_brain(args):
+    """File-level search eval for the brain upgrade. Uploads the demo corpus for a fresh user."""
+    queries = brain.load()
+    problems = brain.validate(queries)
+    if problems:
+        sys.exit("Fix eval/data/brain_v1.csv first:\n" + "\n".join(problems))
+    client = connect(args)
+    email = client.register_and_login("eval-brain")
+    providers = client.providers()
+    modes = list(args.modes)
+    if "hybrid_rerank" in modes and not providers.get("reranker", {}).get("enabled", False):
+        log("Reranker is not enabled in this stack; skipping hybrid_rerank")
+        modes.remove("hybrid_rerank")
+    log(f"Eval user {email}; indexing the corpus")
+    corpus = corpus_mod.ingest(client, log=log)
+    try:
+        log(f"Search: {len(queries)} queries x {len(modes)} modes")
+        records = brain.run(client, queries, modes, log=log)
+    finally:
+        corpus_mod.delete(client, corpus)
+    summary = brain.summarize(records)
+    result = {"run": {"label": args.label, "queries": len(queries), "modes": modes, "providers": providers,
+                      "started": datetime.now(timezone.utc).isoformat(timespec="seconds")},
+              "environment": {"git": environment.git_info(), "hardware": environment.hardware()},
+              "corpus": {**corpus_mod.corpus_stats(), "chunks": corpus.chunk_count(), "index_seconds": corpus.index_seconds},
+              "summary": summary, "misses": brain.misses(records), "per_query": records}
+    path = save(f"brain_{args.label}", result)
+    for mode, s in summary.items():
+        o = s["overall"]
+        log(f"  {mode:14} recall@5 {o['recall@5']:.3f}  MRR@10 {o['mrr@10']:.3f}  "
+            f"no-result correct {s['no_result']['correctly_empty']:.3f}  mean latency {s['latency_ms']['wall_mean']:.0f} ms")
+    log(f"Results: {path}")
+    return 0
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--backend-url", default="http://127.0.0.1:8080")
@@ -479,6 +516,10 @@ def main():
     p.set_defaults(func=cmd_ci_check)
     sub.add_parser("bootstrap-env").set_defaults(func=cmd_bootstrap_env)
     sub.add_parser("email").set_defaults(func=cmd_email)
+    p = sub.add_parser("brain")
+    p.add_argument("--label", default="run", help="name in the results file, e.g. baseline")
+    p.add_argument("--modes", nargs="+", default=runner.MODES, choices=runner.MODES)
+    p.set_defaults(func=cmd_brain)
 
     args = parser.parse_args()
     started = time.monotonic()

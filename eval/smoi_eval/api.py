@@ -51,6 +51,19 @@ class SmoiClient:
         body = json.dumps(payload).encode("utf-8") if payload is not None else None
         return self._request(method, path, body, "application/json" if body else None, ok_statuses)
 
+    @staticmethod
+    def retry_rate_limited(call, wait_s: float = 2, attempts: int = 60):
+        """Runs call(), waiting out the backend's per-user rate limit (HTTP 429). Callers that time a
+        request should time inside call(), so the waits are not counted."""
+        for _ in range(attempts - 1):
+            try:
+                return call()
+            except ApiError as e:
+                if e.status != 429:
+                    raise
+                time.sleep(wait_s)
+        return call()
+
     # ---------- endpoints ----------
 
     def wait_until_up(self, timeout_s: float = 300):

@@ -2,7 +2,7 @@
 # command on the right directly.
 PY ?= python
 
-.PHONY: eval eval-retrieval eval-sweep eval-report eval-test eval-validate eval-unit eval-email backend-verify
+.PHONY: eval eval-retrieval eval-sweep eval-report eval-test eval-validate eval-unit eval-email eval-brain backend-verify
 
 # Everything: create .env if missing, start the stack, run the evaluation, write docs/benchmarks.md.
 eval:
@@ -26,6 +26,10 @@ eval-test:
 # Email classification on the synthetic set (NFR-09.07); the stack must be running.
 eval-email:
 	$(PY) eval/run_eval.py email
+
+# File-level search eval for the brain upgrade (brain_v1.csv); the stack must be running.
+eval-brain:
+	$(PY) eval/run_eval.py brain
 
 eval-validate:
 	$(PY) eval/run_eval.py validate
