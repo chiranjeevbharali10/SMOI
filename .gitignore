@@ -44,3 +44,6 @@ desktop/test-results/
 
 # Google OAuth client downloads hold a client secret
 client_secret*.json
+
+# Local asset bundle, not source
+smoi-companions-assets.zip
