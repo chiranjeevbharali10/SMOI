@@ -16,7 +16,10 @@ import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { PNG } from 'pngjs';
 
-const SPRITES = join(resolve(dirname(fileURLToPath(import.meta.url)), '..'), 'assets', 'sprites');
+const ASSETS = join(resolve(dirname(fileURLToPath(import.meta.url)), '..'), 'assets');
+const SPRITES = join(ASSETS, 'sprites');
+/** SMOI's extra poses (its manifest's extra_states). */
+const OUT = join(ASSETS, 'companions', 'smoi', 'extras');
 const CELL = 64;
 const read = (s: string) => PNG.sync.read(readFileSync(join(SPRITES, `${s}.png`)));
 const surprised = read('surprised');
@@ -84,6 +87,6 @@ for (const [name, g] of Object.entries(GLYPHS)) {
       }
     for (const p of pixels) out.data.set(p.rgba, ((p.y + bob[f] + 1) * out.width + f * CELL + p.x) * 4);
   }
-  writeFileSync(join(SPRITES, `${name}.png`), PNG.sync.write(out));
-  console.log(`wrote assets/sprites/${name}.png`);
+  writeFileSync(join(OUT, `${name}.png`), PNG.sync.write(out));
+  console.log(`wrote assets/companions/smoi/extras/${name}.png`);
 }

@@ -1,0 +1,214 @@
+{
+  "id": "nox",
+  "name": "NOX",
+  "creature": "bat",
+  "tagline": "A tiny bat who keeps your hours and has opinions about them.",
+  "personality": "Dry, sarcastic night owl.",
+  "lines": [
+    "It's 2am. Bold of you.",
+    "Done already? I was just hanging around.",
+    "Your deadline called. Sent it to voicemail."
+  ],
+  "palette": {
+    "Dusk Fur": "#8F80B7",
+    "Moon Mask": "#D9CDEC",
+    "Lantern Gold": "#FFE9A8",
+    "Inner Ear": "#D76F9E",
+    "Wing Shadow": "#4C4270",
+    "Soft Charcoal": "#514B50"
+  },
+  "notes": "Flaps instead of hopping. Sleep frames hang upside down from a perch drawn at the top of the cell.",
+  "cell": {
+    "width": 64,
+    "height": 64
+  },
+  "default_scale": 2,
+  "rendering": "nearest-neighbour, whole-number scales only",
+  "faces_right_when_walking": true,
+  "states": [
+    {
+      "state": "idle",
+      "row": 0,
+      "frames": 12,
+      "durations_ms": [
+        180,
+        180,
+        220,
+        220,
+        180,
+        90,
+        180,
+        260,
+        260,
+        260,
+        260,
+        90
+      ],
+      "loop": true
+    },
+    {
+      "state": "happy",
+      "row": 1,
+      "frames": 6,
+      "durations_ms": [
+        120,
+        120,
+        120,
+        120,
+        120,
+        120
+      ],
+      "loop": true
+    },
+    {
+      "state": "sleeping",
+      "row": 2,
+      "frames": 8,
+      "durations_ms": [
+        260,
+        260,
+        260,
+        260,
+        260,
+        260,
+        260,
+        260
+      ],
+      "loop": true
+    },
+    {
+      "state": "working",
+      "row": 3,
+      "frames": 6,
+      "durations_ms": [
+        130,
+        130,
+        130,
+        130,
+        130,
+        130
+      ],
+      "loop": true
+    },
+    {
+      "state": "thinking",
+      "row": 4,
+      "frames": 6,
+      "durations_ms": [
+        240,
+        240,
+        240,
+        240,
+        240,
+        240
+      ],
+      "loop": true
+    },
+    {
+      "state": "surprised",
+      "row": 5,
+      "frames": 6,
+      "durations_ms": [
+        100,
+        120,
+        140,
+        120,
+        120,
+        300
+      ],
+      "loop": false
+    },
+    {
+      "state": "annoyed",
+      "row": 6,
+      "frames": 6,
+      "durations_ms": [
+        260,
+        200,
+        200,
+        260,
+        110,
+        260
+      ],
+      "loop": true
+    },
+    {
+      "state": "celebrating",
+      "row": 7,
+      "frames": 8,
+      "durations_ms": [
+        110,
+        110,
+        110,
+        110,
+        110,
+        110,
+        110,
+        110
+      ],
+      "loop": true
+    },
+    {
+      "state": "listening",
+      "row": 8,
+      "frames": 6,
+      "durations_ms": [
+        200,
+        200,
+        200,
+        200,
+        200,
+        200
+      ],
+      "loop": true
+    },
+    {
+      "state": "speaking",
+      "row": 9,
+      "frames": 6,
+      "durations_ms": [
+        120,
+        120,
+        120,
+        120,
+        120,
+        120
+      ],
+      "loop": true
+    },
+    {
+      "state": "walking",
+      "row": 10,
+      "frames": 6,
+      "durations_ms": [
+        90,
+        90,
+        90,
+        90,
+        90,
+        90
+      ],
+      "loop": true
+    },
+    {
+      "state": "error",
+      "row": 11,
+      "frames": 6,
+      "durations_ms": [
+        170,
+        170,
+        170,
+        170,
+        170,
+        170
+      ],
+      "loop": true
+    }
+  ],
+  "walk_speed_px": 2,
+  "alert_poses": {
+    "attention": "surprised",
+    "mail": "thinking",
+    "tasks": "annoyed"
+  }
+}

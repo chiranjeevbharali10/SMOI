@@ -18,6 +18,7 @@ import {
   AVAILABLE_ROWS, HELLO_MOOD, PANEL_ROWS, effectOf, type BubbleLine, type PanelEffect, type PanelEvent, type PanelFacts,
   type PanelRowId,
 } from '../shared/panelActions';
+import { panelLine, type Voice } from '../shared/voice';
 
 export interface CompanionDeps {
   /** The frog window (its bounds are the anchor), or null while it doesn't exist. */
@@ -33,6 +34,8 @@ export interface CompanionDeps {
   facts: () => PanelFacts;
   /** "Talk to SMOI" with voice on: turn the microphone on. */
   startVoice: () => void;
+  /** The active companion: its name and palette for the panel, its voice for panel lines. */
+  identity: () => { name: string; accent: string | null; voice: Voice };
 }
 
 const BUBBLE_MEASURE: Size = { width: 300 + 2 * BUBBLE_INSET + 8, height: 260 };
@@ -186,7 +189,8 @@ export class Companion {
     if (!effect) return; // unavailable row: nothing happens, no line
     this.mood = effect.mood;
     this.deps.onEffect(effect);
-    if (effect.bubble) this.say(effect.bubble);
+    const line = panelLine(this.deps.identity().voice, event, effect.bubble);
+    if (line) this.say(line);
     if (this.panelOpen) this.refresh();
   }
 
@@ -211,7 +215,10 @@ export class Companion {
 
   private view(): PanelView {
     const b = this.bubbles.current;
+    const who = this.deps.identity();
     return {
+      name: who.name,
+      accent: who.accent,
       mood: this.mood,
       rows: PANEL_ROWS.map((r) => ({ ...r, available: AVAILABLE_ROWS.has(r.id) })),
       confirm: this.pending?.confirm ?? null,

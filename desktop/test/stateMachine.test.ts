@@ -1,6 +1,14 @@
 import { describe, expect, it } from 'vitest';
 import { FrogStateMachine, REACTION_MS } from '../src/shared/stateMachine';
-import { frameAt, totalDuration } from '../src/shared/animations';
+import { frameAt as frameAtPose, totalDuration as poseDuration, type Animation } from '../src/shared/animations';
+
+// SMOI's idle and surprised timings, as in assets/companions/smoi/manifest.json.
+const POSES: Record<string, Animation> = {
+  idle: { frames: [180, 180, 220, 220, 180, 90, 180, 260, 260, 260, 260, 90], loop: true },
+  surprised: { frames: [100, 120, 140, 120, 120, 300], loop: false },
+};
+const frameAt = (s: string, t: number) => frameAtPose(POSES[s], t);
+const totalDuration = (s: string) => poseDuration(POSES[s]);
 import { frogSize, windowSize } from '../src/shared/scaling';
 
 describe('FrogStateMachine', () => {

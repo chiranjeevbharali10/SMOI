@@ -36,14 +36,17 @@ export const PRIORITY: Record<FrogState, number> = {
 };
 
 export type Condition = 'error' | 'listening' | 'speaking' | 'thinking' | 'working' | 'sleeping' | 'walking'
-  /** Waiting for the user: new email (until the inbox is opened), overdue tasks (until done). */
-  | 'mail' | 'tasks';
+  /**
+   * Waiting for the user: Claude Code needs permission (until the alert is acknowledged), new email
+   * (until the inbox is opened), overdue tasks (until done). Lasting, so an alert never drops back to idle.
+   */
+  | 'attention' | 'mail' | 'tasks';
 /**
  * Thinking, working and error can also be brief reactions: opening SMOI Brain shows thinking for a
  * moment, and an answer that fell back to passages shows error for a moment, without either being
  * a lasting condition.
  */
-export type Reaction = 'surprised' | 'happy' | 'celebrating' | 'annoyed' | 'thinking' | 'working' | 'error' | 'attention';
+export type Reaction = 'surprised' | 'happy' | 'celebrating' | 'annoyed' | 'thinking' | 'working' | 'error';
 
 /** How long a timed reaction shows by default. Surprised instead ends when its animation finishes. */
 export const REACTION_MS: Record<Exclude<Reaction, 'surprised'>, number> = {
@@ -53,7 +56,6 @@ export const REACTION_MS: Record<Exclude<Reaction, 'surprised'>, number> = {
   thinking: 2000,
   working: 2500,
   error: 4000,
-  attention: 10000,
 };
 
 interface ActiveReaction {

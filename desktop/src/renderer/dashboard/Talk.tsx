@@ -18,6 +18,8 @@ interface TalkProps {
   exchanges: Exchange[];
   onAsk: (question: string) => Promise<{ key: string } | { error: string }>;
   focusAsk: number;
+  /** The active companion's name. */
+  name?: string;
 }
 
 let counter = 0;
@@ -27,7 +29,7 @@ const nextKey = () => `e${++counter}`;
  * "Talk to SMOI": type a command or a question (FR-03.04 to FR-03.06). SMOI shows what it
  * understood first; a task or reminder is only created when you press the button.
  */
-export function Talk({ exchanges, onAsk, focusAsk }: TalkProps) {
+export function Talk({ exchanges, onAsk, focusAsk, name = 'SMOI' }: TalkProps) {
   const [entries, setEntries] = useState<Entry[]>([]);
   const [text, setText] = useState('');
   const [busy, setBusy] = useState(false);
@@ -89,13 +91,13 @@ export function Talk({ exchanges, onAsk, focusAsk }: TalkProps) {
 
   return (
     <>
-      <h2>Talk to SMOI</h2>
+      <h2>Talk to {name}</h2>
       <section className="card chat talk" aria-labelledby="h-talk">
         <h3 id="h-talk" className="visually-hidden">Conversation</h3>
         <div className="messages" aria-live="polite">
           {entries.length === 0 && (
             <p>
-              Ask about your documents, or tell SMOI what to remember. For example: “remind me to call mum tomorrow at 6pm”,
+              Ask about your documents, or tell {name} what to remember. For example: “remind me to call mum tomorrow at 6pm”,
               “add buy oat milk to my list for Friday”, or “what does the report say about natterjack toads?”
             </p>
           )}
@@ -129,7 +131,7 @@ export function Talk({ exchanges, onAsk, focusAsk }: TalkProps) {
           <div ref={end} />
         </div>
         <form className="ask" onSubmit={submit}>
-          <label className="visually-hidden" htmlFor="talk">Message to SMOI</label>
+          <label className="visually-hidden" htmlFor="talk">Message to {name}</label>
           <textarea id="talk" ref={box} rows={2} maxLength={1000} value={text} aria-describedby="talk-hint"
                     onChange={(e) => setText(e.target.value)} onKeyDown={onKeyDown} />
           <button className="btn primary" type="submit" disabled={busy || !text.trim()}>Send</button>

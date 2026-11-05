@@ -18,13 +18,13 @@ export interface BubbleLine {
   text: string;
 }
 
-export type PanelRowId = 'talk' | 'tasks' | 'calendar' | 'inbox' | 'brain' | 'dashboard';
+export type PanelRowId = 'talk' | 'tasks' | 'calendar' | 'inbox' | 'brain' | 'companion' | 'dashboard';
 
 /** Opening and closing the panel are actions too, with their own lines. */
 export type PanelEvent = 'hello' | 'closed' | PanelRowId;
 
 /** Where an action takes the user, if anywhere. */
-export type Destination = 'chat' | 'tasks' | 'calendar' | 'inbox' | 'brain' | 'dashboard';
+export type Destination = 'chat' | 'tasks' | 'calendar' | 'inbox' | 'brain' | 'companions' | 'dashboard';
 
 /**
  * How the frog reacts:
@@ -52,6 +52,7 @@ export const PANEL_ROWS: readonly PanelRow[] = [
   { id: 'calendar', label: 'Open calendar' },
   { id: 'inbox', label: 'Check inbox' },
   { id: 'brain', label: 'Open SMOI Brain' },
+  { id: 'companion', label: 'Choose companion' },
   { id: 'dashboard', label: 'Open dashboard' },
 ];
 
@@ -59,7 +60,7 @@ export const PANEL_ROWS: readonly PanelRow[] = [
 export const NOT_AVAILABLE = 'Not available yet';
 
 /** Rows that work today. Calendar and inbox open their screens, which offer to connect Google if needed. */
-export const AVAILABLE_ROWS: ReadonlySet<PanelRowId> = new Set<PanelRowId>(['talk', 'tasks', 'calendar', 'inbox', 'brain', 'dashboard']);
+export const AVAILABLE_ROWS: ReadonlySet<PanelRowId> = new Set<PanelRowId>(['talk', 'tasks', 'calendar', 'inbox', 'brain', 'companion', 'dashboard']);
 
 /** Real data some lines depend on. Absent means "not known", and the line is not shown. */
 export interface PanelFacts {
@@ -124,6 +125,9 @@ export function effectOf(
     case 'brain':
       // No line on opening: nothing has been found yet. FINDING is shown when an answer arrives.
       return { frog: 'thinking', bubble: null, mood: 'thinking', opens: 'brain' };
+    case 'companion':
+      // No line: the chooser speaks for itself, and the new companion says hello by playing happy.
+      return { frog: 'idle', bubble: null, mood: 'meeting the others', opens: 'companions' };
     case 'dashboard':
       return { frog: 'happy', bubble: nudge('Welcome to my little office.'), mood: 'proud', opens: 'dashboard' };
   }

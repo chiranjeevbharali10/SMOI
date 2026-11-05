@@ -1,0 +1,10 @@
+{
+  "default": "smoi",
+  "companions": [
+    "smoi",
+    "numi",
+    "nox",
+    "yuzu",
+    "wisp"
+  ]
+}

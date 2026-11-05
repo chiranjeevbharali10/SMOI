@@ -10,6 +10,8 @@ const PATHS: Record<PanelRowId, React.ReactNode> = {
   calendar: <><rect x="4" y="5" width="16" height="15" rx="2" /><path d="M4 10h16M9 3v4M15 3v4" /></>,
   inbox: <><rect x="3" y="6" width="18" height="13" rx="2" /><path d="M3 8l9 6 9-6" /></>,
   brain: <><circle cx="11" cy="11" r="6" /><path d="M16 16l4 4M9 11h4" /></>,
+  // Not from the design board (the board has six rows): swap arrows in the same 2px round style.
+  companion: <path d="M5 8h13l-3-3M19 16H6l3 3" />,
   dashboard: (
     <>
       <rect x="4" y="4" width="7" height="7" rx="1.5" />

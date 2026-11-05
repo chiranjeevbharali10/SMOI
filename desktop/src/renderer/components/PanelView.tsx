@@ -4,6 +4,10 @@ import { NOT_AVAILABLE, type PanelRowId } from '../../shared/panelActions';
 import { RowIcon } from './icons';
 
 export interface PanelViewProps {
+  /** The active companion's name (the panel title). */
+  name?: string;
+  /** Header colour from the companion's palette; the design's green when absent. */
+  accent?: string | null;
   mood: string;
   rows: PanelRowView[];
   /** A voice command to confirm, shown instead of the rows. */
@@ -28,7 +32,7 @@ export interface PanelHandle {
  * aren't available yet.
  */
 export const PanelView = forwardRef<PanelHandle, PanelViewProps>(function PanelView(
-  { mood, rows, confirm, onAnswer, rise, announce, onChoose, onClose }, ref,
+  { name = 'SMOI', accent, mood, rows, confirm, onAnswer, rise, announce, onChoose, onClose }, ref,
 ) {
   const list = useRef<HTMLDivElement>(null);
   const buttons = () => Array.from(list.current?.querySelectorAll<HTMLButtonElement>('button') ?? []);
@@ -52,9 +56,9 @@ export const PanelView = forwardRef<PanelHandle, PanelViewProps>(function PanelV
   };
 
   return (
-    <section className={`smoi-panel${rise ? ' rise' : ''}`} aria-label="SMOI panel" onKeyDown={onKeyDown} data-testid="panel">
-      <div className="smoi-panel-header">
-        <h1 className="smoi-panel-title">SMOI</h1>
+    <section className={`smoi-panel${rise ? ' rise' : ''}`} aria-label={`${name} panel`} onKeyDown={onKeyDown} data-testid="panel">
+      <div className="smoi-panel-header" style={accent ? { background: accent } : undefined}>
+        <h1 className="smoi-panel-title">{name}</h1>
         <div className="smoi-panel-mood">{mood}</div>
       </div>
       {confirm ? (

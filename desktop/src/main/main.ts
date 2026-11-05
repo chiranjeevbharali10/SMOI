@@ -9,13 +9,16 @@ import {
 import { existsSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { FrogStateMachine, type Reaction } from '../shared/stateMachine';
-import type { FrogState } from '../shared/animations';
+import { totalDuration, type FrogState } from '../shared/animations';
+import { info as companionInfo, resolve as resolveCompanion, type Companion as CompanionDef, type Roster } from '../shared/companions';
+import { readRoster } from './companionRoster';
 import { windowSize } from '../shared/scaling';
 import { movedFar } from '../shared/pointer';
 import { FINDING, LISTENING } from '../shared/panelActions';
 import type { BackendStatus, UserSettings } from '../shared/bridge';
 import { mergeNotificationSettings } from '../shared/notify';
-import { clampPersonality, react as personalityLine } from '../shared/personality';
+import { clampPersonality, type CompanionEvent } from '../shared/personality';
+import { panelLine, reactAs } from '../shared/voice';
 import { describeProposal } from '../shared/proposal';
 import { clampToWorkArea, restorePosition, walkStep, type DisplayInfo } from './placement';
 import { loadSettings, mergeClaudeCode, saveSettings, type Settings } from './settings';
@@ -60,6 +63,12 @@ let walkTimer: NodeJS.Timeout | null = null;
 /** A press on the frog: a click unless the cursor moves far enough to make it a drag. */
 let press: { offset: { x: number; y: number }; start: { x: number; y: number }; dragging: boolean; timer: NodeJS.Timeout } | null = null;
 const timers: NodeJS.Timeout[] = [];
+/** The companion roster (assets/companions/) and the one on screen. */
+let roster: Roster;
+let pet: CompanionDef;
+
+const settingsFile = () => join(app.getPath('userData'), 'settings.json');
+const ASSETS = () => (DEV_SERVER || !app.isPackaged ? join(__dirname, '..', '..', 'assets') : RENDERER);
 
 // ---------- helpers ----------
 
@@ -76,6 +85,30 @@ function send(channel: string, payload: unknown) {
   if (frog && !frog.isDestroyed()) frog.webContents.send(channel, payload);
 }
 
+/** Sends the active companion to the frog window. */
+function pushCompanion() {
+  send('frog:companion', companionInfo(pet));
+}
+
+/**
+ * Switches companion at once, without a restart. The window keeps its size and position (every
+ * companion is drawn in the same 64x64 cell), and the new one plays its happy pose once.
+ */
+function switchCompanion(id: string): boolean {
+  const next = roster.companions.find((c) => c.id === id);
+  if (!next || next.id === pet.id) return false;
+  pet = next;
+  settings.companion = next.id;
+  saveSettings(settings, settingsFile());
+  pushCompanion();
+  const now = Date.now();
+  machine.clearReactions(now);
+  machine.react('happy', now, totalDuration(next.poses.happy));
+  companion.refresh();
+  refreshTrayMenu();
+  return true;
+}
+
 function pushState(state: FrogState = machine.state) {
   send('frog:state', { state, mirrored: state === 'walking' && walkDirection === -1 });
   if (!app.isPackaged && process.env.SMOI_LOG_STATES) console.log(`[frog] state ${state}`);
@@ -86,7 +119,7 @@ function rememberPosition() {
   const d = displayOf(frog);
   const [x, y] = frog.getPosition();
   settings.position = { displayId: d.id, x: x - d.workArea.x, y: y - d.workArea.y };
-  saveSettings(settings);
+  saveSettings(settings, settingsFile());
 }
 
 /** Resizes the window for the display it's on, keeping its bottom edge (its feet) in place. */
@@ -126,6 +159,7 @@ function userSettings(): UserSettings {
   return {
     reducedMotion, walking, startOnLogin, sleepAfterMinutes, backendUrl, voiceEnabled, shortcut, shortcutError,
     personality, notifications, claudeCode, claudeHooks: claude.status,
+    companion: pet.id, companions: roster.companions.map(companionInfo),
   };
 }
 
@@ -145,7 +179,8 @@ function updateSettings(patch: Record<string, unknown>): UserSettings {
   if (personality) settings.personality = personality;
   if (patch.notifications) settings.notifications = mergeNotificationSettings(settings.notifications, patch.notifications);
   if (patch.claudeCode) settings.claudeCode = mergeClaudeCode(settings.claudeCode, patch.claudeCode);
-  saveSettings(settings);
+  if (typeof patch.companion === 'string') switchCompanion(patch.companion);
+  saveSettings(settings, settingsFile());
   if (`${settings.voiceEnabled}|${settings.shortcut}` !== voiceBefore) voice.apply();
   app.setLoginItemSettings({ openAtLogin: settings.startOnLogin });
   if (settings.reducedMotion || !settings.walking) stopWalk();
@@ -199,8 +234,8 @@ function openPreview() {
     return;
   }
   preview = new BrowserWindow({
-    width: 980, height: 820, title: 'SMOI animation preview',
-    webPreferences: { contextIsolation: true, nodeIntegration: false, sandbox: true },
+    width: 980, height: 820, title: 'Companion preview',
+    webPreferences: { preload: join(PRELOADS, 'preview.js'), contextIsolation: true, nodeIntegration: false, sandbox: true },
   });
   lockDown(preview);
   loadPage(preview, 'preview');
@@ -212,7 +247,7 @@ function buildTray() {
   const icon = nativeImage.createFromPath(join(ICONS, 'tray-16.png'));
   icon.addRepresentation({ scaleFactor: 2, dataURL: nativeImage.createFromPath(join(ICONS, 'tray-32.png')).toDataURL() });
   tray = new Tray(icon);
-  tray.setToolTip('SMOI');
+  tray.setToolTip(pet.name);
   tray.on('click', () => companion.togglePanel());
   refreshTrayMenu();
 }
@@ -222,7 +257,7 @@ function refreshTrayMenu() {
   const toggle = (key: 'reducedMotion' | 'walking') => () => updateSettings({ [key]: !settings[key] });
   const template: Electron.MenuItemConstructorOptions[] = [
     {
-      label: frog?.isVisible() ? 'Hide SMOI' : 'Show SMOI',
+      label: frog?.isVisible() ? `Hide ${pet.name}` : `Show ${pet.name}`,
       click: () => {
         if (frog?.isVisible()) {
           companion.quiet();
@@ -232,24 +267,34 @@ function refreshTrayMenu() {
       },
     },
     // Keyboard users reach the panel from here (the frog itself never takes focus).
-    { label: companion.isPanelOpen ? 'Close SMOI menu' : 'Open SMOI menu', click: () => companion.togglePanel() },
+    { label: companion.isPanelOpen ? `Close ${pet.name}'s menu` : `Open ${pet.name}'s menu`, click: () => companion.togglePanel() },
     ...(settings.voiceEnabled ? [{
-      label: voice?.busy ? 'Stop listening' : 'Talk to SMOI',
+      label: voice?.busy ? 'Stop listening' : `Talk to ${pet.name}`,
       accelerator: shortcutError ? undefined : settings.shortcut,
       registerAccelerator: false,
       click: () => voice.toggle(),
     }] : []),
     { label: 'Open dashboard', click: () => dashboard.open('home') },
-    { label: "Dismiss SMOI's message", enabled: companion.hasUrgentBubble, click: () => companion.dismissUrgent() },
+    { label: `Dismiss ${pet.name}'s message`, enabled: companion.hasUrgentBubble, click: () => companion.dismissUrgent() },
+    {
+      label: 'Choose companion',
+      submenu: [
+        ...roster.companions.map((c): Electron.MenuItemConstructorOptions => ({
+          label: `${c.name} (${c.creature})`, type: 'radio', checked: c.id === pet.id, click: () => switchCompanion(c.id),
+        })),
+        { type: 'separator' },
+        { label: 'Meet the companions…', click: () => dashboard.open('companions') },
+      ],
+    },
     { type: 'separator' },
     { label: 'Reduced motion', type: 'checkbox', checked: settings.reducedMotion, click: toggle('reducedMotion') },
     { label: 'Walk along the taskbar', type: 'checkbox', checked: settings.walking,
       enabled: !settings.reducedMotion, click: toggle('walking') },
     { label: 'Start when I log in', type: 'checkbox', checked: settings.startOnLogin,
       click: () => updateSettings({ startOnLogin: !settings.startOnLogin }) },
-    { label: 'Move SMOI back to the corner', click: () => {
+    { label: `Move ${pet.name} back to the corner`, click: () => {
       settings.position = null;
-      saveSettings(settings);
+      saveSettings(settings, settingsFile());
       const p = restorePosition(null, allDisplays(), displayOf(frog!), frog!.getBounds().width);
       frog?.setPosition(p.x, p.y);
       companion.follow();
@@ -321,7 +366,8 @@ function startWalk() {
     if (!frog || machine.state !== 'walking' || steps++ > 40 || companion.busy) return stopWalk();
     const d = displayOf(frog);
     const [x, y] = frog.getPosition();
-    const next = walkStep(x, walkDirection, 2, frog.getBounds().width, d);
+    // Each companion walks at its own pace (manifest walk_speed_px); YUZU trudges.
+    const next = walkStep(x, walkDirection, pet.walkSpeed, frog.getBounds().width, d);
     if (next.direction !== walkDirection) {
       walkDirection = next.direction;
       pushState();
@@ -343,9 +389,14 @@ function stopWalk() {
 
 function wireFrogIpc() {
   const isFrog = (e: Electron.IpcMainEvent) => e.sender === frog?.webContents;
+  ipcMain.handle('preview:roster', (e) => {
+    if (!preview || e.sender !== preview.webContents) throw new Error('Not allowed');
+    return roster.companions.map(companionInfo);
+  });
   ipcMain.on('frog:ready', (e) => {
     if (!isFrog(e)) return;
     send('frog:settings', { reducedMotion: settings.reducedMotion });
+    pushCompanion();
     pushState();
   });
   // Over an opaque pixel: take clicks. Over transparency: let them through to the app below.
@@ -399,7 +450,12 @@ function wireFrogIpc() {
 // ---------- app lifecycle ----------
 
 function start() {
-  settings = loadSettings();
+  settings = loadSettings(settingsFile());
+  roster = readRoster(join(ASSETS(), 'companions'));
+  const chosen = resolveCompanion(roster, settings.companion);
+  if (!chosen) throw new Error('No valid companion in assets/companions (see the log above).');
+  if (chosen.id !== settings.companion) console.error(`[companions] ${settings.companion} is unavailable; showing ${chosen.id}`);
+  pet = chosen;
   app.setLoginItemSettings({ openAtLogin: settings.startOnLogin });
 
   const session = new Session(sessionFile(app.getPath('userData')), safeStorage, {
@@ -418,16 +474,23 @@ function start() {
     onEffect: (effect) => {
       const now = Date.now();
       machine.clearReactions(now);
+      // Opening the panel acknowledges a waiting alert.
+      if (machine.isActive('attention')) machine.set('attention', false, now);
       if (effect.frog !== 'idle') machine.react(effect.frog as Reaction, now);
       if (effect.opens) dashboard.open(effect.opens === 'dashboard' ? 'home' : effect.opens);
     },
-    onChange: () => refreshTrayMenu(),
+    onChange: () => {
+      refreshTrayMenu();
+      // Dismissing the pink bubble acknowledges the attention alert.
+      if (machine.isActive('attention') && !companion.hasUrgentBubble) machine.set('attention', false, Date.now());
+    },
     facts: () => ({
       openTasks: tasks.openCount ?? undefined, voice: settings.voiceEnabled,
       busyToday: google?.connected ? google.current.busyToday ?? undefined : undefined,
       newEmails: google?.connected ? google.current.unseen : undefined,
     }),
     startVoice: () => voice.start(),
+    identity: () => ({ name: pet.name, accent: companionInfo(pet).accent, voice: pet }),
   });
 
   // Tasks and reminders: the local copy, its sync, and the reminder scheduler.
@@ -456,7 +519,7 @@ function start() {
       }
     },
     onDraftGone: (_r, message) => {
-      const line = personalityLine({ type: 'draft_reminder_cancelled', message }, settings.personality);
+      const line = reactAs(pet, { type: 'draft_reminder_cancelled', message }, settings.personality);
       if (line.line) companion.say(line.line);
     },
   });
@@ -467,7 +530,7 @@ function start() {
     // No email content in the alert (FR-05.04): only that important mail arrived.
     onImportant: (count) => notifier.notify('email', `email:${Date.now()}`, { type: 'important_email', count }),
     onReconnectNeeded: () => {
-      const r = personalityLine({ type: 'google_reconnect' }, settings.personality);
+      const r = reactAs(pet, { type: 'google_reconnect' }, settings.personality);
       if (r.line) companion.say(r.line);
       machine.react('annoyed', Date.now());
     },
@@ -481,15 +544,20 @@ function start() {
   notifier = new Notifier({
     settings: () => settings.notifications,
     personality: () => settings.personality,
+    voice: () => pet,
     say: (line) => companion.say(line),
-    react: (frog) => machine.react(frog as Reaction, Date.now()),
+    // The attention alert lasts until it is acknowledged (dismissing its bubble or opening the
+    // panel); every other reaction is brief.
+    react: (frog) => (frog === 'attention'
+      ? machine.set('attention', true, Date.now())
+      : machine.react(frog as Reaction, Date.now())),
     icon: join(ICONS, 'tray-256.png'),
   });
   const commands = new Commands({
     api, tasks, timeZone,
     // The user just asked for this, so it isn't a notification: SMOI simply says it's done.
     onSaved: (event) => {
-      const r = personalityLine(event, settings.personality);
+      const r = reactAs(pet, event, settings.personality);
       if (r.line) companion.say(r.line);
       machine.react('happy', Date.now());
     },
@@ -508,7 +576,8 @@ function start() {
     setListening: (on) => {
       // The listening frog (with its mic chip) shows exactly while the microphone is in use (NFR-04.02).
       machine.set('listening', on, Date.now());
-      if (on && companion.bubbles.current?.text !== LISTENING.line) companion.say({ tone: 'nudge', text: LISTENING.line });
+      const listening = panelLine(pet, 'listening', { tone: 'nudge', text: LISTENING.line });
+      if (on && listening && companion.bubbles.current?.text !== listening.text) companion.say(listening);
       refreshTrayMenu();
     },
     setThinking: (on) => machine.set('thinking', on, Date.now()),
@@ -563,7 +632,10 @@ function start() {
       if (event.type !== 'result') return;
       const r = event.result;
       // The lavender line only when an answer with valid citations really arrived.
-      if (r.outcome === 'answered' && (r.citations?.length ?? 0) > 0) companion.say(FINDING);
+      if (r.outcome === 'answered' && (r.citations?.length ?? 0) > 0) {
+        const line = panelLine(pet, 'finding', FINDING);
+        if (line) companion.say(line);
+      }
       // The LLM fell back to passages: a brief error reaction, not a lasting one.
       if (r.outcome === 'llm_unavailable') machine.react('error', Date.now());
     },

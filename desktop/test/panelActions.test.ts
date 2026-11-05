@@ -2,9 +2,9 @@ import { describe, expect, it } from 'vitest';
 import { AVAILABLE_ROWS, FINDING, PANEL_ROWS, effectOf, type PanelRowId } from '../src/shared/panelActions';
 
 describe('panel mapping', () => {
-  it('lists the six rows in the design order', () => {
+  it('lists the design’s six rows, plus Choose companion before the dashboard', () => {
     expect(PANEL_ROWS.map((r) => r.label)).toEqual([
-      'Talk to SMOI', 'View tasks', 'Open calendar', 'Check inbox', 'Open SMOI Brain', 'Open dashboard',
+      'Talk to SMOI', 'View tasks', 'Open calendar', 'Check inbox', 'Open SMOI Brain', 'Choose companion', 'Open dashboard',
     ]);
   });
 

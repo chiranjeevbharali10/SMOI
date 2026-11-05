@@ -3,6 +3,7 @@ import { initialAnswer, reduceAnswer } from '../../shared/answer';
 import type { DocumentInfo, StreamEvent } from '../../shared/apiTypes';
 import type { BackendStatus, DashboardView, GoogleView, SessionStatus, TasksSnapshot, UserSettings } from '../../shared/bridge';
 import { Calendar } from './Calendar';
+import { Companions } from './Companions';
 import { Inbox } from './Inbox';
 import { Brain, type Exchange } from './Brain';
 import { Face } from './Face';
@@ -16,11 +17,12 @@ const api = () => window.smoiDashboard;
 
 const NAV: { view: DashboardView; label: string }[] = [
   { view: 'home', label: 'Home' },
-  { view: 'chat', label: 'Talk to SMOI' },
+  { view: 'chat', label: 'Talk' },
   { view: 'tasks', label: 'Tasks' },
   { view: 'calendar', label: 'Calendar' },
   { view: 'inbox', label: 'Inbox' },
   { view: 'brain', label: 'SMOI Brain' },
+  { view: 'companions', label: 'Companions' },
   { view: 'settings', label: 'Settings' },
 ];
 
@@ -122,6 +124,8 @@ export function App() {
     );
   }
 
+  // The app is SMOI; the companion on screen has its own name.
+  const petName = settings?.companions.find((c) => c.id === settings.companion)?.name ?? 'SMOI';
   const indexing = docs.filter((d) => d.status === 'queued' || d.status === 'processing').length;
 
   return (
@@ -132,7 +136,7 @@ export function App() {
           {NAV.map((n) => (
             <button key={n.view} type="button" className="btn nav-btn" aria-current={view === n.view ? 'page' : undefined}
                     onClick={() => setView(n.view)}>
-              {n.label}{n.view === 'inbox' && google?.unseen ? ` (${google.unseen})` : ''}
+              {n.view === 'chat' ? `Talk to ${petName}` : n.label}{n.view === 'inbox' && google?.unseen ? ` (${google.unseen})` : ''}
             </button>
           ))}
         </nav>
@@ -156,11 +160,12 @@ export function App() {
           </div>
         )}
         {view === 'home' && backend && <Home docs={docs} backend={backend} go={navigate} />}
-        {view === 'chat' && <Talk exchanges={exchanges} onAsk={ask} focusAsk={focusAsk} />}
+        {view === 'chat' && <Talk exchanges={exchanges} onAsk={ask} focusAsk={focusAsk} name={petName} />}
         {view === 'tasks' && tasks && <Tasks snapshot={tasks} backendReachable={backend?.reachable ?? true} />}
         {view === 'calendar' && <Calendar google={google} />}
         {view === 'inbox' && <Inbox google={google} />}
         {view === 'brain' && <Brain docs={docs} exchanges={exchanges} onAsk={onAsk} focusAsk={focusAsk} />}
+        {view === 'companions' && settings && <Companions settings={settings} />}
         {view === 'settings' && settings && <Settings settings={settings} google={google} />}
       </main>
     </div>

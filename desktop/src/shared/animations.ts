@@ -1,62 +1,48 @@
 /**
- * SMOI's animations: one PNG strip per state (assets/sprites/<state>.png), each a single row of
- * 64x64 transparent cells, with per-frame durations in milliseconds from the design.
+ * Animation timing, for any companion. Frame counts, per-frame durations and loop flags come from
+ * each companion's manifest (assets/companions/<id>/manifest.json, read by shared/companions.ts);
+ * nothing here is specific to one companion.
  */
 export const CELL = 64;
 
-export type FrogState =
-  | 'idle' | 'happy' | 'sleeping' | 'working' | 'thinking' | 'surprised'
-  | 'annoyed' | 'celebrating' | 'listening' | 'speaking' | 'walking' | 'error'
-  /** DRAFT, not yet in the design board: Claude Code is blocked waiting for permission (FR-10.04). */
-  | 'attention'
-  /** DRAFT: new email since the inbox was last opened. */
-  | 'mail'
-  /** DRAFT: tasks are overdue. */
-  | 'tasks';
+/** The 12 states every companion has, in the order of the design's sprite board. */
+export const CORE_STATES = [
+  'idle', 'happy', 'sleeping', 'working', 'thinking', 'surprised',
+  'annoyed', 'celebrating', 'listening', 'speaking', 'walking', 'error',
+] as const;
+
+export type CoreState = (typeof CORE_STATES)[number];
+
+/**
+ * What the app asks the companion to show. The core states, plus three alerts that each companion
+ * maps onto one of its poses (its manifest's alert_poses):
+ * - attention: Claude Code is waiting for permission (FR-10.04)
+ * - mail: new email since the inbox was last opened
+ * - tasks: tasks are overdue
+ */
+export type FrogState = CoreState | 'attention' | 'mail' | 'tasks';
+
+export const ALERT_STATES = ['attention', 'mail', 'tasks'] as const;
+export type AlertState = (typeof ALERT_STATES)[number];
 
 export interface Animation {
-  /** Milliseconds each frame is shown, in strip order. */
+  /** Milliseconds each frame is shown, in order. */
   frames: readonly number[];
   /** Loops, or plays once and stops on the last frame. */
   loop: boolean;
 }
 
-const repeat = (ms: number, n: number): number[] => Array.from({ length: n }, () => ms);
-
-export const ANIMATIONS: Record<FrogState, Animation> = {
-  idle: { frames: [180, 180, 220, 220, 180, 90, 180, 260, 260, 260, 260, 90], loop: true },
-  happy: { frames: repeat(120, 6), loop: true },
-  sleeping: { frames: repeat(260, 8), loop: true },
-  working: { frames: repeat(130, 6), loop: true },
-  thinking: { frames: repeat(240, 6), loop: true },
-  surprised: { frames: [100, 120, 140, 120, 120, 300], loop: false },
-  annoyed: { frames: [260, 200, 200, 260, 110, 260], loop: true },
-  celebrating: { frames: repeat(110, 8), loop: true },
-  listening: { frames: repeat(200, 6), loop: true },
-  speaking: { frames: repeat(120, 6), loop: true },
-  walking: { frames: [100, 90, 90, 100, 90, 90], loop: true },
-  error: { frames: repeat(170, 6), loop: true },
-  attention: { frames: [220, 140, 220, 140, 220, 500], loop: true },
-  mail: { frames: [260, 180, 260, 180, 260, 900], loop: true },
-  tasks: { frames: [260, 180, 260, 180, 260, 900], loop: true },
-};
-
-export const STATES = Object.keys(ANIMATIONS) as FrogState[];
-
-/** States whose art was drawn for SMOI rather than extracted from the design board. */
-export const DRAFT_STATES: readonly FrogState[] = ['attention', 'mail', 'tasks'];
-
-export function totalDuration(state: FrogState): number {
-  return ANIMATIONS[state].frames.reduce((a, b) => a + b, 0);
+export function totalDuration(a: Animation): number {
+  return a.frames.reduce((t, ms) => t + ms, 0);
 }
 
 /**
  * Which frame to show `elapsed` ms after the animation started. A one-shot animation holds its
  * last frame once it has finished.
  */
-export function frameAt(state: FrogState, elapsed: number): { index: number; finished: boolean } {
-  const { frames, loop } = ANIMATIONS[state];
-  const total = totalDuration(state);
+export function frameAt(a: Animation, elapsed: number): { index: number; finished: boolean } {
+  const { frames, loop } = a;
+  const total = totalDuration(a);
   if (!loop && elapsed >= total) {
     return { index: frames.length - 1, finished: true };
   }
@@ -68,5 +54,5 @@ export function frameAt(state: FrogState, elapsed: number): { index: number; fin
   return { index: frames.length - 1, finished: !loop };
 }
 
-/** The still frame shown when reduced motion is on: the first frame, a neutral pose in every strip. */
+/** The still frame shown when reduced motion is on: the first frame, a neutral pose in every row. */
 export const STILL_FRAME = 0;

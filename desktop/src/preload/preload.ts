@@ -11,6 +11,8 @@ contextBridge.exposeInMainWorld('smoi', {
   ready: () => ipcRenderer.send('frog:ready'),
   onState: (cb: (m: StateMessage) => void) => ipcRenderer.on('frog:state', (_e, m: StateMessage) => cb(m)),
   onSettings: (cb: (m: SettingsMessage) => void) => ipcRenderer.on('frog:settings', (_e, m: SettingsMessage) => cb(m)),
+  /** The active companion (from its manifest), whenever it changes. */
+  onCompanion: (cb: (c: unknown) => void) => ipcRenderer.on('frog:companion', (_e, c: unknown) => cb(c)),
   setHit: (overFrog: boolean) => ipcRenderer.send('frog:hit', overFrog),
   /** Mouse button down on the frog: a click, or a drag if the cursor then moves. */
   press: (offset: { x: number; y: number }) => ipcRenderer.send('frog:press', offset),

@@ -6,12 +6,15 @@
  */
 import { Notification } from 'electron';
 import { cooldownKey, decide, inQuietHours, type Category, type NotificationSettings } from '../shared/notify';
-import { react, type CompanionEvent, type Personality } from '../shared/personality';
+import type { CompanionEvent, Personality } from '../shared/personality';
+import { reactAs, type Voice } from '../shared/voice';
 import type { BubbleLine, FrogReaction } from '../shared/panelActions';
 
 export interface NotifierDeps {
   settings: () => NotificationSettings;
   personality: () => Personality;
+  /** The active companion, whose voice the line is in. */
+  voice: () => Voice;
   say: (line: BubbleLine) => void;
   react: (frog: FrogReaction) => void;
   icon: string;
@@ -56,7 +59,7 @@ export class Notifier {
   }
 
   private show(p: Pending, now: Date): void {
-    const r = react(p.event, this.deps.personality());
+    const r = reactAs(this.deps.voice(), p.event, this.deps.personality());
     if (!r.line) return;
     this.lastShown[cooldownKey(p)] = now.getTime();
     if (this.deps.settings().channel === 'native' && Notification.isSupported()) {

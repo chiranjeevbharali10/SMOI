@@ -1,6 +1,4 @@
-import { app } from 'electron';
 import { existsSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
-import { join } from 'node:path';
 import { DEFAULT_NOTIFICATIONS, mergeNotificationSettings, type NotificationSettings } from '../shared/notify';
 import { clampPersonality, DEFAULT_PERSONALITY, type Personality } from '../shared/personality';
 
@@ -25,6 +23,8 @@ export interface Settings {
   notifications: NotificationSettings;
   /** Claude Code notifications (FR-10.06). */
   claudeCode: ClaudeCodeSettings;
+  /** The chosen companion's id (assets/companions/roster.json). Unknown ids fall back to the default. */
+  companion: string;
 }
 
 export interface ClaudeCodeSettings {
@@ -57,22 +57,21 @@ const DEFAULTS: Settings = {
   personality: DEFAULT_PERSONALITY,
   notifications: DEFAULT_NOTIFICATIONS,
   claudeCode: DEFAULT_CLAUDE_CODE,
+  companion: 'smoi',
 };
 
-function file(): string {
-  return join(app.getPath('userData'), 'settings.json');
-}
-
-export function loadSettings(): Settings {
+/** @param file settings.json in the app's user-data folder */
+export function loadSettings(file: string): Settings {
   try {
-    if (existsSync(file())) {
-      const saved = JSON.parse(readFileSync(file(), 'utf8'));
+    if (existsSync(file)) {
+      const saved = JSON.parse(readFileSync(file, 'utf8'));
       return {
         ...DEFAULTS, ...saved,
         // Nested settings are checked field by field, so an older or hand-edited file still works.
         personality: clampPersonality(saved.personality) ?? DEFAULT_PERSONALITY,
         notifications: mergeNotificationSettings(DEFAULT_NOTIFICATIONS, saved.notifications),
         claudeCode: mergeClaudeCode(DEFAULT_CLAUDE_CODE, saved.claudeCode),
+        companion: typeof saved.companion === 'string' && /^[a-z][a-z0-9-]{0,31}$/.test(saved.companion) ? saved.companion : 'smoi',
       };
     }
   } catch {
@@ -82,8 +81,8 @@ export function loadSettings(): Settings {
 }
 
 /** Writes to a temporary file first, so a crash mid-write can't leave a half-written file. */
-export function saveSettings(settings: Settings): void {
-  const tmp = file() + '.tmp';
+export function saveSettings(settings: Settings, file: string): void {
+  const tmp = file + '.tmp';
   writeFileSync(tmp, JSON.stringify(settings, null, 2));
-  renameSync(tmp, file());
+  renameSync(tmp, file);
 }

@@ -88,12 +88,12 @@ describe('menu panel', () => {
     expect(PANEL_ROWS.every((r) => AVAILABLE_ROWS.has(r.id))).toBe(true);
   });
 
-  it('shows SMOI, the mood and six rows; unavailable rows say so, with aria-disabled', () => {
+  it('shows SMOI, the mood and seven rows; unavailable rows say so, with aria-disabled', () => {
     render(<PanelView mood="feeling chatty" rows={rows} onChoose={() => {}} onClose={() => {}} />);
     expect(screen.getByRole('heading', { name: 'SMOI' })).toBeTruthy();
     expect(screen.getByText('feeling chatty')).toBeTruthy();
     const buttons = screen.getAllByRole('button');
-    expect(buttons).toHaveLength(6);
+    expect(buttons).toHaveLength(7);
     for (const name of ['Open calendar', 'Check inbox']) {
       const b = screen.getByRole('button', { name: new RegExp(name) });
       expect(b.getAttribute('aria-disabled')).toBe('true');
@@ -110,11 +110,11 @@ describe('menu panel', () => {
     await userEvent.keyboard('{ArrowDown}');
     expect(document.activeElement).toBe(buttons[1]);
     await userEvent.keyboard('{End}');
-    expect(document.activeElement).toBe(buttons[5]);
+    expect(document.activeElement).toBe(buttons[6]);
     await userEvent.keyboard('{ArrowDown}');
     expect(document.activeElement).toBe(buttons[0]);
     await userEvent.keyboard('{ArrowUp}');
-    expect(document.activeElement).toBe(buttons[5]);
+    expect(document.activeElement).toBe(buttons[6]);
   });
 
   it('Enter chooses an available row; an unavailable row does nothing; Esc closes', async () => {
@@ -180,5 +180,15 @@ describe('panel confirm view (voice commands)', () => {
     const v = { ...confirm, view: { actionable: false, heading: "Drafting emails isn't available yet.", details: [], confirmLabel: null } };
     render(<PanelView mood="m" rows={rows} confirm={v} onAnswer={() => {}} onChoose={() => {}} onClose={() => {}} />);
     expect(screen.getAllByRole('button').map((b) => b.textContent)).toEqual(['OK']);
+  });
+});
+
+describe('menu panel for another companion', () => {
+  it('shows the companion’s name and its palette accent in the header', () => {
+    const rows = PANEL_ROWS.map((r) => ({ ...r, available: true }));
+    render(<PanelView name="NOX" accent="#D9CDEC" mood="m" rows={rows} onChoose={() => {}} onClose={() => {}} />);
+    expect(screen.getByRole('heading', { name: 'NOX' })).toBeTruthy();
+    expect(screen.getByLabelText('NOX panel')).toBeTruthy();
+    expect((screen.getByRole('heading', { name: 'NOX' }).parentElement as HTMLElement).style.background).toBe('rgb(217, 205, 236)');
   });
 });

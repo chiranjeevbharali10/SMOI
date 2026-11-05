@@ -6,6 +6,7 @@
 import type {
   ApiFailure, ChunkInfo, DocumentInfo, DraftItem, EmailItem, GooglePreview, GoogleStatus, Me, Proposal, Providers, StreamEvent, Upcoming,
 } from './apiTypes';
+import type { CompanionInfo } from './companions';
 import type { NotificationSettings } from './notify';
 import type { BubbleTone, PanelRowId } from './panelActions';
 import type { Personality } from './personality';
@@ -65,6 +66,10 @@ export interface PanelConfirm {
 }
 
 export interface PanelView {
+  /** The active companion's name, shown as the panel title. */
+  name: string;
+  /** Header colour from the companion's palette, or null for the design's default. */
+  accent: string | null;
   mood: string;
   rows: PanelRowView[];
   /** When set, the panel shows this instead of its rows. */
@@ -105,7 +110,7 @@ export interface RecorderBridge {
 
 // ---------- dashboard window ----------
 
-export type DashboardView = 'home' | 'tasks' | 'calendar' | 'inbox' | 'brain' | 'chat' | 'settings';
+export type DashboardView = 'home' | 'tasks' | 'calendar' | 'inbox' | 'brain' | 'chat' | 'companions' | 'settings';
 
 export interface UserSettings {
   reducedMotion: boolean;
@@ -122,11 +127,15 @@ export interface UserSettings {
   personality: Personality;
   notifications: NotificationSettings;
   claudeCode: { enabled: boolean; celebrateAfterMinutes: number };
+  /** The active companion's id. */
+  companion: string;
+  /** Read-only: every valid companion in the roster, from their manifests. */
+  companions: CompanionInfo[];
   /** Read-only: whether the Claude Code hook listener is running, and if not, why. */
   claudeHooks: { listening: boolean; port: number; problem: string | null };
 }
 
-export type SettingsPatch = Partial<Omit<UserSettings, 'backendUrl' | 'shortcutError' | 'claudeHooks'>>;
+export type SettingsPatch = Partial<Omit<UserSettings, 'backendUrl' | 'shortcutError' | 'claudeHooks' | 'companions'>>;
 
 export interface TasksSnapshot {
   /** False while signed out: there is no copy to show. */

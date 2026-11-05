@@ -59,8 +59,10 @@ function PanelApp() {
         <PanelView
           key={openCount}
           ref={panel}
+          name={view.name}
+          accent={view.accent}
           mood={view.mood}
-          rows={view.rows}
+          rows={view.rows.map((r) => (r.id === 'talk' ? { ...r, label: `Talk to ${view.name}` } : r))}
           confirm={view.confirm}
           onAnswer={(yes) => api.answer(yes)}
           rise={openCount > 0}

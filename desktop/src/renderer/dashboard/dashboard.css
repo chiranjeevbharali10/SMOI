@@ -162,3 +162,10 @@ details summary { cursor: pointer; font-weight: 800; }
 .chunk { border: 2px dashed var(--smoi-charcoal); border-radius: 14px; padding: 10px 14px; }
 .chunk.cited { border-style: solid; background: var(--smoi-lavender); }
 .chunk-meta { font-size: 13px; font-weight: 800; }
+
+/* Choose companion */
+.companion-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px; }
+.companion-card { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 6px; border-top-width: 8px; }
+.companion-card h3 { margin: 0; font-family: var(--smoi-font-pixel); }
+.companion-card p { margin: 0; }
+.companion-sprite { width: 128px; height: 128px; image-rendering: pixelated; }
