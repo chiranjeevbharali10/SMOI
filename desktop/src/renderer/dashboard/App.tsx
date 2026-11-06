@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { initialAnswer, reduceAnswer } from '../../shared/answer';
-import type { DocumentInfo, StreamEvent } from '../../shared/apiTypes';
+import type { DocumentInfo, FoldersInfo, StreamEvent } from '../../shared/apiTypes';
 import type { BackendStatus, DashboardView, GoogleView, SessionStatus, TasksSnapshot, UserSettings } from '../../shared/bridge';
 import { Calendar } from './Calendar';
 import { Companions } from './Companions';
@@ -33,6 +33,7 @@ export function App() {
   const [tasks, setTasks] = useState<TasksSnapshot | null>(null);
   const [focusAsk, setFocusAsk] = useState(0);
   const [docs, setDocs] = useState<DocumentInfo[]>([]);
+  const [folders, setFolders] = useState<FoldersInfo | null>(null);
   const [backend, setBackend] = useState<BackendStatus | null>(null);
   const [settings, setSettings] = useState<UserSettings | null>(null);
   const [google, setGoogle] = useState<GoogleView | null>(null);
@@ -56,6 +57,7 @@ export function App() {
     api().onBackend(setBackend);
     api().onSettings(setSettings);
     api().onDocuments(setDocs);
+    api().onFolders(setFolders);
     api().onNavigate(navigate);
     void api().tasks().then(setTasks);
     api().onTasks(setTasks);
@@ -78,6 +80,7 @@ export function App() {
 
   useEffect(() => {
     if (session?.signedIn) void api().documents().then((r) => r.ok && setDocs(r.value));
+    if (session?.signedIn) void api().folders().then((r) => r.ok && setFolders(r.value));
   }, [session?.signedIn]);
 
   const ask = useCallback(async (question: string): Promise<{ key: string } | { error: string }> => {
@@ -164,7 +167,7 @@ export function App() {
         {view === 'tasks' && tasks && <Tasks snapshot={tasks} backendReachable={backend?.reachable ?? true} />}
         {view === 'calendar' && <Calendar google={google} />}
         {view === 'inbox' && <Inbox google={google} />}
-        {view === 'brain' && <Brain docs={docs} exchanges={exchanges} onAsk={onAsk} focusAsk={focusAsk} />}
+        {view === 'brain' && <Brain docs={docs} folders={folders} exchanges={exchanges} onAsk={onAsk} focusAsk={focusAsk} />}
         {view === 'companions' && settings && <Companions settings={settings} />}
         {view === 'settings' && settings && <Settings settings={settings} google={google} />}
       </main>

@@ -10,7 +10,7 @@
  * (test/api.test.ts).
  */
 import type {
-  AnswerResult, ApiErrorKind, ApiFailure, ChunkInfo, DocumentInfo, DraftItem, EmailAlert, EmailItem, GoogleOutcome,
+  AnswerResult, ApiErrorKind, ApiFailure, ChunkInfo, DocumentInfo, FolderFileInfo, FoldersInfo, DraftItem, EmailAlert, EmailItem, GoogleOutcome,
   GooglePreview, GoogleStatus, LoginResult, Me, Proposal, Providers, ReminderCheck, StreamEvent, SyncResult, SyncSummary, Upcoming,
   CalendarEvent,
 } from '../shared/apiTypes';
@@ -90,6 +90,56 @@ export class ApiClient {
   async deleteDocument(documentId: string): Promise<void> {
     const res = await this.send('DELETE', `/api/documents/${encodeURIComponent(documentId)}`);
     await this.json(res);
+  }
+
+  // ---------- watched folders (folder sync) ----------
+
+  folders(): Promise<FoldersInfo> {
+    return this.get<FoldersInfo>('/api/folders');
+  }
+
+  async addFolder(path: string): Promise<{ id: string; path: string }> {
+    return this.json(await this.send('POST', '/api/folders', { json: { path } }));
+  }
+
+  async removeFolder(folderId: string): Promise<void> {
+    await this.json(await this.send('DELETE', `/api/folders/${encodeURIComponent(folderId)}`));
+  }
+
+  folderFiles(folderId: string): Promise<FolderFileInfo[]> {
+    return this.get<FolderFileInfo[]>(`/api/folders/${encodeURIComponent(folderId)}/files`);
+  }
+
+  /** Sends a new or changed file's bytes. The backend re-indexes only if the content changed. */
+  async syncFolderFile(folderId: string, path: string, modifiedTime: string, bytes: Uint8Array): Promise<FolderFileInfo> {
+    const form = new FormData();
+    const name = path.slice(Math.max(path.lastIndexOf('\\'), path.lastIndexOf('/')) + 1);
+    form.append('file', new Blob([bytes as Uint8Array<ArrayBuffer>]), name);
+    form.append('path', path);
+    form.append('modifiedTime', modifiedTime);
+    const res = await this.send('PUT', `/api/folders/${encodeURIComponent(folderId)}/files`, { body: form, timeoutMs: UPLOAD_TIMEOUT_MS });
+    return this.json<FolderFileInfo>(res);
+  }
+
+  async folderFileFailed(folderId: string, path: string, modifiedTime: string, sizeBytes: number, error: string): Promise<FolderFileInfo> {
+    return this.json(await this.send('POST', `/api/folders/${encodeURIComponent(folderId)}/files/failed`,
+      { json: { path, modifiedTime, sizeBytes, error } }));
+  }
+
+  async touchFolderFile(path: string, modifiedTime: string, sizeBytes: number): Promise<FolderFileInfo> {
+    return this.json(await this.send('POST', '/api/folders/files/touch', { json: { path, modifiedTime, sizeBytes } }));
+  }
+
+  async moveFolderFile(fromPath: string, toFolderId: string, toPath: string): Promise<FolderFileInfo> {
+    return this.json(await this.send('POST', '/api/folders/files/move', { json: { fromPath, toFolderId, toPath } }));
+  }
+
+  async deleteFolderFile(path: string): Promise<void> {
+    await this.json(await this.send('POST', '/api/folders/files/delete', { json: { path } }));
+  }
+
+  async retryOcr(): Promise<{ queued: number }> {
+    return this.json(await this.send('POST', '/api/folders/retry-ocr', { json: {} }));
   }
 
   providers(): Promise<Providers> {

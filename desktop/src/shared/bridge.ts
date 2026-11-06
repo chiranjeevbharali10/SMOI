@@ -4,7 +4,7 @@
  * message (src/main/ipc.ts).
  */
 import type {
-  ApiFailure, ChunkInfo, DocumentInfo, DraftItem, EmailItem, GooglePreview, GoogleStatus, Me, Proposal, Providers, StreamEvent, Upcoming,
+  ApiFailure, ChunkInfo, DocumentInfo, DraftItem, FoldersInfo, EmailItem, GooglePreview, GoogleStatus, Me, Proposal, Providers, StreamEvent, Upcoming,
 } from './apiTypes';
 import type { CompanionInfo } from './companions';
 import type { NotificationSettings } from './notify';
@@ -197,6 +197,15 @@ export interface DashboardBridge {
   /** The main process asks the user to confirm before deleting. */
   deleteDocument(id: string): Promise<Result<{ deleted: boolean }>>;
   chunks(documentId: string): Promise<Result<ChunkInfo[]>>;
+  // watched folders (folder sync)
+  folders(): Promise<Result<FoldersInfo>>;
+  onFolders(cb: (f: FoldersInfo) => void): void;
+  /** The main process opens a folder picker; SMOI then keeps that folder indexed. */
+  addFolder(): Promise<Result<{ added: boolean }>>;
+  /** The main process asks the user to confirm. Files on disk are never touched. */
+  removeFolder(id: string): Promise<Result<{ removed: boolean }>>;
+  /** Indexes needs-OCR files again (only when OCR is on). */
+  retryOcr(): Promise<Result<{ queued: number }>>;
   // answers
   ask(question: string): Promise<Result<{ requestId: string }>>;
   onAnswer(cb: (m: { requestId: string; event: StreamEvent }) => void): void;

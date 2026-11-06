@@ -192,3 +192,30 @@ describe('menu panel for another companion', () => {
     expect((screen.getByRole('heading', { name: 'NOX' }).parentElement as HTMLElement).style.background).toBe('rgb(217, 205, 236)');
   });
 });
+
+describe('watched folders on the Brain screen', () => {
+  const folders = {
+    folders: [{ id: 'f1', path: 'C:\Users\me\Notes', total: 300, done: 142, pending: 155, failed: 3, needsOcr: 0 }],
+    total: 300, done: 142, pending: 155, failed: 3, needsOcr: 0, ocrEnabled: false,
+  };
+
+  it('shows progress and asks the main process to stop watching (which confirms first)', async () => {
+    const removeFolder = vi.fn(async () => ({ ok: true as const, value: { removed: true } }));
+    window.smoiDashboard = { removeFolder } as unknown as DashboardBridge;
+    const { Brain } = await import('../src/renderer/dashboard/Brain');
+    render(<Brain docs={[]} folders={folders} exchanges={[]} onAsk={async () => null} focusAsk={0} />);
+
+    expect(screen.getAllByText('142 of 300 indexed, 3 failed')).toHaveLength(2); // the total and the folder
+    await userEvent.click(screen.getByRole('button', { name: 'Stop watching C:\Users\me\Notes' }));
+    expect(removeFolder).toHaveBeenCalledWith('f1');
+  });
+
+  it('offers OCR only when files need it and OCR is on', async () => {
+    const { Brain } = await import('../src/renderer/dashboard/Brain');
+    const withOcr = { ...folders, needsOcr: 2, ocrEnabled: true };
+    const { rerender } = render(<Brain docs={[]} folders={withOcr} exchanges={[]} onAsk={async () => null} focusAsk={0} />);
+    expect(screen.getByRole('button', { name: 'Read scanned PDFs with OCR' })).toBeTruthy();
+    rerender(<Brain docs={[]} folders={{ ...withOcr, ocrEnabled: false }} exchanges={[]} onAsk={async () => null} focusAsk={0} />);
+    expect(screen.queryByRole('button', { name: 'Read scanned PDFs with OCR' })).toBeNull();
+  });
+});

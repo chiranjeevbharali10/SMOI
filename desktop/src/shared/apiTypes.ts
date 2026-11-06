@@ -19,6 +19,40 @@ export interface DocumentInfo {
   hostedLlmAllowed: boolean;
 }
 
+/** A watched folder with its files counted by status (GET /api/folders). */
+export interface FolderInfo {
+  id: string;
+  path: string;
+  total: number;
+  done: number;
+  pending: number;
+  failed: number;
+  needsOcr: number;
+}
+
+export interface FoldersInfo {
+  folders: FolderInfo[];
+  total: number;
+  done: number;
+  pending: number;
+  failed: number;
+  needsOcr: number;
+  ocrEnabled: boolean;
+}
+
+/** One file of a watched folder, as the index knows it. */
+export interface FolderFileInfo {
+  id: string;
+  folderId: string;
+  path: string;
+  contentHash: string | null;
+  modifiedTime: string;
+  sizeBytes: number;
+  status: 'pending' | 'done' | 'failed' | 'needs_ocr';
+  error: string | null;
+  documentId: string | null;
+}
+
 export interface ChunkInfo {
   id: string;
   index: number;

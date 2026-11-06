@@ -33,6 +33,7 @@ import { ClaudeCode } from './claudeCode';
 import { GoogleService } from './google';
 import { overdueTasks } from '../shared/taskStore';
 import { Commands } from './commands';
+import { FolderWatcher } from './folderWatcher';
 import { isAccelerator, Voice } from './voice';
 
 const DEV_SERVER = process.env.SMOI_DEV_SERVER; // set by `npm run dev`
@@ -52,6 +53,9 @@ let dashboard: Dashboard;
 let tasks: TaskService;
 let notifier: Notifier;
 let google: GoogleService;
+let folders: FolderWatcher;
+/** The account folder sync is running for, so a session refresh doesn't restart the full rescan. */
+let foldersFor: string | null = null;
 const claude = new ClaudeCode();
 let voice: Voice;
 /** Why the voice shortcut couldn't be registered, or null. */
@@ -610,7 +614,14 @@ function start() {
     },
   });
 
+  folders = new FolderWatcher({
+    api,
+    onProgress: (info) => dashboard?.foldersChanged(info),
+    log: (message) => console.log(`[folders] ${message}`),
+  });
+
   dashboard = new Dashboard({
+    folders,
     api,
     session,
     preload: join(PRELOADS, 'dashboard.js'),
@@ -647,9 +658,16 @@ function start() {
     if (s.signedIn && s.email) {
       tasks.start(s.email);
       google.start();
+      // Rescans every watched folder (catching changes made while SMOI was closed), then watches.
+      if (foldersFor !== s.email) {
+        foldersFor = s.email;
+        void folders.start(); // retries on its own until the backend answers
+      }
     } else {
       tasks.stop();
       google.stop();
+      folders.stop();
+      foldersFor = null;
       void google.refresh();
     }
   };
@@ -741,6 +759,7 @@ if (!app.requestSingleInstanceLock()) {
     voice?.destroy();
     notifier?.destroy();
     google?.stop();
+    folders?.stop();
     void claude.stop();
     companion?.destroy();
     tray?.destroy();

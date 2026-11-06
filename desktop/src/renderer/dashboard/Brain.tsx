@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from 'react';
 import type { AnswerView } from '../../shared/answer';
 import { FINAL } from '../../shared/answer';
-import type { DocumentInfo, SourceRef } from '../../shared/apiTypes';
+import type { DocumentInfo, FoldersInfo, SourceRef } from '../../shared/apiTypes';
+import { describeProgress } from '../../shared/folderSync';
 import { AnswerBlock } from './AnswerBlock';
 import { Face } from './Face';
 import { SourceViewer } from './SourceViewer';
@@ -16,6 +17,8 @@ export interface Exchange {
 
 interface BrainProps {
   docs: DocumentInfo[];
+  /** Watched folders and their progress; null until loaded. */
+  folders: FoldersInfo | null;
   exchanges: Exchange[];
   onAsk: (question: string) => Promise<string | null>;
   /** Increments when "Talk to SMOI" asks for the question box to be focused. */
@@ -30,7 +33,7 @@ const STATUS_TEXT: Record<DocumentInfo['status'], string> = {
 };
 
 /** SMOI Brain: upload documents, watch them index, and ask questions with cited answers. */
-export function Brain({ docs, exchanges, onAsk, focusAsk }: BrainProps) {
+export function Brain({ docs, folders, exchanges, onAsk, focusAsk }: BrainProps) {
   const [docError, setDocError] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [question, setQuestion] = useState('');
@@ -56,6 +59,24 @@ export function Brain({ docs, exchanges, onAsk, focusAsk }: BrainProps) {
     setDocError(null);
     const r = await api().upload();
     setUploading(false);
+    if (!r.ok) setDocError(r.error.message);
+  };
+
+  const addFolder = async () => {
+    setDocError(null);
+    const r = await api().addFolder();
+    if (!r.ok) setDocError(r.error.message);
+  };
+
+  const removeFolder = async (id: string) => {
+    setDocError(null);
+    const r = await api().removeFolder(id);
+    if (!r.ok) setDocError(r.error.message);
+  };
+
+  const retryOcr = async () => {
+    setDocError(null);
+    const r = await api().retryOcr();
     if (!r.ok) setDocError(r.error.message);
   };
 
@@ -101,6 +122,30 @@ export function Brain({ docs, exchanges, onAsk, focusAsk }: BrainProps) {
           </button>
           <p className="hint">PDF, Word (DOCX) or text files.</p>
           {docError && <div className="banner error" role="alert"><Face name="shocked" /><span>{docError}</span></div>}
+          <h4 id="h-folders">Watched folders</h4>
+          <button className="btn" type="button" onClick={addFolder}>Add folder…</button>
+          <p className="hint">SMOI keeps PDF, Word and text files in these folders indexed. It only reads them.</p>
+          {folders && folders.folders.length > 0 && (
+            <>
+              <p className="hint" aria-live="polite">{describeProgress(folders)}</p>
+              {folders.needsOcr > 0 && folders.ocrEnabled && (
+                <button className="btn small" type="button" onClick={retryOcr}>Read scanned PDFs with OCR</button>
+              )}
+              <ul className="doc-list" aria-labelledby="h-folders">
+                {folders.folders.map((f) => (
+                  <li key={f.id} className="doc">
+                    <span className="doc-name">{f.path}</span>
+                    <div className="doc-row">
+                      <span>{describeProgress(f)}</span>
+                      <button type="button" className="btn small" onClick={() => void removeFolder(f.id)}
+                              aria-label={`Stop watching ${f.path}`}>Stop watching</button>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </>
+          )}
+          <h4>Files</h4>
           {docs.length === 0 && <p>No documents yet.</p>}
           <ul className="doc-list" aria-label="Documents">
             {docs.map((d) => (

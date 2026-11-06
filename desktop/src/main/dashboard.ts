@@ -19,7 +19,8 @@ import type { Session } from './session';
 import type { Commands } from './commands';
 import type { GoogleService, GoogleState } from './google';
 import type { TaskService } from './tasks';
-import type { DocumentInfo, GooglePreview, StreamEvent } from '../shared/apiTypes';
+import type { DocumentInfo, FoldersInfo, GooglePreview, StreamEvent } from '../shared/apiTypes';
+import type { FolderWatcher } from './folderWatcher';
 import type {
   BackendStatus, DashboardView, DraftInput, EventInput, GoogleView, PreviewOutcome, ReminderInput, Result, SessionStatus, TaskInput,
   TasksSnapshot, UserSettings,
@@ -48,6 +49,7 @@ export interface DashboardDeps {
   /** Documents finished indexing since the last check. */
   onIndexed: (count: number) => void;
   google: GoogleService;
+  folders: FolderWatcher;
 }
 
 export interface OpenTiming {
@@ -61,6 +63,7 @@ const MAX_QUESTION = 2000;
 export class Dashboard {
   private win: BrowserWindow | null = null;
   private docs: DocumentInfo[] = [];
+  private folderInfo: FoldersInfo | null = null;
   private pollTimer: NodeJS.Timeout | null = null;
   private readonly streams = new Map<string, AbortController>();
   private opened = 0;
@@ -212,6 +215,40 @@ export class Dashboard {
     return r;
   }
 
+  /** Fresh folder counts from the watcher ("142 of 300 indexed, 3 failed"). */
+  foldersChanged(info: FoldersInfo): void {
+    this.folderInfo = info;
+    this.send('folders:changed', info);
+  }
+
+  private async addFolder(): Promise<{ added: boolean }> {
+    const w = this.window;
+    const options: Electron.OpenDialogOptions = { title: 'Choose a folder for SMOI to keep indexed', properties: ['openDirectory'] };
+    const picked = w ? await dialog.showOpenDialog(w, options) : await dialog.showOpenDialog(options);
+    if (picked.canceled || picked.filePaths.length === 0) return { added: false };
+    await this.deps.api.addFolder(picked.filePaths[0]);
+    // The first scan of a big folder takes a while; progress arrives through folders:changed.
+    void this.deps.folders.foldersChanged().catch(() => undefined);
+    return { added: true };
+  }
+
+  private async removeFolder(id: string): Promise<{ removed: boolean }> {
+    const folder = this.folderInfo?.folders.find((f) => f.id === id);
+    const options: Electron.MessageBoxOptions = {
+      type: 'warning', buttons: ['Stop watching', 'Cancel'], defaultId: 1, cancelId: 1, noLink: true,
+      title: 'Stop watching folder',
+      message: `Stop watching "${folder?.path ?? 'this folder'}"?`,
+      detail: 'Its files will be removed from SMOI Brain and no longer appear in answers. The files on your disk are not touched.',
+    };
+    const w = this.window;
+    const choice = w ? await dialog.showMessageBox(w, options) : await dialog.showMessageBox(options);
+    if (choice.response !== 0) return { removed: false };
+    await this.deps.api.removeFolder(id);
+    await this.deps.folders.foldersChanged();
+    void this.refreshDocuments();
+    return { removed: true };
+  }
+
   private stopPolling() {
     if (this.pollTimer) clearTimeout(this.pollTimer);
     this.pollTimer = null;
@@ -322,6 +359,13 @@ export class Dashboard {
     handle('docs:upload', () => wrap(() => this.upload()));
     handle('docs:delete', (id) => wrap(() => this.delete(str(id, 64))));
     handle('docs:chunks', (id) => wrap(() => this.deps.api.chunks(str(id, 64))));
+    handle('folders:list', () => wrap(async () => {
+      this.folderInfo = await this.deps.api.folders();
+      return this.folderInfo;
+    }));
+    handle('folders:add', () => wrap(() => this.addFolder()));
+    handle('folders:remove', (id) => wrap(() => this.removeFolder(str(id, 64))));
+    handle('folders:retry-ocr', () => wrap(() => this.deps.api.retryOcr()));
     handle('brain:ask', (q) => wrap(() => this.ask(str(typeof q === 'string' ? q.trim() : q, MAX_QUESTION))));
     handle('tasks:get', () => snapshot(this.deps.tasks.store, this.deps.session.status().signedIn));
     handle('tasks:save', (input) => wrap(async () => {
