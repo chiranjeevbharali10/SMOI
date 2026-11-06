@@ -80,6 +80,26 @@ public abstract class IntegrationTest {
         registry.add("logging.structured.format.console", () -> "logstash");
     }
 
+    /**
+     * Creates an empty database in the shared container and returns its JDBC URL. Spring keeps
+     * every test context alive, and each runs ingestion workers; a context whose workers must not
+     * share jobs with the others (different ingestion settings) points its datasource here.
+     */
+    protected static String createDatabase(String name) {
+        if (!name.matches("[a-z_]+")) {
+            throw new IllegalArgumentException("database names here are lower-case letters and underscores");
+        }
+        try (java.sql.Connection c = java.sql.DriverManager.getConnection(POSTGRES.getJdbcUrl(), POSTGRES.getUsername(),
+                POSTGRES.getPassword()); java.sql.Statement st = c.createStatement()) {
+            st.execute("DROP DATABASE IF EXISTS " + name);
+            st.execute("CREATE DATABASE " + name);
+        } catch (java.sql.SQLException e) {
+            throw new IllegalStateException(e);
+        }
+        // jdbc:postgresql://host:port/test?loggerLevel=OFF -> jdbc:postgresql://host:port/<name>?loggerLevel=OFF
+        return POSTGRES.getJdbcUrl().replaceFirst("/[^/?]+(\\?|$)", "/" + name + "$1");
+    }
+
     @Value("${local.server.port}")
     private int port;
 

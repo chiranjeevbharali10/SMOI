@@ -84,4 +84,54 @@ class DocumentParserTest {
                 .isInstanceOf(DocumentParseException.class)
                 .hasMessageContaining("no extractable text");
     }
+
+    @Test
+    void pdfWithoutTextNeedsOcr() {
+        assertThatThrownBy(() -> parser.parse(TestFiles.pdf(List.of(List.of(), List.of())), DocumentParser.PDF))
+                .isInstanceOf(NeedsOcrException.class)
+                .hasMessageContaining(NeedsOcrException.MARKER);
+    }
+
+    @Test
+    void pdfWithOnlyAStrayPageNumberPerPageNeedsOcr() {
+        assertThatThrownBy(() -> parser.parse(TestFiles.pdf(List.of(List.of("1"), List.of("2"), List.of("3"))),
+                DocumentParser.PDF))
+                .isInstanceOf(NeedsOcrException.class)
+                .hasMessageContaining("very little extractable text");
+    }
+
+    @Test
+    void aShortRealPdfIsNotMistakenForAScan() {
+        assertThat(parser.parse(TestFiles.pdf(List.of(List.of("A short note about the garden gate."))), DocumentParser.PDF))
+                .extracting(Block::text).containsExactly("A short note about the garden gate.");
+    }
+
+    @Test
+    void ocrPagesBecomeParagraphsWithPageNumbers() {
+        List<Block> blocks = parser.blocksFromPages(List.of(
+                "First paragraph on page one,\nwrapped onto two lines.\n\nSecond paragraph.",
+                "",
+                "Page three text that is long enough."));
+
+        assertThat(blocks).extracting(Block::text, Block::page).containsExactly(
+                org.assertj.core.groups.Tuple.tuple("First paragraph on page one, wrapped onto two lines.", 1),
+                org.assertj.core.groups.Tuple.tuple("Second paragraph.", 1),
+                org.assertj.core.groups.Tuple.tuple("Page three text that is long enough.", 3));
+    }
+
+    @Test
+    void ocrThatFindsAlmostNothingStillNeedsOcr() {
+        assertThatThrownBy(() -> parser.blocksFromPages(List.of("", "x")))
+                .isInstanceOf(NeedsOcrException.class)
+                .hasMessageContaining(NeedsOcrException.MARKER);
+    }
+
+    @Test
+    void tooLittleTextIsMeasuredPerPage() {
+        List<Block> forty = List.of(Block.paragraph("x".repeat(40), 1));
+        assertThat(DocumentParser.tooLittleText(forty, 1)).isFalse();
+        assertThat(DocumentParser.tooLittleText(forty, 2)).isFalse();
+        assertThat(DocumentParser.tooLittleText(forty, 3)).isTrue();
+        assertThat(DocumentParser.tooLittleText(List.of(), 0)).isTrue();
+    }
 }

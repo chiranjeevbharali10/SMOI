@@ -67,6 +67,12 @@ smoi:
       # Per-user exact-match cache of query embeddings in Postgres (QueryEmbeddingCache).
       enabled: ${QUERY_CACHE_ENABLED:true}
       ttl: P1D
+  ocr:
+    # Optional OCR sidecar (sidecars/ocr) for scanned PDFs. Off by default: scanned PDFs then stop
+    # at "needs OCR". Turn it on, then POST /api/folders/retry-ocr to index them.
+    enabled: ${OCR_ENABLED:false}
+    base-url: ${OCR_URL:http://localhost:8003}
+    timeout: PT10M
   rerank:
     # Cross-encoder sidecar (sidecars/reranker). Off unless configured; the hybrid_rerank mode
     # then returns hybrid results and reports reranking as disabled.

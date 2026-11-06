@@ -48,12 +48,58 @@ public class DocumentParser {
         List<Block> blocks = TXT.equals(mediaType)
                 ? plainTextParagraphs(content, metadata)
                 : handler.blocks();
+        if (PDF.equals(mediaType) && tooLittleText(blocks, pageCount(metadata))) {
+            throw new NeedsOcrException(blocks.isEmpty()
+                    ? "The PDF has no extractable text. It looks scanned and needs OCR."
+                    : "The PDF has very little extractable text. It looks scanned and needs OCR.");
+        }
         if (blocks.isEmpty()) {
-            throw new DocumentParseException(PDF.equals(mediaType)
-                    ? "The PDF has no extractable text. Scanned PDFs need OCR, which SMOI doesn't do yet."
-                    : "The file contains no text");
+            throw new DocumentParseException("The file contains no text");
         }
         return blocks;
+    }
+
+    /**
+     * Blocks from OCR output: one string per page, paragraphs separated by blank lines.
+     *
+     * @throws NeedsOcrException if OCR found too little text as well
+     */
+    public List<Block> blocksFromPages(List<String> pages) {
+        List<Block> blocks = new ArrayList<>();
+        for (int i = 0; i < pages.size(); i++) {
+            String page = pages.get(i) == null ? "" : pages.get(i);
+            for (String paragraph : BLANK_LINE.split(page)) {
+                String cleaned = TextCleaner.cleanParagraph(paragraph);
+                if (!cleaned.isEmpty()) {
+                    blocks.add(Block.paragraph(cleaned, i + 1));
+                }
+            }
+        }
+        if (tooLittleText(blocks, pages.size())) {
+            throw new NeedsOcrException("OCR found too little text in the PDF; it " + NeedsOcrException.MARKER
+                    + " with a clearer scan.");
+        }
+        return blocks;
+    }
+
+    /**
+     * Below this many characters of text per page on average, a PDF is treated as scanned. A real
+     * text page has hundreds; a scan often has only a stray header or page number.
+     */
+    static final int MIN_CHARS_PER_PAGE = 20;
+
+    static boolean tooLittleText(List<Block> blocks, int pages) {
+        long chars = blocks.stream().mapToLong(b -> b.text().length()).sum();
+        return chars < (long) MIN_CHARS_PER_PAGE * Math.max(1, pages);
+    }
+
+    private static int pageCount(Metadata metadata) {
+        String pages = metadata.get("xmpTPg:NPages");
+        try {
+            return pages == null ? 1 : Integer.parseInt(pages.strip());
+        } catch (NumberFormatException e) {
+            return 1;
+        }
     }
 
     /**

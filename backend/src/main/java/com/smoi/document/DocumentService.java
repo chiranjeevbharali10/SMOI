@@ -48,11 +48,18 @@ public class DocumentService {
      */
     @Transactional
     public UploadResult upload(UUID userId, String originalFilename, byte[] content) {
+        return upload(userId, originalFilename, content, DocumentRepository.ORIGIN_UPLOAD, JobQueue.INTERACTIVE);
+    }
+
+    /** As {@link #upload(UUID, String, byte[])}, for folder sync: records the origin and queues at the given priority. */
+    @Transactional
+    public UploadResult upload(UUID userId, String originalFilename, byte[] content, String origin, int priority) {
         String mediaType = detectSupportedType(content, originalFilename);
         String sha256 = sha256(content);
-        Optional<Document> inserted = documents.insertIfNew(userId, cleanFilename(originalFilename), mediaType, sha256, content);
+        Optional<Document> inserted = documents.insertIfNew(userId, cleanFilename(originalFilename), mediaType, sha256,
+                content, origin);
         if (inserted.isPresent()) {
-            jobs.enqueue(userId, inserted.get().id(), inserted.get().version());
+            jobs.enqueue(userId, inserted.get().id(), inserted.get().version(), priority);
             return new UploadResult(inserted.get(), true);
         }
         Document existing = documents.findActiveBySha256(userId, sha256)
@@ -66,6 +73,12 @@ public class DocumentService {
      */
     @Transactional
     public UploadResult replace(UUID userId, UUID documentId, String originalFilename, byte[] content) {
+        return replace(userId, documentId, originalFilename, content, JobQueue.INTERACTIVE);
+    }
+
+    /** As {@link #replace(UUID, UUID, String, byte[])}, queuing the re-index at the given priority. */
+    @Transactional
+    public UploadResult replace(UUID userId, UUID documentId, String originalFilename, byte[] content, int priority) {
         String mediaType = detectSupportedType(content, originalFilename);
         String sha256 = sha256(content);
         Document current = documents.lockActive(userId, documentId).orElseThrow(DocumentNotFoundException::new);
@@ -79,7 +92,7 @@ public class DocumentService {
             throw new DuplicateContentException();
         }
         jobs.cancelUnfinished(userId, documentId, "Superseded by version " + updated.version());
-        jobs.enqueue(userId, documentId, updated.version());
+        jobs.enqueue(userId, documentId, updated.version(), priority);
         return new UploadResult(updated, true);
     }
 
@@ -116,6 +129,16 @@ public class DocumentService {
     }
 
     /**
+     * Checks a file can be stored, without storing it: returns its media type, or throws
+     * {@link EmptyFileException} or {@link UnsupportedFileTypeException}. Not transactional, so a
+     * caller inside a transaction can catch the exception without the transaction being marked
+     * for rollback.
+     */
+    public String checkSupported(byte[] content, String filename) {
+        return detectSupportedType(content, filename);
+    }
+
+    /**
      * Decides the file type from its bytes (with the filename as a hint), not from the
      * extension or the Content-Type the client sent, which are easy to get wrong or fake.
      */
@@ -131,7 +154,7 @@ public class DocumentService {
     }
 
     /** Keeps only the last path segment (browsers on Windows may send a full path). */
-    static String cleanFilename(String original) {
+    public static String cleanFilename(String original) {
         if (original == null) {
             return "untitled";
         }
@@ -142,7 +165,7 @@ public class DocumentService {
         return name.length() > MAX_FILENAME_LENGTH ? name.substring(0, MAX_FILENAME_LENGTH) : name;
     }
 
-    static String sha256(byte[] content) {
+    public static String sha256(byte[] content) {
         try {
             return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(content));
         } catch (NoSuchAlgorithmException e) {

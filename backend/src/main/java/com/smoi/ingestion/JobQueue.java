@@ -29,12 +29,23 @@ public class JobQueue {
         this.props = props;
     }
 
+    /** Uploads by hand: claimed before {@link #BACKGROUND} jobs. */
+    public static final int INTERACTIVE = 0;
+    /** Folder sync: indexed in the background, after anything the user is waiting for. */
+    public static final int BACKGROUND = 10;
+
     /** Adds a job for one version of a document. Call inside the transaction that wrote the document. */
     public void enqueue(UUID userId, UUID documentId, int documentVersion) {
+        enqueue(userId, documentId, documentVersion, INTERACTIVE);
+    }
+
+    /** As {@link #enqueue(UUID, UUID, int)}, with a priority: lower numbers are claimed first. */
+    public void enqueue(UUID userId, UUID documentId, int documentVersion, int priority) {
         jdbc.sql("""
-                        INSERT INTO ingestion_jobs (user_id, document_id, document_version, max_attempts, request_id)
-                        VALUES (:userId, :documentId, :version, :maxAttempts, :requestId)
+                        INSERT INTO ingestion_jobs (user_id, document_id, document_version, max_attempts, request_id, priority)
+                        VALUES (:userId, :documentId, :version, :maxAttempts, :requestId, :priority)
                         """)
+                .param("priority", priority)
                 .param("requestId", RequestIds.current())
                 .param("userId", userId)
                 .param("documentId", documentId)
@@ -44,7 +55,7 @@ public class JobQueue {
     }
 
     /**
-     * Claims the oldest job that is ready to run: a queued job whose retry time has come, or a
+     * Claims the oldest job of the highest priority (lowest number) that is ready to run: a queued job whose retry time has come, or a
      * running job whose lease has expired because its worker died.
      *
      * <p>{@code FOR UPDATE SKIP LOCKED} is what makes several workers safe: the inner SELECT
@@ -69,7 +80,7 @@ public class JobQueue {
                                   WHERE status IN ('queued', 'running')
                                     AND available_at <= now()
                                     AND deleted_at IS NULL
-                                  ORDER BY available_at
+                                  ORDER BY priority, available_at
                                   LIMIT 1
                                     FOR UPDATE SKIP LOCKED)
                         RETURNING id, user_id, document_id, document_version, attempts, max_attempts, lease_token, request_id

@@ -10,11 +10,15 @@ import com.smoi.document.DocumentRepository;
 import com.smoi.embedding.EmbeddingException;
 import com.smoi.embedding.EmbeddingProperties;
 import com.smoi.embedding.EmbeddingProvider;
+import com.smoi.folder.FolderFile;
+import com.smoi.folder.FolderRepository;
 import com.smoi.ingestion.chunking.ChunkDraft;
 import com.smoi.ingestion.chunking.Chunker;
 import com.smoi.ingestion.parsing.Block;
 import com.smoi.ingestion.parsing.DocumentParseException;
 import com.smoi.ingestion.parsing.DocumentParser;
+import com.smoi.ingestion.parsing.NeedsOcrException;
+import com.smoi.ingestion.ocr.OcrClient;
 import com.smoi.observability.Spans;
 import com.smoi.resilience.ProviderCircuitBreakers;
 import io.micrometer.core.instrument.Counter;
@@ -52,11 +56,16 @@ public class IngestionPipeline {
     private final ProviderCircuitBreakers breakers;
     private final MeterRegistry meters;
     private final Spans spans;
+    private final FolderRepository folderFiles;
+    private final Optional<OcrClient> ocr;
 
     public IngestionPipeline(JobQueue queue, DocumentRepository documents, ChunkRepository chunks, DocumentParser parser,
                              Chunker chunker, EmbeddingProvider embeddings, IngestionProperties props,
                              EmbeddingProperties embeddingProps, TransactionTemplate tx,
-                             ProviderCircuitBreakers breakers, MeterRegistry meters, Spans spans) {
+                             ProviderCircuitBreakers breakers, MeterRegistry meters, Spans spans,
+                             FolderRepository folderFiles, Optional<OcrClient> ocr) {
+        this.folderFiles = folderFiles;
+        this.ocr = ocr;
         this.spans = spans;
         this.breakers = breakers;
         this.meters = meters;
@@ -127,7 +136,7 @@ public class IngestionPipeline {
 
         // Parse and clean, then chunk.
         long t = System.nanoTime();
-        List<Block> blocks = spans.in("ingestion.parse", () -> parser.parse(content.get().bytes(), content.get().mediaType()));
+        List<Block> blocks = spans.in("ingestion.parse", () -> parseOrOcr(content.get()));
         stage("parse", t);
         t = System.nanoTime();
         List<ChunkDraft> drafts = spans.in("ingestion.chunk", () -> chunker.chunk(blocks));
@@ -165,6 +174,7 @@ public class IngestionPipeline {
             chunks.deleteForDocument(job.userId(), job.documentId());
             chunks.insertAll(job.userId(), job.documentId(), drafts, vectors, embeddings.modelId());
             documents.markIndexed(job.userId(), job.documentId(), job.documentVersion(), drafts.size());
+            folderFiles.setStatusForDocument(job.userId(), job.documentId(), FolderFile.DONE, null);
         });
         stage("store", t);
         if (cancelled[0]) {
@@ -173,6 +183,18 @@ public class IngestionPipeline {
         Counter.builder("smoi.ingestion.chunks").register(meters).increment(drafts.size());
         log.info("Indexed document {} version {}: {} chunks", job.documentId(), job.documentVersion(), drafts.size());
         return "succeeded";
+    }
+
+    /** Parses the file; a scanned PDF goes through OCR when the sidecar is enabled. */
+    private List<Block> parseOrOcr(DocumentRepository.Content content) {
+        try {
+            return parser.parse(content.bytes(), content.mediaType());
+        } catch (NeedsOcrException e) {
+            if (ocr.isEmpty()) {
+                throw e;
+            }
+            return parser.blocksFromPages(ocr.get().recognise(content.bytes()));
+        }
     }
 
     private List<float[]> checked(List<float[]> vectors, int expected) {
@@ -220,6 +242,9 @@ public class IngestionPipeline {
             }
             if (current) {
                 chunks.deleteForDocument(job.userId(), job.documentId());
+                folderFiles.setStatusForDocument(job.userId(), job.documentId(),
+                        error.contains(NeedsOcrException.MARKER) ? FolderFile.NEEDS_OCR : FolderFile.FAILED,
+                        JobQueue.truncate(error));
             }
         });
         log.warn("Job {} moved to dead-letter: {}", job.id(), error);

@@ -31,9 +31,18 @@ public class DocumentRepository {
      * concurrent uploads of the same file.
      */
     public Optional<Document> insertIfNew(UUID userId, String filename, String mediaType, String sha256, byte[] content) {
+        return insertIfNew(userId, filename, mediaType, sha256, content, ORIGIN_UPLOAD);
+    }
+
+    public static final String ORIGIN_UPLOAD = "upload";
+    public static final String ORIGIN_FOLDER = "folder";
+
+    /** As above, recording where the document came from ({@link #ORIGIN_UPLOAD} or {@link #ORIGIN_FOLDER}). */
+    public Optional<Document> insertIfNew(UUID userId, String filename, String mediaType, String sha256, byte[] content,
+                                          String origin) {
         return jdbc.sql("""
-                        INSERT INTO documents (user_id, filename, media_type, size_bytes, content_sha256, content)
-                        VALUES (:userId, :filename, :mediaType, :size, :sha256, :content)
+                        INSERT INTO documents (user_id, filename, media_type, size_bytes, content_sha256, content, origin)
+                        VALUES (:userId, :filename, :mediaType, :size, :sha256, :content, :origin)
                         ON CONFLICT (user_id, content_sha256) WHERE deleted_at IS NULL DO NOTHING
                         RETURNING %s
                         """.formatted(COLUMNS))
@@ -43,8 +52,31 @@ public class DocumentRepository {
                 .param("size", (long) content.length)
                 .param("sha256", sha256)
                 .param("content", content)
+                .param("origin", origin)
                 .query(Document.class)
                 .optional();
+    }
+
+    /** True if folder sync created this active document (so folder sync may delete it). */
+    public boolean isFolderOrigin(UUID userId, UUID id) {
+        return jdbc.sql("""
+                        SELECT origin = 'folder' FROM documents
+                         WHERE id = :id AND user_id = :userId AND deleted_at IS NULL
+                        """)
+                .param("id", id)
+                .param("userId", userId)
+                .query(Boolean.class)
+                .optional()
+                .orElse(false);
+    }
+
+    /** Changes only the display name (a renamed file). The content and chunks stay as they are. */
+    public void rename(UUID userId, UUID id, String filename) {
+        jdbc.sql("UPDATE documents SET filename = :filename WHERE id = :id AND user_id = :userId AND deleted_at IS NULL")
+                .param("filename", filename)
+                .param("id", id)
+                .param("userId", userId)
+                .update();
     }
 
     public Optional<Document> findActive(UUID userId, UUID id) {

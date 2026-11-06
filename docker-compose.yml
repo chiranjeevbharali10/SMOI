@@ -71,6 +71,14 @@ services:
     ports:
       - "127.0.0.1:${WHISPER_PORT:-8002}:8002"
 
+  # Optional OCR for scanned PDFs (sidecars/ocr). Start it with
+  # `docker compose --profile ocr up -d ocr` and set OCR_ENABLED=true in .env.
+  ocr:
+    profiles: ["ocr"]
+    build: ./sidecars/ocr
+    ports:
+      - "127.0.0.1:${OCR_PORT:-8003}:8003"
+
   backend:
     build: ./backend
     depends_on:
@@ -103,6 +111,8 @@ services:
       ANTHROPIC_MODEL: ${ANTHROPIC_MODEL:-claude-haiku-5-5}
       RERANK_ENABLED: ${RERANK_ENABLED:-false}
       RERANKER_URL: ${RERANKER_URL:-http://reranker:8001}
+      OCR_ENABLED: ${OCR_ENABLED:-false}
+      OCR_URL: ${OCR_URL:-http://ocr:8003}
       STT_PROVIDER: ${STT_PROVIDER:-none}
       WHISPER_URL: ${WHISPER_URL:-http://whisper:8002}
       MAX_UPLOAD_SIZE: ${MAX_UPLOAD_SIZE:-25MB}
