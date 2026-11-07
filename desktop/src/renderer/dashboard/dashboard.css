@@ -5,8 +5,10 @@
  * headings, Nunito for everything people read at length.
  */
 html, body, #root { height: 100%; }
+/* Only .main (or a panel inside it) scrolls; the page itself never does. */
 body {
   margin: 0;
+  overflow: hidden;
   background: var(--smoi-cream);
   color: var(--smoi-charcoal);
   font-family: var(--smoi-font-body);
@@ -19,7 +21,8 @@ h2 { font-size: 26px; }
 h3 { font-size: 20px; }
 p { margin: 0; }
 
-.app { display: flex; flex-direction: column; height: 100%; }
+/* position: relative keeps absolutely positioned helpers (e.g. .visually-hidden) inside the app. */
+.app { position: relative; display: flex; flex-direction: column; height: 100%; }
 
 .topbar {
   display: flex;
@@ -112,7 +115,10 @@ dl.facts dt { font-weight: 800; }
 dl.facts dd { margin: 0; }
 
 /* SMOI Brain */
-.brain { display: grid; grid-template-columns: minmax(280px, 360px) 1fr; gap: 20px; min-height: 0; flex: 1; }
+/* Fills the window: each column scrolls on its own, so the question box always stays visible. */
+.brain { display: grid; grid-template-columns: minmax(280px, 360px) 1fr; grid-template-rows: minmax(0, 1fr); gap: 20px; min-height: 0; flex: 1; }
+.brain > .card { min-height: 0; overflow: auto; }
+.brain > .card.chat { overflow: hidden; }
 .doc-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; overflow: auto; }
 .doc { display: flex; flex-direction: column; gap: 2px; padding: 10px 12px; border: var(--smoi-border); border-radius: 14px; }
 .doc-name { font-weight: 800; overflow-wrap: anywhere; }
