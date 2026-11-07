@@ -50,4 +50,18 @@ class CitationsTest {
         assertThat(Citations.isDontKnow("Based on your documents, there is no information about who invented "
                 + "the bicycle [S1][S2][S3]. I don't know based on your documents.")).isTrue();
     }
+
+    @Test
+    void keepsAPartialAnswerButNotANegativePreamble() {
+        String partial = "Your documents cover frogs [S1] and databases [S2]. I don't know based on your documents.";
+        String rest = Citations.withoutDontKnow(partial);
+        assertThat(rest).isEqualTo("Your documents cover frogs [S1] and databases [S2].");
+        assertThat(Citations.hasCitedClaim(rest, GIVEN)).isTrue();
+
+        String negative = Citations.withoutDontKnow("Based on your documents, there is no information about who "
+                + "invented the bicycle [S1][S2]. I don't know based on your documents.");
+        assertThat(Citations.hasCitedClaim(negative, GIVEN)).isFalse();
+        assertThat(Citations.hasCitedClaim("The sources do not mention it [S1].", GIVEN)).isFalse();
+        assertThat(Citations.hasCitedClaim("Frogs eat insects.", GIVEN)).isFalse();
+    }
 }

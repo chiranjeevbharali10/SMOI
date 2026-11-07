@@ -31,7 +31,7 @@ export interface AnswerView {
   citations: SourceRef[];
   /** For "fallback": the retrieved passages. */
   passages: Passage[];
-  /** Plain explanation of what happened, for every status but waiting/streaming/answered. */
+  /** Plain explanation of what happened; for "answered", only set when the answer is partial. */
   notice: string | null;
   /** Extra facts about the answer the user should know (documents skipped, truncation). */
   notes: string[];
@@ -86,7 +86,7 @@ function fromResult(view: AnswerView, r: AnswerResult): AnswerView {
   const base = { ...view, notes: notesOf(r), given: r.sourcesGiven ?? view.given };
   switch (r.outcome) {
     case 'answered':
-      return { ...base, status: 'answered', text: r.answer ?? view.text, citations: r.citations ?? [], notice: null };
+      return { ...base, status: 'answered', text: r.answer ?? view.text, citations: r.citations ?? [], notice: r.message ?? null };
     case 'dont_know':
       return {
         ...base, status: 'dont_know', text: r.answer ?? '', citations: [],

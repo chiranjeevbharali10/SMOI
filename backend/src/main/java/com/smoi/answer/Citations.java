@@ -61,6 +61,35 @@ final class Citations {
         return normalized.contains(Prompts.DONT_KNOW.toLowerCase(Locale.ROOT).replace(".", ""));
     }
 
+    /** The "don't know" sentence, with either apostrophe and an optional full stop. */
+    private static final Pattern DONT_KNOW_SENTENCE =
+            Pattern.compile("(?i)I don['’]t know based on your documents\\.?");
+
+    /** A sentence that only says the sources lack something; it supports no claim. */
+    private static final Pattern NEGATIVE = Pattern.compile("(?i)\\b(no information|no mention|not mention|"
+            + "doesn't (mention|contain|say|provide|cover)|does not (mention|contain|say|provide|cover)|"
+            + "don't (mention|contain|say|provide|cover)|do not (mention|contain|say|provide|cover)|"
+            + "not (specified|stated|provided|given|covered))\\b");
+
+    /** The reply with every "don't know" sentence removed. */
+    static String withoutDontKnow(String answer) {
+        return DONT_KNOW_SENTENCE.matcher(answer).replaceAll("").strip();
+    }
+
+    /**
+     * True if at least one sentence cites a given source and isn't just a "the sources don't say"
+     * statement. A small model sometimes answers part of a question and then adds the "don't know"
+     * sentence; this decides whether there is a real answer worth keeping.
+     */
+    static boolean hasCitedClaim(String answer, Set<String> allowedLabels) {
+        for (String sentence : answer.split("(?<=[.!?])\\s+")) {
+            if (!check(sentence, allowedLabels).cited().isEmpty() && !NEGATIVE.matcher(sentence).find()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     private Citations() {
     }
 }

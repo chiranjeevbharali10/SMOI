@@ -122,6 +122,18 @@ class AnswerIT extends DocumentApiTest {
     }
 
     @Test
+    void aPartialAnswerBeforeTheDontKnowSentenceIsKeptWithANote() {
+        llm.replyWith("The garden opens at nine [S1]. " + Prompts.DONT_KNOW);
+
+        Map<String, Object> body = ask(user, "When does the garden open and who founded it?").getBody();
+
+        assertThat(body).containsEntry("outcome", "answered")
+                .containsEntry("answer", "The garden opens at nine [S1].");
+        assertThat(body.values()).contains(AnswerService.PARTIAL_NOTE);
+        assertThat(citations(body)).hasSize(1);
+    }
+
+    @Test
     void withNothingRetrievedTheModelIsNotAskedAtAll() {
         TestUser empty = newUser();
 

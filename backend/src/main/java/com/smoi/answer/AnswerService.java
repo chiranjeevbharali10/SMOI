@@ -31,6 +31,7 @@ import org.springframework.stereotype.Service;
 public class AnswerService {
 
     private static final Logger log = LoggerFactory.getLogger(AnswerService.class);
+    static final String PARTIAL_NOTE = "Your documents only cover part of this question.";
     static final String LLM_DOWN_MESSAGE = "Answer generation is unavailable right now, so here are the most relevant "
             + "passages from your documents instead. They have not been summarised or checked by the LLM.";
 
@@ -111,14 +112,23 @@ public class AnswerService {
                     llm.providerId(), llm.model(), mode, retrieved.rerank(), retrieved.rerankNote(),
                     prompt.included().size(), excluded, prompt.omitted(), false, timings, List.of());
         }
-        if (Citations.isDontKnow(result.text())) {
-            return new AnswerResult(Outcome.DONT_KNOW, Prompts.DONT_KNOW, "Your documents don't cover this question.",
-                    List.of(), List.of(), null, llm.providerId(), llm.model(), mode, retrieved.rerank(),
-                    retrieved.rerankNote(), prompt.included().size(), excluded, prompt.omitted(), false, timings, List.of());
-        }
         Map<String, Source> byLabel = prompt.included().stream()
                 .collect(Collectors.toMap(Source::label, Function.identity()));
-        Citations.Check check = Citations.check(result.text(), byLabel.keySet());
+        String text = result.text();
+        String note = null;
+        if (Citations.isDontKnow(text)) {
+            // A partial answer followed by the "don't know" sentence keeps its cited part; a reply
+            // whose only cited sentences say "the sources don't mention X" is still a "don't know".
+            String rest = Citations.withoutDontKnow(text);
+            if (!Citations.hasCitedClaim(rest, byLabel.keySet())) {
+                return new AnswerResult(Outcome.DONT_KNOW, Prompts.DONT_KNOW, "Your documents don't cover this question.",
+                        List.of(), List.of(), null, llm.providerId(), llm.model(), mode, retrieved.rerank(),
+                        retrieved.rerankNote(), prompt.included().size(), excluded, prompt.omitted(), false, timings, List.of());
+            }
+            text = rest;
+            note = PARTIAL_NOTE;
+        }
+        Citations.Check check = Citations.check(text, byLabel.keySet());
         boolean truncated = result.stop() == LlmResult.Stop.MAX_TOKENS;
         if (!check.valid() || check.cited().isEmpty()) {
             String why = check.valid()
@@ -129,7 +139,7 @@ public class AnswerService {
                     prompt.included().size(), excluded, prompt.omitted(), truncated, timings, List.of());
         }
         List<AnswerResult.Citation> citations = check.cited().stream().map(byLabel::get).map(AnswerResult.Citation::of).toList();
-        return new AnswerResult(Outcome.ANSWERED, result.text().strip(), null, citations, List.of(), null,
+        return new AnswerResult(Outcome.ANSWERED, text.strip(), note, citations, List.of(), null,
                 llm.providerId(), llm.model(), mode, retrieved.rerank(), retrieved.rerankNote(),
                 prompt.included().size(), excluded, prompt.omitted(), truncated, timings, List.of());
     }

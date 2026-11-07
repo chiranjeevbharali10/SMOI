@@ -27,7 +27,7 @@ export function AnswerBlock({ view, onOpenSource }: { view: AnswerView; onOpenSo
         <Face name={status.face} />
         <span>{status.label}</span>
       </div>
-      {view.notice && <p className={`banner ${view.status === 'dont_know' ? 'info' : 'error'}`}>{view.notice}</p>}
+      {view.notice && <p className={`banner ${view.status === 'dont_know' || view.status === 'answered' ? 'info' : 'error'}`}>{view.notice}</p>}
       {view.text && (
         <p className="plain" data-testid="answer-text">
           {view.text}
