@@ -44,6 +44,43 @@ Google always need your confirmation, and SMOI only ever *drafts* email. It neve
   </tr>
 </table>
 
+## 🐾 Pick your companion
+
+SMOI the frog is the default, but it isn't the only option. Choose who sits on your desktop from
+the **Companions** screen in the dashboard. Each one has its own sprites and voice. Your tasks, settings and
+documents stay the same whoever you pick.
+
+<table>
+  <tr>
+    <td align="center" width="20%"><img src="docs/readme/frog/idle.gif" width="96" alt="SMOI the frog"></td>
+    <td align="center" width="20%"><img src="docs/readme/companions/numi.gif" width="96" alt="NUMI the axolotl"></td>
+    <td align="center" width="20%"><img src="docs/readme/companions/nox.gif" width="96" alt="NOX the bat"></td>
+    <td align="center" width="20%"><img src="docs/readme/companions/yuzu.gif" width="96" alt="YUZU the capybara"></td>
+    <td align="center" width="20%"><img src="docs/readme/companions/wisp.gif" width="96" alt="WISP the moth"></td>
+  </tr>
+  <tr>
+    <td align="center"><b>SMOI</b><br><sub>frog · default</sub></td>
+    <td align="center"><b>NUMI</b><br><sub>axolotl</sub></td>
+    <td align="center"><b>NOX</b><br><sub>bat</sub></td>
+    <td align="center"><b>YUZU</b><br><sub>capybara</sub></td>
+    <td align="center"><b>WISP</b><br><sub>moth</sub></td>
+  </tr>
+  <tr>
+    <td align="center"><sub><i>Affectionate, slightly chaotic, a little dramatic.</i></sub></td>
+    <td align="center"><sub><i>Dreamy, gentle, forgetful.</i></sub></td>
+    <td align="center"><sub><i>Dry, sarcastic night owl.</i></sub></td>
+    <td align="center"><sub><i>Deadpan, completely unbothered.</i></sub></td>
+    <td align="center"><sub><i>Anxious, excitable, drawn to bright screens.</i></sub></td>
+  </tr>
+  <tr>
+    <td align="center"><sub>“LOOK AT YOU GO!!”</sub></td>
+    <td align="center"><sub>“Oh! Hi. Was I... doing something?”</sub></td>
+    <td align="center"><sub>“It's 2am. Bold of you.”</sub></td>
+    <td align="center"><sub>“Deadline missed. Anyway.”</sub></td>
+    <td align="center"><sub>“Ooh, a new tab! It's so bright!”</sub></td>
+  </tr>
+</table>
+
 ## 🐸 What's inside
 
 | | |
