@@ -1,3 +1,5 @@
+import { Buddy } from './Buddy';
+import { Ribbon } from './Ribbon';
 import { AskScene } from './sections/AskScene';
 import { FriendsScene, LinesScene, MoodsScene, PersonalityScene } from './sections/CharacterScenes';
 import { DesktopScene } from './sections/DesktopScene';
@@ -12,6 +14,7 @@ export function App() {
       <a className="skip" href="#desktop">Skip to the tour</a>
       <main>
         <Hero />
+        <Ribbon tone="green" />
         <DesktopScene />
         <AskScene />
         <RemembersScene />
@@ -21,8 +24,10 @@ export function App() {
         <FriendsScene />
         <PersonalityScene />
         <LinesScene />
+        <Ribbon tone="pink" reverse offset={6} />
         <Finale />
       </main>
+      <Buddy />
     </>
   );
 }

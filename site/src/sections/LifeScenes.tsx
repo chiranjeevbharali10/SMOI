@@ -38,7 +38,7 @@ export function RemembersScene() {
   return (
     <Scene id="remembers" tone="pink" label="Tasks and reminders">
       <p className="kicker">Tasks and reminders</p>
-      <h2>It remembers so you don't have to.</h2>
+      <h2>It <mark className="hl hl-blue">remembers</mark> so you don't have to.</h2>
       <p className="lede">
         Tell SMOI what you need to do, by typing or out loud. It keeps the list, and when it's time,
         it taps you on the shoulder. Gently. Mostly.
@@ -75,7 +75,7 @@ export function InboxScene() {
   return (
     <Scene id="inbox" tone="blue" label="Inbox">
       <p className="kicker">Gmail and Google Calendar</p>
-      <h2>Your inbox, sorted. Never sent.</h2>
+      <h2>Your inbox, sorted. <mark className="hl hl-pink">Never sent.</mark></h2>
       <p className="lede">
         SMOI reads your unread mail, sorts it, and tells you in one line what each email wants. It can
         write a reply for you, but it only ever saves a draft. You press send.
@@ -107,7 +107,7 @@ export function PrivacyScene() {
         <Sprite companion={smoi} pose="sleeping" scale={3} label="SMOI asleep" />
         <div>
           <p className="kicker">Private by default</p>
-          <h2>Your files never leave your computer.</h2>
+          <h2>Your files <mark className="hl hl-green">never leave</mark> your computer.</h2>
           <ul className="points">
             <li><strong>Local AI by default.</strong> Answers come from a model running on your own machine.</li>
             <li><strong>You choose, file by file.</strong> Nothing goes to a cloud AI unless you switch it on for that document.</li>

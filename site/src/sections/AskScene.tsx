@@ -29,7 +29,7 @@ export function AskScene({ data = demo }: { data?: Recording }) {
   return (
     <Scene id="ask" tone="cream" label="Ask your files anything">
       <p className="kicker">SMOI Brain</p>
-      <h2>Ask your files anything.</h2>
+      <h2>Ask your files <mark className="hl hl-pink">anything</mark>.</h2>
       <p className="lede">
         Drop in PDFs, Word documents and notes, or point SMOI at a folder. Ask in plain words and get
         an answer that shows exactly where it came from. If your files don't say, SMOI says so.

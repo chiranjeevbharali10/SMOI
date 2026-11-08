@@ -31,7 +31,7 @@ export function MoodsScene() {
   return (
     <Scene id="moods" tone="cream" label="SMOI's moods">
       <p className="kicker">Twelve moods, all pixel by pixel</p>
-      <h2>It has feelings. Lots of them.</h2>
+      <h2>It has <mark className="hl hl-lavender">feelings</mark>. Lots of them.</h2>
       <p className="lede">Thinking while it reads, chatty while it answers, smug when it's right. Pick one.</p>
       <div className="moods">
         <div className="moods-stage">
@@ -63,7 +63,7 @@ export function FriendsScene() {
   return (
     <Scene id="friends" tone="green" label="Companions">
       <p className="kicker">Not a frog person?</p>
-      <h2>Pick your friend.</h2>
+      <h2>Pick your <mark className="hl hl-paper">friend</mark>.</h2>
       <p className="lede">SMOI brought company. Each one has its own look, voice and opinions about your day.</p>
       <div className="friends">
         {companions.map((c) => <FriendCard key={c.id} c={c} />)}
@@ -108,7 +108,7 @@ export function PersonalityScene() {
   return (
     <Scene id="personality" tone="paper" label="Personality">
       <p className="kicker">Make it yours</p>
-      <h2>Pick its personality.</h2>
+      <h2>Pick its <mark className="hl hl-pink">personality</mark>.</h2>
       <p className="lede">Sweet, sassy or strictly business. Same frog, different attitude.</p>
       <div className="presets" role="radiogroup" aria-label="Personality">
         {ORDER.map((id) => (
@@ -146,7 +146,7 @@ export function LinesScene() {
   return (
     <Scene id="says" tone="cream" label="Things SMOI says">
       <p className="kicker">Affectionate, slightly chaotic, occasionally sarcastic</p>
-      <h2>Things SMOI says.</h2>
+      <h2>Things SMOI <mark className="hl hl-blue">says</mark>.</h2>
       <div className="says">
         <div className="says-bubble">
           <CenteredBubble line={{ tone: 'nudge', text: SAYS[i] }} />

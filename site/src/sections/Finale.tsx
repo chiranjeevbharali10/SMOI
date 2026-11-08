@@ -10,7 +10,7 @@ export function Finale() {
       <Scene id="hello" tone="green" label="Get SMOI">
         <div className="finale">
           <Sprite companion={smoi} pose="celebrating" scale={4} label="SMOI celebrating" />
-          <h2 className="finale-title">Say hi to SMOI.</h2>
+          <h2 className="finale-title">Say hi to <span className="wordmark wordmark-paper">SMOI</span>.</h2>
           <p className="lede">Coming soon for Windows. Follow along while it learns new tricks.</p>
           <CallToAction />
         </div>

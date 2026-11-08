@@ -31,7 +31,7 @@ export function DesktopScene() {
   return (
     <Scene id="desktop" tone="paper" label="SMOI on a desktop">
       <p className="kicker">Always there, never in the way</p>
-      <h2>It lives on your desktop.</h2>
+      <h2>It lives on your <mark className="hl hl-green">desktop</mark>.</h2>
       <p className="lede">
         SMOI hops along your taskbar, naps when you're away and pipes up when something matters.
         Click it to say hi.
