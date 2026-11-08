@@ -1,8 +1,8 @@
 {
   "recorded": true,
   "script": "site/scripts/record-demo.ts",
-  "recordedAt": "2026-11-08T12:58:14.100Z",
-  "question": "Where does the natterjack toad live?",
+  "recordedAt": "2026-11-08T13:09:03.711Z",
+  "question": "What does the natterjack toad eat, and how long does it live?",
   "provider": "ollama",
   "model": "qwen3.5:2b-q4_K_M",
   "events": [
@@ -11,8 +11,8 @@
       "sources": [
         {
           "label": "S1",
-          "chunkId": "f498aa77-dbb9-48ff-b1ac-ba31a6a70081",
-          "documentId": "98238f26-a27d-4dab-97b5-a6750844a1bd",
+          "chunkId": "69e5daea-5e1a-4942-a5e2-5ede49b8000a",
+          "documentId": "08f69c0a-2725-4b46-adc7-773760dcfa88",
           "filename": "natterjack_toad.txt",
           "chunkIndex": 0,
           "pageStart": null,
@@ -21,8 +21,8 @@
         },
         {
           "label": "S2",
-          "chunkId": "7cf07bcf-578d-4463-a08b-cb6fc8b22b72",
-          "documentId": "9db618a3-5724-4925-a837-4ac450e1e44d",
+          "chunkId": "e7529b23-f047-4f18-9b6b-793996feeba3",
+          "documentId": "e8faacca-8dcd-484a-942e-6060add1a390",
           "filename": "common_toad.txt",
           "chunkIndex": 0,
           "pageStart": null,
@@ -31,18 +31,18 @@
         },
         {
           "label": "S3",
-          "chunkId": "b6094e77-c8a3-46ae-918a-f6607d4be37d",
-          "documentId": "98238f26-a27d-4dab-97b5-a6750844a1bd",
-          "filename": "natterjack_toad.txt",
-          "chunkIndex": 1,
+          "chunkId": "2cbb0c8c-37da-4d65-9d07-c3f84de7ccac",
+          "documentId": "e8faacca-8dcd-484a-942e-6060add1a390",
+          "filename": "common_toad.txt",
+          "chunkIndex": 6,
           "pageStart": null,
           "pageEnd": null,
           "section": null
         },
         {
           "label": "S4",
-          "chunkId": "cc531c27-3e46-49ab-be91-c57c97ae68f5",
-          "documentId": "9db618a3-5724-4925-a837-4ac450e1e44d",
+          "chunkId": "fdf51c03-0aff-40e2-8ed1-40e8b4c253fa",
+          "documentId": "e8faacca-8dcd-484a-942e-6060add1a390",
           "filename": "common_toad.txt",
           "chunkIndex": 4,
           "pageStart": null,
@@ -51,20 +51,20 @@
         },
         {
           "label": "S5",
-          "chunkId": "699473c3-0798-4a5b-b0f2-4507211f0e4b",
-          "documentId": "9db618a3-5724-4925-a837-4ac450e1e44d",
-          "filename": "common_toad.txt",
-          "chunkIndex": 12,
+          "chunkId": "8615f680-a639-4a8c-825a-12169a3b9f1e",
+          "documentId": "08f69c0a-2725-4b46-adc7-773760dcfa88",
+          "filename": "natterjack_toad.txt",
+          "chunkIndex": 1,
           "pageStart": null,
           "pageEnd": null,
           "section": null
         },
         {
           "label": "S6",
-          "chunkId": "a636750c-0742-4b86-8683-9e2e89ce0c60",
-          "documentId": "c1283e99-dde6-4644-af40-5a4cf668cf74",
-          "filename": "common_frog.txt",
-          "chunkIndex": 0,
+          "chunkId": "8d8f4add-29e7-4dbe-8b3f-53c187ca7215",
+          "documentId": "e8faacca-8dcd-484a-942e-6060add1a390",
+          "filename": "common_toad.txt",
+          "chunkIndex": 5,
           "pageStart": null,
           "pageEnd": null,
           "section": null
@@ -97,67 +97,43 @@
     },
     {
       "type": "delta",
-      "text": " is"
+      "text": " feeds"
     },
     {
       "type": "delta",
-      "text": " native"
+      "text": " mainly"
     },
     {
       "type": "delta",
-      "text": " to"
+      "text": " on"
     },
     {
       "type": "delta",
-      "text": " sandy"
-    },
-    {
-      "type": "delta",
-      "text": " and"
-    },
-    {
-      "type": "delta",
-      "text": " he"
-    },
-    {
-      "type": "delta",
-      "text": "ath"
-    },
-    {
-      "type": "delta",
-      "text": "land"
-    },
-    {
-      "type": "delta",
-      "text": " areas"
-    },
-    {
-      "type": "delta",
-      "text": " of"
-    },
-    {
-      "type": "delta",
-      "text": " Europe"
-    },
-    {
-      "type": "delta",
-      "text": "."
-    },
-    {
-      "type": "delta",
-      "text": " In"
-    },
-    {
-      "type": "delta",
-      "text": " the"
-    },
-    {
-      "type": "delta",
-      "text": " UK"
+      "text": " insects"
     },
     {
       "type": "delta",
       "text": ","
+    },
+    {
+      "type": "delta",
+      "text": " especially"
+    },
+    {
+      "type": "delta",
+      "text": " beet"
+    },
+    {
+      "type": "delta",
+      "text": "les"
+    },
+    {
+      "type": "delta",
+      "text": ","
+    },
+    {
+      "type": "delta",
+      "text": " while"
     },
     {
       "type": "delta",
@@ -165,195 +141,19 @@
     },
     {
       "type": "delta",
-      "text": " is"
+      "text": " lives"
     },
     {
       "type": "delta",
-      "text": " now"
+      "text": " for"
     },
     {
       "type": "delta",
-      "text": " confined"
-    },
-    {
-      "type": "delta",
-      "text": " to"
-    },
-    {
-      "type": "delta",
-      "text": " coastal"
-    },
-    {
-      "type": "delta",
-      "text": " sites"
-    },
-    {
-      "type": "delta",
-      "text": " ["
-    },
-    {
-      "type": "delta",
-      "text": "S"
-    },
-    {
-      "type": "delta",
-      "text": "1"
-    },
-    {
-      "type": "delta",
-      "text": "]."
-    },
-    {
-      "type": "delta",
-      "text": " It"
-    },
-    {
-      "type": "delta",
-      "text": " also"
-    },
-    {
-      "type": "delta",
-      "text": " exists"
-    },
-    {
-      "type": "delta",
-      "text": " in"
-    },
-    {
-      "type": "delta",
-      "text": " County"
-    },
-    {
-      "type": "delta",
-      "text": " Kerry"
-    },
-    {
-      "type": "delta",
-      "text": " ("
-    },
-    {
-      "type": "delta",
-      "text": "D"
-    },
-    {
-      "type": "delta",
-      "text": "ingle"
-    },
-    {
-      "type": "delta",
-      "text": " Peninsula"
-    },
-    {
-      "type": "delta",
-      "text": ")"
-    },
-    {
-      "type": "delta",
-      "text": " in"
-    },
-    {
-      "type": "delta",
-      "text": " Ireland"
-    },
-    {
-      "type": "delta",
-      "text": " and"
-    },
-    {
-      "type": "delta",
-      "text": " has"
-    },
-    {
-      "type": "delta",
-      "text": " been"
-    },
-    {
-      "type": "delta",
-      "text": " introduced"
+      "text": " up"
     },
     {
       "type": "delta",
       "text": " to"
-    },
-    {
-      "type": "delta",
-      "text": " a"
-    },
-    {
-      "type": "delta",
-      "text": " d"
-    },
-    {
-      "type": "delta",
-      "text": "une"
-    },
-    {
-      "type": "delta",
-      "text": " site"
-    },
-    {
-      "type": "delta",
-      "text": " in"
-    },
-    {
-      "type": "delta",
-      "text": " County"
-    },
-    {
-      "type": "delta",
-      "text": " W"
-    },
-    {
-      "type": "delta",
-      "text": "ex"
-    },
-    {
-      "type": "delta",
-      "text": "ford"
-    },
-    {
-      "type": "delta",
-      "text": " ["
-    },
-    {
-      "type": "delta",
-      "text": "S"
-    },
-    {
-      "type": "delta",
-      "text": "1"
-    },
-    {
-      "type": "delta",
-      "text": "]["
-    },
-    {
-      "type": "delta",
-      "text": "S"
-    },
-    {
-      "type": "delta",
-      "text": "3"
-    },
-    {
-      "type": "delta",
-      "text": "]."
-    },
-    {
-      "type": "delta",
-      "text": " The"
-    },
-    {
-      "type": "delta",
-      "text": " species"
-    },
-    {
-      "type": "delta",
-      "text": " extends"
-    },
-    {
-      "type": "delta",
-      "text": " through"
     },
     {
       "type": "delta",
@@ -361,75 +161,15 @@
     },
     {
       "type": "delta",
-      "text": "7"
+      "text": "5"
     },
     {
       "type": "delta",
-      "text": " European"
+      "text": " years"
     },
     {
       "type": "delta",
-      "text": " countries"
-    },
-    {
-      "type": "delta",
-      "text": ","
-    },
-    {
-      "type": "delta",
-      "text": " including"
-    },
-    {
-      "type": "delta",
-      "text": " parts"
-    },
-    {
-      "type": "delta",
-      "text": " of"
-    },
-    {
-      "type": "delta",
-      "text": " North"
-    },
-    {
-      "type": "delta",
-      "text": " Africa"
-    },
-    {
-      "type": "delta",
-      "text": " and"
-    },
-    {
-      "type": "delta",
-      "text": " Scandin"
-    },
-    {
-      "type": "delta",
-      "text": "avia"
-    },
-    {
-      "type": "delta",
-      "text": ","
-    },
-    {
-      "type": "delta",
-      "text": " with"
-    },
-    {
-      "type": "delta",
-      "text": " populations"
-    },
-    {
-      "type": "delta",
-      "text": " varying"
-    },
-    {
-      "type": "delta",
-      "text": " by"
-    },
-    {
-      "type": "delta",
-      "text": " region"
+      "text": "."
     },
     {
       "type": "delta",
@@ -445,31 +185,21 @@
     },
     {
       "type": "delta",
-      "text": "]."
+      "text": "]"
     },
     {
       "type": "result",
       "result": {
         "outcome": "answered",
-        "answer": "The natterjack toad is native to sandy and heathland areas of Europe. In the UK, it is now confined to coastal sites [S1]. It also exists in County Kerry (Dingle Peninsula) in Ireland and has been introduced to a dune site in County Wexford [S1][S3]. The species extends through 17 European countries, including parts of North Africa and Scandinavia, with populations varying by region [S1].",
+        "answer": "The natterjack toad feeds mainly on insects, especially beetles, while it lives for up to 15 years. [S1]",
         "message": null,
         "citations": [
           {
             "label": "S1",
-            "chunkId": "f498aa77-dbb9-48ff-b1ac-ba31a6a70081",
-            "documentId": "98238f26-a27d-4dab-97b5-a6750844a1bd",
+            "chunkId": "69e5daea-5e1a-4942-a5e2-5ede49b8000a",
+            "documentId": "08f69c0a-2725-4b46-adc7-773760dcfa88",
             "filename": "natterjack_toad.txt",
             "chunkIndex": 0,
-            "pageStart": null,
-            "pageEnd": null,
-            "section": null
-          },
-          {
-            "label": "S3",
-            "chunkId": "b6094e77-c8a3-46ae-918a-f6607d4be37d",
-            "documentId": "98238f26-a27d-4dab-97b5-a6750844a1bd",
-            "filename": "natterjack_toad.txt",
-            "chunkIndex": 1,
             "pageStart": null,
             "pageEnd": null,
             "section": null
@@ -487,21 +217,20 @@
         "omittedForContext": 0,
         "truncated": false,
         "timings": {
-          "embedMs": 57,
-          "keywordMs": 20,
-          "vectorMs": 10,
+          "embedMs": 63,
+          "keywordMs": 9,
+          "vectorMs": 17,
           "rerankMs": 0,
-          "retrievalMs": 91,
-          "firstTokenMs": 33811,
-          "generationMs": 40640,
-          "totalMs": 40870
+          "retrievalMs": 89,
+          "firstTokenMs": 17715,
+          "generationMs": 20387,
+          "totalMs": 20481
         },
         "passages": []
       }
     }
   ],
   "passages": {
-    "f498aa77-dbb9-48ff-b1ac-ba31a6a70081": "Natterjack toad\n\nThe natterjack toad (Epidalea calamita) is a toad native to sandy and heathland areas of Europe. Adults are 60–70 mm (2.4–2.8 in) in length, and are distinguished from common toads by a yellow line down the middle of the back and parallel paratoid glands. They have relatively short legs, which gives them a distinctive gait, contrasting with the hopping movement of many other toad species.\n\nNatterjacks have a very loud and distinctive mating call amplified by the single vocal sac found under the chin of the male.\n\nLife history\n\nNatterjacks live for up to 15 years, and feed mainly on insects, especially beetles. At night, they move around open terrain with sparse vegetation, and their tracks can often be seen in loose sand. They move considerable distances each night, enabling the species to colonize new habitats shut up.\n\nReproduction\n\nThe natterjack toad spawns between the end of April and July, laying strings of eggs in shallow, warm pools. Because the natterjack toad is often present in low numbers, its loud mating calls are important so that the sexes can find each other.\n\nNatterjacks can only spawn in pools that have a very slightly sloping bottom, and tolerate only sparse vegetation on the banks and in the water. Since pools of this description are often temporary, sometimes the tadpoles die when the pools dry out. The natterjack compensates for that risk by mating over an extended period each summer. Thus, in September, the age of the juveniles can vary from one to three months. Early breeders seldom breed again later in the season, though some females do spawn twice in a year.\n\nDistribution\n\nPopulations of the natterjack extend through 17 European countries. In the UK, the toad is now almost completely confined to coastal sites. The natterjack is the only species of toad native to Ireland. It is found in County Kerry (Dingle Peninsula and Derrynane) and also in County Wexford, where it was introduced to a dune site.",
-    "b6094e77-c8a3-46ae-918a-f6607d4be37d": "In mainland Europe, particularly in the southern part of its range, it lives inland in a variety of habitats.\n\nConservation\n\nUK\n\nIn the UK, the threatened status of the species resulted in a national Biodiversity Action Plan designating it as one of three protected amphibians. Reasons for its threatened status include:\n\nLoss of habitat from human overpopulation\n\nDeterioration and loss of lowland heaths\n\nReduction in habitable coast from construction of dykes and seawalls\n\nAcidification of aquatic habitat from acid rain and other pollution\n\nIn England, the toad's sand dune habitat is protected by a number of national nature reserves. For example, in the north-west, reserves are at Hoylake, Ainsdale Sand Dunes, North Walney and Sandscale Haws. In Scotland, where the species is confined to the Solway Firth, a reserve is at Caerlaverock. In Wales, the species became extinct in the 20th century, but has been reintroduced as part of the Biodiversity Action Plan.\n\nIreland\n\nTo reverse habitat loss, the National Parks and Wildlife Service has created ponds for the species with some funding from the Heritage Council. The natterjack is considered endangered in Ireland. As of July 2021, a project involving Fota Wildlife Park and the National Parks and Wildlife Service has released 6,000 toadlets into their natural range in County Kerry.\n\nThe natterjack toad is used as a symbol for Dooks Golf club in Kerry.\n\nInternational Toad Day is held annually on May 15 to promote awareness of toads and their conservation. The initiative began in Israel in 2026 and has since been presented internationally."
+    "69e5daea-5e1a-4942-a5e2-5ede49b8000a": "Natterjack toad\n\nThe natterjack toad (Epidalea calamita) is a toad native to sandy and heathland areas of Europe. Adults are 60–70 mm (2.4–2.8 in) in length, and are distinguished from common toads by a yellow line down the middle of the back and parallel paratoid glands. They have relatively short legs, which gives them a distinctive gait, contrasting with the hopping movement of many other toad species.\n\nNatterjacks have a very loud and distinctive mating call amplified by the single vocal sac found under the chin of the male.\n\nLife history\n\nNatterjacks live for up to 15 years, and feed mainly on insects, especially beetles. At night, they move around open terrain with sparse vegetation, and their tracks can often be seen in loose sand. They move considerable distances each night, enabling the species to colonize new habitats shut up.\n\nReproduction\n\nThe natterjack toad spawns between the end of April and July, laying strings of eggs in shallow, warm pools. Because the natterjack toad is often present in low numbers, its loud mating calls are important so that the sexes can find each other.\n\nNatterjacks can only spawn in pools that have a very slightly sloping bottom, and tolerate only sparse vegetation on the banks and in the water. Since pools of this description are often temporary, sometimes the tadpoles die when the pools dry out. The natterjack compensates for that risk by mating over an extended period each summer. Thus, in September, the age of the juveniles can vary from one to three months. Early breeders seldom breed again later in the season, though some females do spawn twice in a year.\n\nDistribution\n\nPopulations of the natterjack extend through 17 European countries. In the UK, the toad is now almost completely confined to coastal sites. The natterjack is the only species of toad native to Ireland. It is found in County Kerry (Dingle Peninsula and Derrynane) and also in County Wexford, where it was introduced to a dune site."
   }
 }
