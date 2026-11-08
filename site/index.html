@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; font-src 'self'; script-src 'self'; connect-src 'self'; base-uri 'none'; form-action 'none'" />
+    <title>SMOI, a tiny frog that lives on your desktop</title>
+    <meta name="description" content="SMOI is a tiny pastel frog that lives on your Windows desktop. It answers questions about your files, remembers your tasks, sorts your inbox and never sends a thing without you." />
+    <meta name="theme-color" content="#B8DDB1" />
+    <link rel="icon" type="image/svg+xml" href="/icons/tray.svg" />
+    <link rel="preload" href="/fonts/PixelifySans.ttf" as="font" type="font/ttf" crossorigin />
+    <link rel="preload" href="/fonts/Nunito.ttf" as="font" type="font/ttf" crossorigin />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="SMOI, a tiny frog that lives on your desktop" />
+    <meta property="og:description" content="Ask your files anything. Never forget a task. Your inbox, sorted and never sent." />
+    <meta property="og:image" content="/og-card.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
