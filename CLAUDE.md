@@ -23,6 +23,7 @@ The requirements live in `docs/srs.md`. Decisions live in `docs/adr/`.
 ```
 backend/    Spring Boot service
 desktop/    Electron + React + TypeScript frog app
+site/       Static launch page (Vite + React), built from desktop/'s components and art
 sidecars/   Python FastAPI ML helpers
 eval/       Python evaluation scripts
 docs/       srs.md, adr/, design/
