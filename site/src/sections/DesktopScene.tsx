@@ -144,7 +144,9 @@ function Desktop() {
 
   const frogX = Math.min(x, Math.max(8, width - SIZE - 8));
   const centre = frogX + SIZE / 2;
-  const panelLeft = centre > width / 2 ? Math.max(8, frogX - 300 - 12) : Math.min(width - 308, frogX + SIZE + 12);
+  // The panel goes on the roomier side, clear of the speech bubble (up to 300px wide, centred on the frog).
+  const clear = 150 + 14;
+  const panelLeft = centre > width / 2 ? Math.max(8, centre - clear - 300) : Math.min(width - 308, centre + clear);
 
   return (
     <div className="desktop-demo">

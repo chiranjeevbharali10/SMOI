@@ -41,12 +41,26 @@ function roster(): Plugin {
   };
 }
 
+/**
+ * Link previews need an absolute image URL. On Vercel, the production hostname is in
+ * VERCEL_PROJECT_PRODUCTION_URL at build time; locally the relative path is kept.
+ */
+function absoluteOgImage(): Plugin {
+  return {
+    name: 'smoi-og-image',
+    transformIndexHtml: (html) => {
+      const host = process.env.VERCEL_PROJECT_PRODUCTION_URL;
+      return host ? html.replace('content="/og-card.png"', `content="https://${host}/og-card.png"`) : html;
+    },
+  };
+}
+
 const pin = (name: string) => resolve(here, 'node_modules', name);
 
 export default defineConfig({
   base: '/',
   publicDir: assets,
-  plugins: [react(), roster()],
+  plugins: [react(), roster(), absoluteOgImage()],
   resolve: {
     alias: [
       { find: '@desktop', replacement: join(desktop, 'src') },
